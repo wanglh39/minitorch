@@ -1216,22 +1216,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#107-cuda-kernel" class="md-nav__link">
+  <a href="#107-cuda-stream-gpu" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7 代码逐行实现：CUDA kernel
+        10.7 CUDA 内存与 stream 速成（GPU 编程基础）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.7 代码逐行实现：CUDA kernel">
+    <nav class="md-nav" aria-label="10.7 CUDA 内存与 stream 速成（GPU 编程基础）">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1071-kernel" class="md-nav__link">
+  <a href="#1081-cuda" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.1 加法 kernel
+        10.8.1 CUDA 内存管理详解
       
     </span>
   </a>
@@ -1239,10 +1239,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1072-relu-kernel" class="md-nav__link">
+  <a href="#1082-pinned-memory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.2 ReLU kernel（演示分支）
+        10.8.2 pinned memory：锁页内存
       
     </span>
   </a>
@@ -1250,10 +1250,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1073-kernelreduction-shared-memory" class="md-nav__link">
+  <a href="#1083-unified-memory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.3 求和 kernel（reduction + shared memory）
+        10.8.3 unified memory（统一内存）
       
     </span>
   </a>
@@ -1261,10 +1261,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1074-host-wrapper-launch" class="md-nav__link">
+  <a href="#1084-cuda-stream" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.4 host 端 wrapper：内存拷贝 + launch + 同步
+        10.8.4 CUDA stream：流并行
       
     </span>
   </a>
@@ -1272,10 +1272,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1075-cuda" class="md-nav__link">
+  <a href="#1085-cuda-event" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.5 注册 CUDA 算子
+        10.8.5 CUDA event：流间同步
       
     </span>
   </a>
@@ -1283,10 +1283,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1076" class="md-nav__link">
+  <a href="#1086-nvcc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.6 错误处理与调试
+        10.8.6 nvcc 编译流程
       
     </span>
   </a>
@@ -1294,10 +1294,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1077-gpu" class="md-nav__link">
+  <a href="#1087-cuda" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.7 编译守卫与无 GPU 构建
+        10.8.7 CUDA 错误检查的最佳实践
       
     </span>
   </a>
@@ -1310,15 +1310,109 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#108-cpu-vs-cuda" class="md-nav__link">
+  <a href="#108-cuda-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.8 完整示例：CPU vs CUDA 注册和调用
+        10.8 代码逐行实现：CUDA kernel
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.8 完整示例：CPU vs CUDA 注册和调用">
+    <nav class="md-nav" aria-label="10.8 代码逐行实现：CUDA kernel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1081-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.1 加法 kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1082-relu-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.2 ReLU kernel（演示分支）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1083-kernelreduction-shared-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.3 求和 kernel（reduction + shared memory）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1084-host-wrapper-launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.4 host 端 wrapper：内存拷贝 + launch + 同步
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1085-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.5 注册 CUDA 算子
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1086" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.6 错误处理与调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1087-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.7 编译守卫与无 GPU 构建
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#109-cpu-vs-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9 完整示例：CPU vs CUDA 注册和调用
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.9 完整示例：CPU vs CUDA 注册和调用">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1360,22 +1454,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#109" class="md-nav__link">
+  <a href="#1010" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9 常见陷阱
+        10.10 常见陷阱
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.9 常见陷阱">
+    <nav class="md-nav" aria-label="10.10 常见陷阱">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1091" class="md-nav__link">
+  <a href="#10101" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.1 异步执行：读到旧数据
+        10.10.1 异步执行：读到旧数据
       
     </span>
   </a>
@@ -1383,10 +1477,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1092" class="md-nav__link">
+  <a href="#10102" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.2 内存拷贝开销
+        10.10.2 内存拷贝开销
       
     </span>
   </a>
@@ -1394,10 +1488,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1093-bank-conflict" class="md-nav__link">
+  <a href="#10103-bank-conflict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.3 bank conflict
+        10.10.3 bank conflict
       
     </span>
   </a>
@@ -1405,10 +1499,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1094" class="md-nav__link">
+  <a href="#10104" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.4 越界访问
+        10.10.4 越界访问
       
     </span>
   </a>
@@ -1416,10 +1510,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1095-warp-divergence" class="md-nav__link">
+  <a href="#10105-warp-divergence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.5 warp divergence
+        10.10.5 warp divergence
       
     </span>
   </a>
@@ -1427,10 +1521,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1096-block-size" class="md-nav__link">
+  <a href="#10106-block-size" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.6 block size 选多大
+        10.10.6 block size 选多大
       
     </span>
   </a>
@@ -1443,22 +1537,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1010-pytorch" class="md-nav__link">
+  <a href="#1011-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10 与真实 PyTorch 对照
+        10.11 与真实 PyTorch 对照
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.10 与真实 PyTorch 对照">
+    <nav class="md-nav" aria-label="10.11 与真实 PyTorch 对照">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#10101-dispatchtable" class="md-nav__link">
+  <a href="#10111-dispatchtable" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.1 DispatchTable
+        10.11.1 DispatchTable
       
     </span>
   </a>
@@ -1466,10 +1560,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10102-dispatchkey" class="md-nav__link">
+  <a href="#10112-dispatchkey" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.2 DispatchKey
+        10.11.2 DispatchKey
       
     </span>
   </a>
@@ -1477,10 +1571,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10103-atennativecuda" class="md-nav__link">
+  <a href="#10113-atennativecuda" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.3 aten/native/cuda/
+        10.11.3 aten/native/cuda/
       
     </span>
   </a>
@@ -1488,10 +1582,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10104-dispatcher" class="md-nav__link">
+  <a href="#10114-dispatcher" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.4 dispatcher 演化史
+        10.11.4 dispatcher 演化史
       
     </span>
   </a>
@@ -1499,49 +1593,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10105-pytorch" class="md-nav__link">
+  <a href="#10115-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.5 一段真实 PyTorch 注册代码
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#1011" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.11 历史背景
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="10.11 历史背景">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#10111-cuda-2006" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.11.1 CUDA 的诞生（2006）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10112-pytorch-dispatcher" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.11.2 PyTorch dispatcher 演化
+        10.11.5 一段真实 PyTorch 注册代码
       
     </span>
   </a>
@@ -1557,12 +1612,51 @@
   <a href="#1012" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.12 练习题
+        10.12 历史背景
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.12 练习题">
+    <nav class="md-nav" aria-label="10.12 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10121-cuda-2006" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.12.1 CUDA 的诞生（2006）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10122-pytorch-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.12.2 PyTorch dispatcher 演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1013" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.13 练习题">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1648,83 +1742,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1013" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13 关键测试解读
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="10.13 关键测试解读">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#10131-cpu-dispatcher" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13.1 CPU dispatcher 测试
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10132-cuda-skip-if-no-cuda" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13.2 CUDA 测试（skip if no CUDA）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10133" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13.3 路由测试
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10134" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13.4 检测函数
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#1014" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.14 优劣势总结
+        10.14 关键测试解读
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.14 优劣势总结">
+    <nav class="md-nav" aria-label="10.14 关键测试解读">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#10141" class="md-nav__link">
+  <a href="#10141-cpu-dispatcher" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.14.1 优势
+        10.14.1 CPU dispatcher 测试
       
     </span>
   </a>
@@ -1732,10 +1765,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10142" class="md-nav__link">
+  <a href="#10142-cuda-skip-if-no-cuda" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.14.2 劣势
+        10.14.2 CUDA 测试（skip if no CUDA）
       
     </span>
   </a>
@@ -1743,10 +1776,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10143-gpu" class="md-nav__link">
+  <a href="#10143" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.14.3 什么时候值得上 GPU
+        10.14.3 路由测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10144" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14.4 检测函数
       
     </span>
   </a>
@@ -1762,7 +1806,57 @@
   <a href="#1015" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.15 本章总结
+        10.15 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.15 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10151" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.15.1 优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10152" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.15.2 劣势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10153-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.15.3 什么时候值得上 GPU
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1016" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.16 本章总结
       
     </span>
   </a>
@@ -2361,22 +2455,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#107-cuda-kernel" class="md-nav__link">
+  <a href="#107-cuda-stream-gpu" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7 代码逐行实现：CUDA kernel
+        10.7 CUDA 内存与 stream 速成（GPU 编程基础）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.7 代码逐行实现：CUDA kernel">
+    <nav class="md-nav" aria-label="10.7 CUDA 内存与 stream 速成（GPU 编程基础）">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1071-kernel" class="md-nav__link">
+  <a href="#1081-cuda" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.1 加法 kernel
+        10.8.1 CUDA 内存管理详解
       
     </span>
   </a>
@@ -2384,10 +2478,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1072-relu-kernel" class="md-nav__link">
+  <a href="#1082-pinned-memory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.2 ReLU kernel（演示分支）
+        10.8.2 pinned memory：锁页内存
       
     </span>
   </a>
@@ -2395,10 +2489,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1073-kernelreduction-shared-memory" class="md-nav__link">
+  <a href="#1083-unified-memory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.3 求和 kernel（reduction + shared memory）
+        10.8.3 unified memory（统一内存）
       
     </span>
   </a>
@@ -2406,10 +2500,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1074-host-wrapper-launch" class="md-nav__link">
+  <a href="#1084-cuda-stream" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.4 host 端 wrapper：内存拷贝 + launch + 同步
+        10.8.4 CUDA stream：流并行
       
     </span>
   </a>
@@ -2417,10 +2511,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1075-cuda" class="md-nav__link">
+  <a href="#1085-cuda-event" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.5 注册 CUDA 算子
+        10.8.5 CUDA event：流间同步
       
     </span>
   </a>
@@ -2428,10 +2522,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1076" class="md-nav__link">
+  <a href="#1086-nvcc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.6 错误处理与调试
+        10.8.6 nvcc 编译流程
       
     </span>
   </a>
@@ -2439,10 +2533,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1077-gpu" class="md-nav__link">
+  <a href="#1087-cuda" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.7.7 编译守卫与无 GPU 构建
+        10.8.7 CUDA 错误检查的最佳实践
       
     </span>
   </a>
@@ -2455,15 +2549,109 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#108-cpu-vs-cuda" class="md-nav__link">
+  <a href="#108-cuda-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.8 完整示例：CPU vs CUDA 注册和调用
+        10.8 代码逐行实现：CUDA kernel
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.8 完整示例：CPU vs CUDA 注册和调用">
+    <nav class="md-nav" aria-label="10.8 代码逐行实现：CUDA kernel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1081-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.1 加法 kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1082-relu-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.2 ReLU kernel（演示分支）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1083-kernelreduction-shared-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.3 求和 kernel（reduction + shared memory）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1084-host-wrapper-launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.4 host 端 wrapper：内存拷贝 + launch + 同步
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1085-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.5 注册 CUDA 算子
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1086" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.6 错误处理与调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1087-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.7 编译守卫与无 GPU 构建
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#109-cpu-vs-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9 完整示例：CPU vs CUDA 注册和调用
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.9 完整示例：CPU vs CUDA 注册和调用">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2505,22 +2693,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#109" class="md-nav__link">
+  <a href="#1010" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9 常见陷阱
+        10.10 常见陷阱
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.9 常见陷阱">
+    <nav class="md-nav" aria-label="10.10 常见陷阱">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1091" class="md-nav__link">
+  <a href="#10101" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.1 异步执行：读到旧数据
+        10.10.1 异步执行：读到旧数据
       
     </span>
   </a>
@@ -2528,10 +2716,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1092" class="md-nav__link">
+  <a href="#10102" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.2 内存拷贝开销
+        10.10.2 内存拷贝开销
       
     </span>
   </a>
@@ -2539,10 +2727,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1093-bank-conflict" class="md-nav__link">
+  <a href="#10103-bank-conflict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.3 bank conflict
+        10.10.3 bank conflict
       
     </span>
   </a>
@@ -2550,10 +2738,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1094" class="md-nav__link">
+  <a href="#10104" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.4 越界访问
+        10.10.4 越界访问
       
     </span>
   </a>
@@ -2561,10 +2749,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1095-warp-divergence" class="md-nav__link">
+  <a href="#10105-warp-divergence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.5 warp divergence
+        10.10.5 warp divergence
       
     </span>
   </a>
@@ -2572,10 +2760,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1096-block-size" class="md-nav__link">
+  <a href="#10106-block-size" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.9.6 block size 选多大
+        10.10.6 block size 选多大
       
     </span>
   </a>
@@ -2588,22 +2776,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1010-pytorch" class="md-nav__link">
+  <a href="#1011-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10 与真实 PyTorch 对照
+        10.11 与真实 PyTorch 对照
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.10 与真实 PyTorch 对照">
+    <nav class="md-nav" aria-label="10.11 与真实 PyTorch 对照">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#10101-dispatchtable" class="md-nav__link">
+  <a href="#10111-dispatchtable" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.1 DispatchTable
+        10.11.1 DispatchTable
       
     </span>
   </a>
@@ -2611,10 +2799,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10102-dispatchkey" class="md-nav__link">
+  <a href="#10112-dispatchkey" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.2 DispatchKey
+        10.11.2 DispatchKey
       
     </span>
   </a>
@@ -2622,10 +2810,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10103-atennativecuda" class="md-nav__link">
+  <a href="#10113-atennativecuda" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.3 aten/native/cuda/
+        10.11.3 aten/native/cuda/
       
     </span>
   </a>
@@ -2633,10 +2821,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10104-dispatcher" class="md-nav__link">
+  <a href="#10114-dispatcher" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.4 dispatcher 演化史
+        10.11.4 dispatcher 演化史
       
     </span>
   </a>
@@ -2644,49 +2832,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10105-pytorch" class="md-nav__link">
+  <a href="#10115-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.10.5 一段真实 PyTorch 注册代码
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#1011" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.11 历史背景
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="10.11 历史背景">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#10111-cuda-2006" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.11.1 CUDA 的诞生（2006）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10112-pytorch-dispatcher" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.11.2 PyTorch dispatcher 演化
+        10.11.5 一段真实 PyTorch 注册代码
       
     </span>
   </a>
@@ -2702,12 +2851,51 @@
   <a href="#1012" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.12 练习题
+        10.12 历史背景
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.12 练习题">
+    <nav class="md-nav" aria-label="10.12 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10121-cuda-2006" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.12.1 CUDA 的诞生（2006）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10122-pytorch-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.12.2 PyTorch dispatcher 演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1013" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.13 练习题">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2793,83 +2981,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1013" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13 关键测试解读
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="10.13 关键测试解读">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#10131-cpu-dispatcher" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13.1 CPU dispatcher 测试
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10132-cuda-skip-if-no-cuda" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13.2 CUDA 测试（skip if no CUDA）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10133" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13.3 路由测试
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10134" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10.13.4 检测函数
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#1014" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.14 优劣势总结
+        10.14 关键测试解读
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10.14 优劣势总结">
+    <nav class="md-nav" aria-label="10.14 关键测试解读">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#10141" class="md-nav__link">
+  <a href="#10141-cpu-dispatcher" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.14.1 优势
+        10.14.1 CPU dispatcher 测试
       
     </span>
   </a>
@@ -2877,10 +3004,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10142" class="md-nav__link">
+  <a href="#10142-cuda-skip-if-no-cuda" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.14.2 劣势
+        10.14.2 CUDA 测试（skip if no CUDA）
       
     </span>
   </a>
@@ -2888,10 +3015,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10143-gpu" class="md-nav__link">
+  <a href="#10143" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.14.3 什么时候值得上 GPU
+        10.14.3 路由测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10144" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14.4 检测函数
       
     </span>
   </a>
@@ -2907,7 +3045,57 @@
   <a href="#1015" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.15 本章总结
+        10.15 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.15 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10151" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.15.1 优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10152" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.15.2 劣势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10153-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.15.3 什么时候值得上 GPU
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1016" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.16 本章总结
       
     </span>
   </a>
@@ -3363,9 +3551,247 @@
 </code></pre></div>
 <p><strong>Ch8 的算子代码零改动</strong>——<code>add</code>/<code>sub</code>/... 还是原来那些函数，只是被"注册"到 dispatcher。这演示了 dispatcher 的解耦价值：现有算子不用改就能接入。</p>
 <hr />
-<h2 id="107-cuda-kernel">10.7 代码逐行实现：CUDA kernel<a class="headerlink" href="#107-cuda-kernel" title="Permanent link">&para;</a></h2>
+<h2 id="107-cuda-stream-gpu">10.7 CUDA 内存与 stream 速成（GPU 编程基础）<a class="headerlink" href="#107-cuda-stream-gpu" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>本节讲解 CUDA 内存管理和流并行的核心概念，后续 kernel 代码会用到。
+如果你已熟悉 CUDA 编程，跳到 10.8。</p>
+</blockquote>
+<h3 id="1081-cuda">10.8.1 CUDA 内存管理详解<a class="headerlink" href="#1081-cuda" title="Permanent link">&para;</a></h3>
+<p>CUDA 有多种内存类型，各有用途和开销：</p>
+<table>
+<thead>
+<tr>
+<th>内存类型</th>
+<th>分配 API</th>
+<th>位置</th>
+<th>访问者</th>
+<th>开销</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Device memory</td>
+<td><code>cudaMalloc</code></td>
+<td>GPU 显存</td>
+<td>GPU kernel</td>
+<td>慢分配，快访问</td>
+</tr>
+<tr>
+<td>Host memory</td>
+<td><code>malloc</code></td>
+<td>CPU 内存</td>
+<td>CPU</td>
+<td>快分配</td>
+</tr>
+<tr>
+<td>Pinned memory</td>
+<td><code>cudaMallocHost</code></td>
+<td>CPU 内存（锁页）</td>
+<td>CPU + DMA</td>
+<td>中分配，快拷贝</td>
+</tr>
+<tr>
+<td>Unified memory</td>
+<td><code>cudaMallocManaged</code></td>
+<td>自动迁移</td>
+<td>CPU + GPU</td>
+<td>便捷但可能慢</td>
+</tr>
+</tbody>
+</table>
+<p><strong>cudaMalloc / cudaFree 的开销</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// GPU 显存分配（慢！~100us）</span>
+<span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_ptr</span><span class="p">;</span>
+<span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">d_ptr</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span><span class="w">  </span><span class="c1">// ~100us</span>
+<span class="c1">// ... 使用 ...</span>
+<span class="n">cudaFree</span><span class="p">(</span><span class="n">d_ptr</span><span class="p">);</span><span class="w">  </span><span class="c1">// ~10us</span>
+
+<span class="c1">// 对比 CPU malloc（快 ~0.1us）</span>
+<span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">h_ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span><span class="w">  </span><span class="c1">// ~0.1us</span>
+</code></pre></div>
+<p><strong>为什么 cudaMalloc 慢</strong>：GPU 显存有限，驱动需要查找空闲块、更新页表。<strong>最佳实践</strong>：预分配大块，自己管理 sub-allocation（这就是 Allocator 的作用）。</p>
+<h3 id="1082-pinned-memory">10.8.2 pinned memory：锁页内存<a class="headerlink" href="#1082-pinned-memory" title="Permanent link">&para;</a></h3>
+<p>普通 <code>malloc</code> 的内存可能被 OS 换出到磁盘，DMA 不能访问。<code>cudaMallocHost</code> 分配<strong>锁页内存</strong>（不会被换出），DMA 可以直接传输，异步拷贝更快。</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 普通内存拷贝（同步，慢）</span>
+<span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">h_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_ptr</span><span class="p">,</span><span class="w"> </span><span class="n">h_data</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+<span class="c1">// → 阻塞 CPU 直到拷贝完成</span>
+
+<span class="c1">// pinned memory 拷贝（可异步，快）</span>
+<span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">h_pinned</span><span class="p">;</span>
+<span class="n">cudaMallocHost</span><span class="p">(</span><span class="o">&amp;</span><span class="n">h_pinned</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span><span class="w">  </span><span class="c1">// 锁页分配</span>
+<span class="n">cudaMemcpyAsync</span><span class="p">(</span><span class="n">d_ptr</span><span class="p">,</span><span class="w"> </span><span class="n">h_pinned</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span>
+<span class="w">                </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="p">);</span><span class="w">  </span><span class="c1">// 异步拷贝</span>
+<span class="c1">// → CPU 不阻塞，拷贝在后台进行</span>
+</code></pre></div>
+<p><strong>性能对比</strong>：</p>
+<div class="highlight"><pre><span></span><code>普通 malloc + cudaMemcpy:     8 GB/s  (同步，CPU 阻塞)
+pinned + cudaMemcpyAsync:    12 GB/s  (异步，CPU 可做别的)
+pinned + cudaMemcpyAsync + 多 stream: 25 GB/s  (并行拷贝)
+</code></pre></div>
+<p><strong>PyTorch 的 DataLoader</strong> 用 <code>pin_memory=True</code> 就是这个原理——数据加载到 pinned memory，训练时 H2D 拷贝更快。</p>
+<h3 id="1083-unified-memory">10.8.3 unified memory（统一内存）<a class="headerlink" href="#1083-unified-memory" title="Permanent link">&para;</a></h3>
+<p><code>cudaMallocManaged</code> 让 CPU 和 GPU 共享同一指针，驱动自动迁移数据：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 统一内存（简化编程，但可能慢）</span>
+<span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">um_data</span><span class="p">;</span>
+<span class="n">cudaMallocManaged</span><span class="p">(</span><span class="o">&amp;</span><span class="n">um_data</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+
+<span class="c1">// CPU 写</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="n">um_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w">  </span><span class="c1">// 在 CPU 内存</span>
+
+<span class="c1">// GPU 读</span>
+<span class="n">my_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">um_data</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w">  </span><span class="c1">// 驱动自动迁移到 GPU</span>
+<span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+
+<span class="c1">// CPU 读</span>
+<span class="n">printf</span><span class="p">(</span><span class="s">"%f"</span><span class="p">,</span><span class="w"> </span><span class="n">um_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w">  </span><span class="c1">// 驱动自动迁移回 CPU</span>
+</code></pre></div>
+<p><strong>优点</strong>：不需要手动 <code>cudaMemcpy</code>，编程简单。
+<strong>缺点</strong>：自动迁移可能引起<strong>页错误</strong>（~100us），比显式拷贝慢。</p>
+<p><strong>PyTorch 的 <code>torch.cuda.mem_get_info()</code></strong> 和 <code>zero_copy</code> 机制利用了 unified memory。</p>
+<h3 id="1084-cuda-stream">10.8.4 CUDA stream：流并行<a class="headerlink" href="#1084-cuda-stream" title="Permanent link">&para;</a></h3>
+<p>stream 是 GPU 上的<strong>命令队列</strong>。不同 stream 的操作可以并行执行。</p>
+<div class="highlight"><pre><span></span><code><span class="n">cudaStream_t</span><span class="w"> </span><span class="n">stream1</span><span class="p">,</span><span class="w"> </span><span class="n">stream2</span><span class="p">;</span>
+<span class="n">cudaStreamCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stream1</span><span class="p">);</span>
+<span class="n">cudaStreamCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stream2</span><span class="p">);</span>
+
+<span class="c1">// 两个独立计算在不同 stream 上（并行）</span>
+<span class="n">kernel_a</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">stream1</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">d_a</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w">  </span><span class="c1">// stream 1</span>
+<span class="n">kernel_b</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">stream2</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">d_b</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w">  </span><span class="c1">// stream 2（并行）</span>
+
+<span class="n">cudaStreamSynchronize</span><span class="p">(</span><span class="n">stream1</span><span class="p">);</span>
+<span class="n">cudaStreamSynchronize</span><span class="p">(</span><span class="n">stream2</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>stream 的规则</strong>：
+- 同一 stream 内的操作<strong>按顺序</strong>执行
+- 不同 stream 间的操作<strong>可能并行</strong>（如果有足够 GPU 资源）
+- 默认 stream（stream 0）与所有 stream 同步</p>
+<div class="highlight"><pre><span></span><code>Stream 0 (default):  [---A---]  [---B---]  [---C---]  ← 串行
+Stream 1:            [---A---]     [---C---]            ← 串行
+Stream 2:                      [---B---]                ← 与 stream 1 并行
+</code></pre></div>
+<p><strong>典型用例</strong>：数据拷贝和计算重叠</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 拷贝和计算重叠（流水线）</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// stream 1: 拷贝下一批数据到 GPU</span>
+<span class="w">    </span><span class="n">cudaMemcpyAsync</span><span class="p">(</span><span class="n">d_in</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">h_in</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">,</span><span class="w"> </span><span class="n">stream1</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// stream 2: 计算当前批</span>
+<span class="w">    </span><span class="n">kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">stream2</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">d_out</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">d_in</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="mi">-1</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="1085-cuda-event">10.8.5 CUDA event：流间同步<a class="headerlink" href="#1085-cuda-event" title="Permanent link">&para;</a></h3>
+<p>event 是 stream 上的<strong>标记点</strong>，用于流间同步和计时：</p>
+<div class="highlight"><pre><span></span><code><span class="n">cudaEvent_t</span><span class="w"> </span><span class="n">event</span><span class="p">;</span>
+<span class="n">cudaEventCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">event</span><span class="p">);</span>
+
+<span class="c1">// stream 1 记算完后记录 event</span>
+<span class="n">kernel_a</span><span class="o">&lt;&lt;&lt;</span><span class="p">...,</span><span class="w"> </span><span class="n">stream1</span><span class="o">&gt;&gt;&gt;</span><span class="p">(...);</span>
+<span class="n">cudaEventRecord</span><span class="p">(</span><span class="n">event</span><span class="p">,</span><span class="w"> </span><span class="n">stream1</span><span class="p">);</span>
+
+<span class="c1">// stream 2 等 event 后再开始</span>
+<span class="n">cudaStreamWaitEvent</span><span class="p">(</span><span class="n">stream2</span><span class="p">,</span><span class="w"> </span><span class="n">event</span><span class="p">);</span>
+<span class="n">kernel_b</span><span class="o">&lt;&lt;&lt;</span><span class="p">...,</span><span class="w"> </span><span class="n">stream2</span><span class="o">&gt;&gt;&gt;</span><span class="p">(...);</span><span class="w">  </span><span class="c1">// 等 kernel_a 完成后才执行</span>
+</code></pre></div>
+<p><strong>event 计时</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">cudaEvent_t</span><span class="w"> </span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="p">;</span>
+<span class="n">cudaEventCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">start</span><span class="p">);</span>
+<span class="n">cudaEventCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stop</span><span class="p">);</span>
+
+<span class="n">cudaEventRecord</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="p">);</span>
+<span class="n">kernel</span><span class="o">&lt;&lt;&lt;</span><span class="p">...,</span><span class="w"> </span><span class="n">stream</span><span class="o">&gt;&gt;&gt;</span><span class="p">(...);</span>
+<span class="n">cudaEventRecord</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="p">);</span>
+<span class="n">cudaEventSynchronize</span><span class="p">(</span><span class="n">stop</span><span class="p">);</span>
+
+<span class="kt">float</span><span class="w"> </span><span class="n">ms</span><span class="p">;</span>
+<span class="n">cudaEventElapsedTime</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ms</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="p">);</span><span class="w">  </span><span class="c1">// GPU 时间（不阻塞 CPU）</span>
+<span class="n">printf</span><span class="p">(</span><span class="s">"kernel time: %.2f ms</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">ms</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="1086-nvcc">10.8.6 nvcc 编译流程<a class="headerlink" href="#1086-nvcc" title="Permanent link">&para;</a></h3>
+<p><code>.cu</code> 文件用 <code>nvcc</code> 编译，流程与 <code>g++</code> 不同：</p>
+<div class="highlight"><pre><span></span><code>.cu 文件（C++ + CUDA 扩展）
+    ↓ nvcc 前端分离
+  host 代码 (.cpp)  +  device 代码 (.gpu)
+    ↓                     ↓
+  g++ 编译            nvcc 编译
+    ↓                     ↓
+  .o (CPU 代码)      .o (GPU 代码: PTX/SASS)
+    ↓                     ↓
+    └──── 链接 ──────────┘
+              ↓
+        .pyd / .so（混合代码）
+</code></pre></div>
+<p><strong>PTX 和 SASS</strong>：</p>
+<div class="highlight"><pre><span></span><code>PTX (Parallel Thread Execution):
+  - NVIDIA 的中间表示（类似汇编但与具体 GPU 无关）
+  - 可移植：同一 PTX 可在不同代际 GPU 上运行
+  - JIT 编译成 SASS
+
+SASS (Streaming Assembler):
+  - 具体 GPU 的机器码
+  - 不可移植：针对特定 GPU 架构
+  - 执行效率最高
+
+编译流程:
+  .cu → PTX → SASS → 执行
+       ↑      ↑
+       nvcc   GPU 驱动 (JIT)
+</code></pre></div>
+<p><strong>指定 GPU 架构</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c"># CMake 中指定目标 GPU 架构</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CUDA_ARCHITECTURES</span><span class="w"> </span><span class="s">75</span><span class="w"> </span><span class="s">86</span><span class="w"> </span><span class="s">89</span><span class="p">)</span><span class="w">  </span><span class="c"># Turing, Ampere, Ada</span>
+<span class="c"># → 为每种架构生成 SASS</span>
+<span class="c"># → 75 = RTX 20xx, 86 = RTX 30xx, 89 = RTX 40xx</span>
+</code></pre></div>
+<h3 id="1087-cuda">10.8.7 CUDA 错误检查的最佳实践<a class="headerlink" href="#1087-cuda" title="Permanent link">&para;</a></h3>
+<p>CUDA API 返回 <code>cudaError_t</code>，不检查错误会导致<strong>静默错误</strong>（kernel 崩溃但程序继续跑，结果垃圾）。</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 宏定义错误检查</span>
+<span class="cp">#define CUDA_CHECK(call) do { \</span>
+<span class="cp">    cudaError_t err = (call); \</span>
+<span class="cp">    if (err != cudaSuccess) { \</span>
+<span class="cp">        fprintf(stderr, "CUDA error %s:%d: %s\n", \</span>
+<span class="cp">                __FILE__, __LINE__, cudaGetErrorString(err)); \</span>
+<span class="cp">        exit(1); \</span>
+<span class="cp">    } \</span>
+<span class="cp">} while (0)</span>
+
+<span class="c1">// 使用</span>
+<span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">d_ptr</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)));</span>
+<span class="n">my_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">d_ptr</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+<span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaGetLastError</span><span class="p">());</span><span class="w">  </span><span class="c1">// 检查 kernel launch 错误</span>
+<span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaDeviceSynchronize</span><span class="p">());</span><span class="w">  </span><span class="c1">// 检查 kernel 执行错误</span>
+</code></pre></div>
+<p><strong>两类错误</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>错误类型</th>
+<th>检查方式</th>
+<th>时机</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API 错误</td>
+<td><code>cudaMalloc</code> 等返回值</td>
+<td>立即</td>
+</tr>
+<tr>
+<td>Kernel 错误</td>
+<td><code>cudaGetLastError()</code></td>
+<td>launch 后立即（异步返回）</td>
+</tr>
+<tr>
+<td>Kernel 执行错误</td>
+<td><code>cudaDeviceSynchronize()</code></td>
+<td>同步时才报</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么 kernel 错误是异步的</strong>：kernel launch 立即返回（CPU 不等 GPU），错误在 GPU 执行时发生，CPU 只有同步时才知道。</p>
+<hr />
+<h2 id="108-cuda-kernel">10.8 代码逐行实现：CUDA kernel<a class="headerlink" href="#108-cuda-kernel" title="Permanent link">&para;</a></h2>
 <p><code>cpp/aten/native/cuda/ops_cuda.cu</code> 是 CUDA 源文件，由 <strong>nvcc</strong> 编译。逐段看：</p>
-<h3 id="1071-kernel">10.7.1 加法 kernel<a class="headerlink" href="#1071-kernel" title="Permanent link">&para;</a></h3>
+<h3 id="1081-kernel">10.8.1 加法 kernel<a class="headerlink" href="#1081-kernel" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">add_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">a</span><span class="p">,</span>
 <span class="w">                           </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">b</span><span class="p">,</span>
 <span class="w">                           </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">c</span><span class="p">,</span>
@@ -3384,7 +3810,7 @@
 <li><code>if (i &lt; n)</code>：<strong>边界守卫</strong>。launch 时 thread 总数通常不是 n 的整数倍，多出来的 thread 要跳过，否则越界访问显存。</li>
 <li><code>c[i] = a[i] + b[i];</code>：每个 thread 处理一个元素，天然并行。</li>
 </ul>
-<h3 id="1072-relu-kernel">10.7.2 ReLU kernel（演示分支）<a class="headerlink" href="#1072-relu-kernel" title="Permanent link">&para;</a></h3>
+<h3 id="1082-relu-kernel">10.8.2 ReLU kernel（演示分支）<a class="headerlink" href="#1082-relu-kernel" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">relu_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">a</span><span class="p">,</span>
 <span class="w">                            </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">c</span><span class="p">,</span>
 <span class="w">                            </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -3396,7 +3822,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p><code>x &gt; 0.0 ? x : 0.0</code> 是分支。warp 内如果有的 thread <code>x &gt; 0</code>、有的 <code>x &lt;= 0</code>，会 warp divergence——两分支串行。但 ReLU 分歧不严重（一半走一半不走，串行一次），性能影响小。</p>
-<h3 id="1073-kernelreduction-shared-memory">10.7.3 求和 kernel（reduction + shared memory）<a class="headerlink" href="#1073-kernelreduction-shared-memory" title="Permanent link">&para;</a></h3>
+<h3 id="1083-kernelreduction-shared-memory">10.8.3 求和 kernel（reduction + shared memory）<a class="headerlink" href="#1083-kernelreduction-shared-memory" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">sum_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">a</span><span class="p">,</span>
 <span class="w">                           </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">partial</span><span class="p">,</span>
 <span class="w">                           </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -3437,7 +3863,7 @@
 <p class="admonition-title">__syncthreads 的规则</p>
 <p><code>__syncthreads()</code> 必须在<strong>所有 thread 都会执行到</strong>的位置调用。如果写在 <code>if (tid &lt; s)</code> 里面，没进 if 的 thread 永远不到同步点，整个 block 死锁。所以上面的代码把 <code>__syncthreads()</code> 放在 if 外面——所有 thread 都同步，只有部分 thread 干活。</p>
 </div>
-<h3 id="1074-host-wrapper-launch">10.7.4 host 端 wrapper：内存拷贝 + launch + 同步<a class="headerlink" href="#1074-host-wrapper-launch" title="Permanent link">&para;</a></h3>
+<h3 id="1084-host-wrapper-launch">10.8.4 host 端 wrapper：内存拷贝 + launch + 同步<a class="headerlink" href="#1084-host-wrapper-launch" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">TensorImplPtr</span><span class="w"> </span><span class="nf">cuda_add</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="o">-&gt;</span><span class="n">shape</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">b</span><span class="o">-&gt;</span><span class="n">shape</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">"cuda_add: shape 必须一致（教学版不支持广播）"</span><span class="p">);</span>
@@ -3480,7 +3906,7 @@
 <p class="admonition-title">教学版的低效</p>
 <p>每次调用都 <code>cudaMalloc</code>/<code>cudaFree</code>——真实场景这是性能灾难（分配显存很慢）。真实 PyTorch 用 <strong>caching allocator</strong>：分配过的显存块缓存起来复用，不真释放。教学版为了简单每次真分配，文档里反复强调这是简化。</p>
 </div>
-<h3 id="1075-cuda">10.7.5 注册 CUDA 算子<a class="headerlink" href="#1075-cuda" title="Permanent link">&para;</a></h3>
+<h3 id="1085-cuda">10.8.5 注册 CUDA 算子<a class="headerlink" href="#1085-cuda" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">register_all_cuda_ops</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Dispatcher</span><span class="o">::</span><span class="n">instance</span><span class="p">();</span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">minitorch</span><span class="p">;</span>
@@ -3495,7 +3921,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>和 CPU 注册一模一样，只是 device 换成 <code>CUDA</code>、kernel 换成 <code>cuda_*</code>。<strong>这就是 dispatcher 的统一性</strong>：注册 CPU 和 CUDA 算子用同一套 API。</p>
-<h3 id="1076">10.7.6 错误处理与调试<a class="headerlink" href="#1076" title="Permanent link">&para;</a></h3>
+<h3 id="1086">10.8.6 错误处理与调试<a class="headerlink" href="#1086" title="Permanent link">&para;</a></h3>
 <p>CUDA API 调用会返回 <code>cudaError_t</code>，教学版为了简洁没检查，生产代码必须查：</p>
 <div class="highlight"><pre><span></span><code><span class="n">cudaError_t</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cudaSuccess</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -3532,7 +3958,7 @@
 <p class="admonition-title">教学版省略了所有 CUDA_CHECK</p>
 <p>为了代码简洁，教学版的 <code>cuda_add</code> 等没检查返回值。<strong>生产代码绝不能这样</strong>——显存不足、driver 崩了、kernel 越界都会被吞掉，调试地狱。文档这里补上正确做法。</p>
 </div>
-<h3 id="1077-gpu">10.7.7 编译守卫与无 GPU 构建<a class="headerlink" href="#1077-gpu" title="Permanent link">&para;</a></h3>
+<h3 id="1087-gpu">10.8.7 编译守卫与无 GPU 构建<a class="headerlink" href="#1087-gpu" title="Permanent link">&para;</a></h3>
 <p><code>ops_cuda.cu</code> 顶部：</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#if defined(__CUDACC__) || defined(MINITORCH_HAS_CUDA)</span>
 <span class="c1">// ... 所有 CUDA 代码 ...</span>
@@ -3545,7 +3971,7 @@
 </ul>
 <p>这样无 GPU 环境（不启用 CUDA）整个文件编译成空，不依赖任何 CUDA 符号，能正常编进 CPU-only 的 <code>_C_ext</code>。这是教学版"代码完整可读、无 GPU 也能编"的关键。</p>
 <hr />
-<h2 id="108-cpu-vs-cuda">10.8 完整示例：CPU vs CUDA 注册和调用<a class="headerlink" href="#108-cpu-vs-cuda" title="Permanent link">&para;</a></h2>
+<h2 id="109-cpu-vs-cuda">10.9 完整示例：CPU vs CUDA 注册和调用<a class="headerlink" href="#109-cpu-vs-cuda" title="Permanent link">&para;</a></h2>
 <h3 id="1081-modulecpp">10.8.1 初始化（在 module.cpp 里）<a class="headerlink" href="#1081-modulecpp" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">PYBIND11_MODULE</span><span class="p">(</span><span class="n">_C_ext</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// ... Ch8 的绑定 ...</span>
@@ -3595,8 +4021,8 @@
 </code></pre></div>
 <p><code>enable_language(CUDA)</code> 让 CMake 用 nvcc 编译 <code>.cu</code> 文件。<code>MINITORCH_HAS_CUDA</code> 宏传给 C++，让 <code>#if defined(...)</code> 块生效。</p>
 <hr />
-<h2 id="109">10.9 常见陷阱<a class="headerlink" href="#109" title="Permanent link">&para;</a></h2>
-<h3 id="1091">10.9.1 异步执行：读到旧数据<a class="headerlink" href="#1091" title="Permanent link">&para;</a></h3>
+<h2 id="1010">10.10 常见陷阱<a class="headerlink" href="#1010" title="Permanent link">&para;</a></h2>
+<h3 id="10101">10.10.1 异步执行：读到旧数据<a class="headerlink" href="#10101" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：kernel 算完前就读结果，拿到的是未初始化或旧数据。</p>
 <div class="highlight"><pre><span></span><code><span class="n">add_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="p">...</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">db</span><span class="p">,</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
 <span class="c1">// 这里读 dc 是错的！kernel 可能还没跑</span>
@@ -3609,7 +4035,7 @@
 <li>要显式等：<code>cudaDeviceSynchronize()</code> 或 <code>cudaStreamSynchronize(stream)</code>。</li>
 </ul>
 <p><strong>调试技巧</strong>：<code>CUDA_LAUNCH_BLOCKING=1</code> 环境变量让所有 launch 同步，方便定位异步 bug（性能会差，只调试用）。</p>
-<h3 id="1092">10.9.2 内存拷贝开销<a class="headerlink" href="#1092" title="Permanent link">&para;</a></h3>
+<h3 id="10102">10.10.2 内存拷贝开销<a class="headerlink" href="#10102" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：GPU 算得很快，但整体没加速——时间全花在 host↔device 拷贝上。</p>
 <p><strong>原因</strong>：PCIe 带宽（~16 GB/s）远低于显存带宽（~1 TB/s）。小数据上 GPU 算再搬回，拷贝时间远超计算时间。</p>
 <p><strong>解决</strong>：</p>
@@ -3619,7 +4045,7 @@
 <li><strong>用 pinned memory</strong>：<code>cudaMallocHost</code> 分配的 host 内存拷贝更快（DMA）。</li>
 </ul>
 <p>教学版每个算子都来回拷，所以小张量上 GPU 反而比 CPU 慢——这是预期的，文档反复强调。</p>
-<h3 id="1093-bank-conflict">10.9.3 bank conflict<a class="headerlink" href="#1093-bank-conflict" title="Permanent link">&para;</a></h3>
+<h3 id="10103-bank-conflict">10.10.3 bank conflict<a class="headerlink" href="#10103-bank-conflict" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：shared memory 访问比预期慢几倍。</p>
 <p><strong>原因</strong>：GPU 的 shared memory 分 32 个 bank，每个 bank 宽度 4 字节（对 float）。如果同一 warp 内多个 thread 访问同一 bank 的不同地址，会串行化（bank conflict）。</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// 假设 sdata 是 float，warp 内 thread tid 访问 sdata[tid * 2]</span>
@@ -3631,10 +4057,10 @@
 <li>用 <code>cudaSharedMemConfig</code> 改 bank 宽度（4B→8B，对 double 友好）。</li>
 <li>用 <strong>warp shuffle</strong>（<code>__shfl_down_sync</code>）做 reduction，完全不碰 shared memory，无 bank conflict。真实 PyTorch 的 reduction 就用 warp shuffle。</li>
 </ul>
-<h3 id="1094">10.9.4 越界访问<a class="headerlink" href="#1094" title="Permanent link">&para;</a></h3>
+<h3 id="10104">10.10.4 越界访问<a class="headerlink" href="#10104" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：kernel 写了 <code>c[i]</code> 但 <code>i &gt;= n</code>，越界写显存，可能崩（<code>cudaErrorIllegalAddress</code>）或默默写坏别处数据。</p>
 <p><strong>解决</strong>：<strong>永远写边界守卫</strong> <code>if (i &lt; n)</code>。教学版每个 kernel 都有。真实 PyTorch 用 <code>at::native</code> 的 launcher 自动加守卫。</p>
-<h3 id="1095-warp-divergence">10.9.5 warp divergence<a class="headerlink" href="#1095-warp-divergence" title="Permanent link">&para;</a></h3>
+<h3 id="10105-warp-divergence">10.10.5 warp divergence<a class="headerlink" href="#10105-warp-divergence" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：kernel 里有 <code>if</code>，性能低于预期。</p>
 <p><strong>原因</strong>：warp 内 thread 走不同分支，串行执行所有分支。</p>
 <p><strong>解决</strong>：</p>
@@ -3643,7 +4069,7 @@
 <li>用 <code>predicated</code> 执行代替 <code>if</code>（编译器会自动转）。</li>
 <li>实在避不开就接受——ReLU 这种轻分支影响小。</li>
 </ul>
-<h3 id="1096-block-size">10.9.6 block size 选多大<a class="headerlink" href="#1096-block-size" title="Permanent link">&para;</a></h3>
+<h3 id="10106-block-size">10.10.6 block size 选多大<a class="headerlink" href="#10106-block-size" title="Permanent link">&para;</a></h3>
 <p><strong>经验值</strong>：256 是个好默认。太小（如 32）launch 开销大、占用低；太大（如 1024）寄存器压力大、可能 co-residency 差。</p>
 <p><strong>规则</strong>：</p>
 <ul>
@@ -3652,8 +4078,8 @@
 <li>要测不同值 profile——最优 block size 因 kernel 而异。</li>
 </ul>
 <hr />
-<h2 id="1010-pytorch">10.10 与真实 PyTorch 对照<a class="headerlink" href="#1010-pytorch" title="Permanent link">&para;</a></h2>
-<h3 id="10101-dispatchtable">10.10.1 DispatchTable<a class="headerlink" href="#10101-dispatchtable" title="Permanent link">&para;</a></h3>
+<h2 id="1011-pytorch">10.11 与真实 PyTorch 对照<a class="headerlink" href="#1011-pytorch" title="Permanent link">&para;</a></h2>
+<h3 id="10111-dispatchtable">10.11.1 DispatchTable<a class="headerlink" href="#10111-dispatchtable" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3681,7 +4107,7 @@
 </tbody>
 </table>
 <p>真实 PyTorch 的 dispatch key 有几百个（<code>DispatchKey.h</code> 里枚举），组合爆炸。它用<strong>扁平数组</strong> + <strong>DispatchKeySet 位运算</strong>做快速查找，比 hash map 快得多。但<strong>思想完全一致</strong>：op 名 + key → kernel 的查表。</p>
-<h3 id="10102-dispatchkey">10.10.2 DispatchKey<a class="headerlink" href="#10102-dispatchkey" title="Permanent link">&para;</a></h3>
+<h3 id="10112-dispatchkey">10.11.2 DispatchKey<a class="headerlink" href="#10112-dispatchkey" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// 真实 PyTorch（简化）</span>
 <span class="k">enum</span><span class="w"> </span><span class="nc">DispatchKey</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">CPU</span><span class="p">,</span><span class="w"> </span><span class="n">CUDA</span><span class="p">,</span><span class="w"> </span><span class="n">MPS</span><span class="p">,</span><span class="w"> </span><span class="n">XLA</span><span class="p">,</span><span class="w"> </span><span class="n">Meta</span><span class="p">,</span><span class="w">    </span><span class="c1">// backend</span>
@@ -3691,7 +4117,7 @@
 <span class="p">};</span>
 </code></pre></div>
 <p>我们的 <code>DeviceType { CPU, CUDA }</code> 是它的一个子集。真实 PyTorch 的 key 还能组合（一个 op 在 <code>AutogradCUDA</code> 上注册，表示"对 CUDA 张量自动建图"），我们简化掉这层。</p>
-<h3 id="10103-atennativecuda">10.10.3 aten/native/cuda/<a class="headerlink" href="#10103-atennativecuda" title="Permanent link">&para;</a></h3>
+<h3 id="10113-atennativecuda">10.11.3 aten/native/cuda/<a class="headerlink" href="#10113-atennativecuda" title="Permanent link">&para;</a></h3>
 <p>真实 PyTorch 的 CUDA 算子在 <code>aten/native/cuda/</code>：</p>
 <ul>
 <li><code>BinaryOps.cu</code>：逐元素算子（add/mul/...），用 <code>at::native::binary_kernel</code> 模板。</li>
@@ -3706,7 +4132,7 @@
 <li>用 <strong>kernel fusion</strong>（<code>add+relu</code> 合成一个 kernel）减 launch 开销。</li>
 </ul>
 <p>但<strong>结构对照清晰</strong>：kernel 写法、host wrapper 的 malloc/launch/copy 流程、注册到 dispatcher 的模式，都和我们一致。</p>
-<h3 id="10104-dispatcher">10.10.4 dispatcher 演化史<a class="headerlink" href="#10104-dispatcher" title="Permanent link">&para;</a></h3>
+<h3 id="10114-dispatcher">10.11.4 dispatcher 演化史<a class="headerlink" href="#10114-dispatcher" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>PyTorch 0.x</strong>：<code>TH</code> 库用 C 函数指针表，按 device 选函数。简单但难扩展。</li>
 <li><strong>PyTorch 1.0</strong>：引入 <code>c10::Dispatcher</code>，支持多 dispatch key（device + dtype + ...）。</li>
@@ -3714,7 +4140,7 @@
 <li><strong>PyTorch 2.0</strong>：<code>torch.compile</code> 在 dispatcher 之上加图捕获，dispatcher 仍是底层路由。</li>
 </ul>
 <p>我们的 dispatcher 是 PyTorch 1.0 版本的"只 device key"投影。</p>
-<h3 id="10105-pytorch">10.10.5 一段真实 PyTorch 注册代码<a class="headerlink" href="#10105-pytorch" title="Permanent link">&para;</a></h3>
+<h3 id="10115-pytorch">10.11.5 一段真实 PyTorch 注册代码<a class="headerlink" href="#10115-pytorch" title="Permanent link">&para;</a></h3>
 <p>看真实 PyTorch 怎么注册 CUDA 加法（<code>aten/src/ATen/native/cuda/BinaryOps.cu</code> 简化）：</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// 真实 PyTorch（简化示意）</span>
 <span class="n">TORCH_LIBRARY_IMPL</span><span class="p">(</span><span class="n">aten</span><span class="p">,</span><span class="w"> </span><span class="n">CUDA</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -3736,8 +4162,8 @@
 </ul>
 <p>但"注册到一张按 key 分派的表"这个<strong>核心动作一模一样</strong>。学会 minitorch 的 dispatcher，看真实 PyTorch 的 <code>TORCH_LIBRARY_IMPL</code> 就是"加了一堆宏糖的同一件事"。</p>
 <hr />
-<h2 id="1011">10.11 历史背景<a class="headerlink" href="#1011" title="Permanent link">&para;</a></h2>
-<h3 id="10111-cuda-2006">10.11.1 CUDA 的诞生（2006）<a class="headerlink" href="#10111-cuda-2006" title="Permanent link">&para;</a></h3>
+<h2 id="1012">10.12 历史背景<a class="headerlink" href="#1012" title="Permanent link">&para;</a></h2>
+<h3 id="10121-cuda-2006">10.12.1 CUDA 的诞生（2006）<a class="headerlink" href="#10121-cuda-2006" title="Permanent link">&para;</a></h3>
 <p>2006 年 NVIDIA 发布 G80 架构，首次把 GPU 的可编程流水线暴露成通用计算接口 <strong>CUDA</strong>（Compute Unified Device Architecture）。之前 GPU 只能做图形渲染的固定流水线，CUDA 让 GPU 能跑任意 C 代码（kernel）。</p>
 <p>CUDA 的关键设计：</p>
 <ul>
@@ -3746,7 +4172,7 @@
 <li><strong>内存层次</strong>：寄存器/shared/global，程序员显式管理（不像 CPU 的缓存透明）。</li>
 </ul>
 <p>2007 年 NVIDIA 发布 CUDA 1.0。之后 cuBLAS/cuDNN 等库成熟，深度学习 GPU 加速成为标配。</p>
-<h3 id="10112-pytorch-dispatcher">10.11.2 PyTorch dispatcher 演化<a class="headerlink" href="#10112-pytorch-dispatcher" title="Permanent link">&para;</a></h3>
+<h3 id="10122-pytorch-dispatcher">10.12.2 PyTorch dispatcher 演化<a class="headerlink" href="#10122-pytorch-dispatcher" title="Permanent link">&para;</a></h3>
 <p><strong>Torch7 时代</strong>：<code>libtorch</code>（C）用函数指针表按 device 路由：</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// 伪代码</span>
 <span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">add_fn</span><span class="p">[</span><span class="mi">2</span><span class="p">])(</span><span class="n">Tensor</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tensor</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">cpu_add</span><span class="p">,</span><span class="w"> </span><span class="n">cuda_add</span><span class="w"> </span><span class="p">};</span>
@@ -3758,7 +4184,7 @@
 <p><strong>PyTorch 2.0（2022）</strong>：<code>torch.compile</code>（TorchDynamo + TorchInductor）在 dispatcher 之上加图捕获和代码生成，但底层路由仍靠 dispatcher。</p>
 <p>我们的 minitorch dispatcher 是 PyTorch 1.0 设计的"教学投影"——同一个思想，去掉 dtype/autograd/autocast 等复杂 key，只留 device 路由。</p>
 <hr />
-<h2 id="1012">10.12 练习题<a class="headerlink" href="#1012" title="Permanent link">&para;</a></h2>
+<h2 id="1013">10.13 练习题<a class="headerlink" href="#1013" title="Permanent link">&para;</a></h2>
 <h3 id="1-cuda-neg-kernel">练习 1：写一个 CUDA <code>neg</code> kernel<a class="headerlink" href="#1-cuda-neg-kernel" title="Permanent link">&para;</a></h3>
 <p>要求：<code>__global__ void neg_kernel(...)</code>，逐元素取负。配 host wrapper <code>cuda_neg</code> 和注册。</p>
 <p>??? 解答 ???</p>
@@ -3850,9 +4276,9 @@
 </ul>
 <p>经验：reduction 的 block size 通常 128 或 256 较优，要 profile。block=32（单 warp）适合"用 warp shuffle 省掉 shared mem 和 syncthreads"的优化版本，但教学版的树形归约用 block=32 没收益。</p>
 <hr />
-<h2 id="1013">10.13 关键测试解读<a class="headerlink" href="#1013" title="Permanent link">&para;</a></h2>
+<h2 id="1014">10.14 关键测试解读<a class="headerlink" href="#1014" title="Permanent link">&para;</a></h2>
 <p><code>tests/test_cuda.py</code> 验证 dispatcher 和 CUDA 路由。逐个看：</p>
-<h3 id="10131-cpu-dispatcher">10.13.1 CPU dispatcher 测试<a class="headerlink" href="#10131-cpu-dispatcher" title="Permanent link">&para;</a></h3>
+<h3 id="10141-cpu-dispatcher">10.14.1 CPU dispatcher 测试<a class="headerlink" href="#10141-cpu-dispatcher" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dispatcher_cpu_add</span><span class="p">():</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
@@ -3860,7 +4286,7 @@
     <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">]</span>
 </code></pre></div>
 <p>验证 CPU 张量走 CPU kernel，结果正确。这同时验证了 Ch8 算子和 Ch10 dispatcher 的衔接。</p>
-<h3 id="10132-cuda-skip-if-no-cuda">10.13.2 CUDA 测试（skip if no CUDA）<a class="headerlink" href="#10132-cuda-skip-if-no-cuda" title="Permanent link">&para;</a></h3>
+<h3 id="10142-cuda-skip-if-no-cuda">10.14.2 CUDA 测试（skip if no CUDA）<a class="headerlink" href="#10142-cuda-skip-if-no-cuda" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">HAS_CUDA</span> <span class="o">=</span> <span class="n">_has_cuda</span><span class="p">()</span>
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span><span class="ow">not</span> <span class="n">HAS_CUDA</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">"无可用 CUDA 设备"</span><span class="p">)</span>
@@ -3883,7 +4309,7 @@
         <span class="k">return</span> <span class="kc">False</span>
 </code></pre></div>
 <p>环境变量 <code>MINITORCH_CUDA=1</code> 强制开启，或借 PyTorch 的 <code>torch.cuda.is_available()</code> 检测。有 GPU 时取消注释 <code>cuda_c = ...</code> 两行，验证 CPU vs CUDA 数值一致。</p>
-<h3 id="10133">10.13.3 路由测试<a class="headerlink" href="#10133" title="Permanent link">&para;</a></h3>
+<h3 id="10143">10.14.3 路由测试<a class="headerlink" href="#10143" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dispatch_routes_by_device</span><span class="p">():</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
@@ -3891,14 +4317,14 @@
     <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]</span>
 </code></pre></div>
 <p>验证 dispatcher 按 device 路由：CPU 张量 → CPU kernel。CUDA 张量 → CUDA kernel 的测试在有 GPU 时才跑。</p>
-<h3 id="10134">10.13.4 检测函数<a class="headerlink" href="#10134" title="Permanent link">&para;</a></h3>
+<h3 id="10144">10.14.4 检测函数<a class="headerlink" href="#10144" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_cuda_availability_detection</span><span class="p">():</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">HAS_CUDA</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
 </code></pre></div>
 <p>确保 <code>_has_cuda()</code> 不抛异常、返回 bool。这是烟雾测试——检测逻辑本身不能崩。</p>
 <hr />
-<h2 id="1014">10.14 优劣势总结<a class="headerlink" href="#1014" title="Permanent link">&para;</a></h2>
-<h3 id="10141">10.14.1 优势<a class="headerlink" href="#10141" title="Permanent link">&para;</a></h3>
+<h2 id="1015">10.15 优劣势总结<a class="headerlink" href="#1015" title="Permanent link">&para;</a></h2>
+<h3 id="10151">10.15.1 优势<a class="headerlink" href="#10151" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>异构能力</strong>：同一套算子 API 跑在 CPU 或 GPU，用户代码不变。</li>
 <li><strong>可扩展</strong>：加新 device（MPS/XLA）只需注册新 kernel，调用点零改动。</li>
@@ -3906,7 +4332,7 @@
 <li><strong>与真实 PyTorch 同构</strong>：学完 minitorch dispatcher，看 <code>c10::Dispatcher</code> 没有概念鸿沟。</li>
 <li><strong>教学清晰</strong>：dispatch table 一张表看尽路由逻辑，比 PyTorch 几百个 key 的扁平数组好懂。</li>
 </ol>
-<h3 id="10142">10.14.2 劣势<a class="headerlink" href="#10142" title="Permanent link">&para;</a></h3>
+<h3 id="10152">10.15.2 劣势<a class="headerlink" href="#10152" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>教学版性能差</strong>：来回拷贝 + 每次真分配，小张量上 GPU 反而慢。</li>
 <li><strong>只 device 路由</strong>：不支持 dtype/autograd/autocast 等多维 dispatch，离真实 PyTorch 远。</li>
@@ -3914,7 +4340,7 @@
 <li><strong>无 caching allocator</strong>：每次 <code>cudaMalloc</code>/<code>cudaFree</code>，真实场景不可接受。</li>
 <li><strong>依赖 CUDA 工具链</strong>：要 nvcc、CUDA runtime，跨平台编译更复杂。</li>
 </ol>
-<h3 id="10143-gpu">10.14.3 什么时候值得上 GPU<a class="headerlink" href="#10143-gpu" title="Permanent link">&para;</a></h3>
+<h3 id="10153-gpu">10.15.3 什么时候值得上 GPU<a class="headerlink" href="#10153-gpu" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>大张量 + 计算密集</strong>：矩阵乘、卷积，数据量大到拷贝开销被并行计算摊薄。</li>
 <li><strong>数据常驻 GPU</strong>：一次拷上去，多次算，避免反复拷。</li>
@@ -3923,7 +4349,7 @@
 </ul>
 <p>反过来，<strong>小张量、串行逻辑、频繁 host 交互</strong>的场景，GPU 没收益甚至更慢。minitorch 教学版正是用小张量演示"GPU 不总是更快"。</p>
 <hr />
-<h2 id="1015">10.15 本章总结<a class="headerlink" href="#1015" title="Permanent link">&para;</a></h2>
+<h2 id="1016">10.16 本章总结<a class="headerlink" href="#1016" title="Permanent link">&para;</a></h2>
 <p>本章我们给 minitorch 接上了 GPU：</p>
 <ol>
 <li>

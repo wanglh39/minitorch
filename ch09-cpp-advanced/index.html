@@ -1038,22 +1038,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#93-engine" class="md-nav__link">
+  <a href="#93-c" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3 多线程 Engine
+        9.3 多线程基础速成（C++ 并发编程入门）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.3 多线程 Engine">
+    <nav class="md-nav" aria-label="9.3 多线程基础速成（C++ 并发编程入门）">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#931" class="md-nav__link">
+  <a href="#931-mutex" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3.1 为什么要多线程
+        9.3.1 mutex：互斥锁
       
     </span>
   </a>
@@ -1061,10 +1061,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#932-threadpool" class="md-nav__link">
+  <a href="#942-condition_variable-" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3.2 ThreadPool 类
+        9.4.2 condition_variable：等待-通知
       
     </span>
   </a>
@@ -1072,10 +1072,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#933-run_backward_mt" class="md-nav__link">
+  <a href="#943-atomic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3.3 run_backward_mt：依赖计数调度
+        9.4.3 atomic：无锁原子操作
       
     </span>
   </a>
@@ -1083,10 +1083,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#934-pytorch-engine" class="md-nav__link">
+  <a href="#944" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3.4 与 PyTorch Engine 对照
+        9.4.4 死锁的条件与避免
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#945-false-sharing-cache-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4.5 false sharing 与 cache line
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#946-lambda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4.6 lambda 表达式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#947-auto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4.7 auto 与类型推导
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#948-stdmove-stdforward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4.8 std::move 与 std::forward
       
     </span>
   </a>
@@ -1099,22 +1143,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#94-double-backward" class="md-nav__link">
+  <a href="#94-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4 Double Backward：高阶导数
+        9.4 多线程 Engine
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.4 Double Backward：高阶导数">
+    <nav class="md-nav" aria-label="9.4 多线程 Engine">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#941-double-backward" class="md-nav__link">
+  <a href="#941" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4.1 什么是 double backward
+        9.4.1 为什么要多线程
       
     </span>
   </a>
@@ -1122,10 +1166,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#942-create_graph" class="md-nav__link">
+  <a href="#942-threadpool" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4.2 create_graph 参数
+        9.4.2 ThreadPool 类
       
     </span>
   </a>
@@ -1133,10 +1177,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#943-mulnode-autogradmul" class="md-nav__link">
+  <a href="#943-run_backward_mt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4.3 MulNode 用 autograd::mul
+        9.4.3 run_backward_mt：依赖计数调度
       
     </span>
   </a>
@@ -1144,21 +1188,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#944-broadcast_to-grad_fn-bug" class="md-nav__link">
+  <a href="#944-pytorch-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4.4 broadcast_to 保留 grad_fn 的 bug
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#945" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.4.5 端到端示例
+        9.4.4 与 PyTorch Engine 对照
       
     </span>
   </a>
@@ -1171,22 +1204,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#95-allocator" class="md-nav__link">
+  <a href="#95-double-backward" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5 自定义 Allocator
+        9.5 Double Backward：高阶导数
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.5 自定义 Allocator">
+    <nav class="md-nav" aria-label="9.5 Double Backward：高阶导数">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#951-allocator" class="md-nav__link">
+  <a href="#951-double-backward" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.1 为什么需要自定义 Allocator
+        9.5.1 什么是 double backward
       
     </span>
   </a>
@@ -1194,10 +1227,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#952-allocator" class="md-nav__link">
+  <a href="#952-create_graph" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.2 Allocator 接口
+        9.5.2 create_graph 参数
       
     </span>
   </a>
@@ -1205,10 +1238,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#953-defaultallocator-mallocfree" class="md-nav__link">
+  <a href="#953-mulnode-autogradmul" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.3 DefaultAllocator：带统计的 malloc/free
+        9.5.3 MulNode 用 autograd::mul
       
     </span>
   </a>
@@ -1216,10 +1249,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#954-poolallocator" class="md-nav__link">
+  <a href="#954-broadcast_to-grad_fn-bug" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.4 PoolAllocator：内存池
+        9.5.4 broadcast_to 保留 grad_fn 的 bug
       
     </span>
   </a>
@@ -1227,32 +1260,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#955-allocator" class="md-nav__link">
+  <a href="#955" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.5 全局 Allocator 管理
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#956-storage-allocator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.5.6 Storage 改用 Allocator
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#957-c10allocator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.5.7 与 c10::Allocator 对照
+        9.5.5 端到端示例
       
     </span>
   </a>
@@ -1265,22 +1276,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#96-autograd-profiler" class="md-nav__link">
+  <a href="#96-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6 Autograd Profiler
+        9.6 自定义 Allocator
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.6 Autograd Profiler">
+    <nav class="md-nav" aria-label="9.6 自定义 Allocator">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#961-profiler" class="md-nav__link">
+  <a href="#961-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.1 为什么需要 Profiler
+        9.6.1 为什么需要自定义 Allocator
       
     </span>
   </a>
@@ -1288,10 +1299,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#962-profiler" class="md-nav__link">
+  <a href="#962-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.2 Profiler 设计
+        9.6.2 Allocator 接口
       
     </span>
   </a>
@@ -1299,10 +1310,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#963-run_backward" class="md-nav__link">
+  <a href="#963-defaultallocator-mallocfree" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.3 集成到 run_backward
+        9.6.3 DefaultAllocator：带统计的 malloc/free
       
     </span>
   </a>
@@ -1310,10 +1321,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#964-python" class="md-nav__link">
+  <a href="#964-poolallocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.4 Python 端使用
+        9.6.4 PoolAllocator：内存池
       
     </span>
   </a>
@@ -1321,10 +1332,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#965-pytorch" class="md-nav__link">
+  <a href="#965-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.5 与 PyTorch 对照
+        9.6.5 全局 Allocator 管理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#966-storage-allocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.6.6 Storage 改用 Allocator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#967-c10allocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.6.7 与 c10::Allocator 对照
       
     </span>
   </a>
@@ -1337,22 +1370,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#97-backward-hooks" class="md-nav__link">
+  <a href="#97-autograd-profiler" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7 梯度钩子（Backward Hooks）
+        9.7 Autograd Profiler
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.7 梯度钩子（Backward Hooks）">
+    <nav class="md-nav" aria-label="9.7 Autograd Profiler">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#971" class="md-nav__link">
+  <a href="#971-profiler" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7.1 什么是梯度钩子
+        9.7.1 为什么需要 Profiler
       
     </span>
   </a>
@@ -1360,10 +1393,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#972" class="md-nav__link">
+  <a href="#972-profiler" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7.2 实现
+        9.7.2 Profiler 设计
       
     </span>
   </a>
@@ -1371,10 +1404,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#973-python" class="md-nav__link">
+  <a href="#973-run_backward" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7.3 Python 端使用
+        9.7.3 集成到 run_backward
       
     </span>
   </a>
@@ -1382,10 +1415,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#974-pybind11" class="md-nav__link">
+  <a href="#974-python" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7.4 pybind11 绑定
+        9.7.4 Python 端使用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#975-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.7.5 与 PyTorch 对照
       
     </span>
   </a>
@@ -1398,22 +1442,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#98-anomaly-detection" class="md-nav__link">
+  <a href="#98-backward-hooks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.8 Anomaly Detection
+        9.8 梯度钩子（Backward Hooks）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.8 Anomaly Detection">
+    <nav class="md-nav" aria-label="9.8 梯度钩子（Backward Hooks）">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#981-anomaly-detection" class="md-nav__link">
+  <a href="#981" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.8.1 什么是 Anomaly Detection
+        9.8.1 什么是梯度钩子
       
     </span>
   </a>
@@ -1443,10 +1487,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#984-pytorch" class="md-nav__link">
+  <a href="#984-pybind11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.8.4 与 PyTorch 对照
+        9.8.4 pybind11 绑定
       
     </span>
   </a>
@@ -1459,22 +1503,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#99-gradient-checkpointing" class="md-nav__link">
+  <a href="#99-anomaly-detection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9 Gradient Checkpointing
+        9.9 Anomaly Detection
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.9 Gradient Checkpointing">
+    <nav class="md-nav" aria-label="9.9 Anomaly Detection">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#991" class="md-nav__link">
+  <a href="#991-anomaly-detection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9.1 用重计算换内存
+        9.9.1 什么是 Anomaly Detection
       
     </span>
   </a>
@@ -1482,10 +1526,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#992-checkpointnode" class="md-nav__link">
+  <a href="#992" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9.2 CheckpointNode 设计
+        9.9.2 实现
       
     </span>
   </a>
@@ -1493,10 +1537,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#993-nograd" class="md-nav__link">
+  <a href="#993-python" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9.3 前向：NoGrad 执行
+        9.9.3 Python 端使用
       
     </span>
   </a>
@@ -1504,43 +1548,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#994-backward" class="md-nav__link">
+  <a href="#994-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9.4 Backward：重计算
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#995-python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.9.5 Python 端使用
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#996-vs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.9.6 内存 vs 计算的权衡
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#997-pytorch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.9.7 与 PyTorch 对照
+        9.9.4 与 PyTorch 对照
       
     </span>
   </a>
@@ -1553,22 +1564,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#910-pytorch" class="md-nav__link">
+  <a href="#910-gradient-checkpointing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.10 与 PyTorch 对照
+        9.10 Gradient Checkpointing
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.10 与 PyTorch 对照">
+    <nav class="md-nav" aria-label="9.10 Gradient Checkpointing">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#9101-autograd" class="md-nav__link">
+  <a href="#9101" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.10.1 Autograd 对照
+        9.10.1 用重计算换内存
       
     </span>
   </a>
@@ -1576,10 +1587,65 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#9102-allocator" class="md-nav__link">
+  <a href="#9102-checkpointnode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.10.2 Allocator 对照
+        9.10.2 CheckpointNode 设计
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9103-nograd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.3 前向：NoGrad 执行
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9104-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.4 Backward：重计算
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9105-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.5 Python 端使用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9106-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.6 内存 vs 计算的权衡
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9107-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.7 与 PyTorch 对照
       
     </span>
   </a>
@@ -1592,22 +1658,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#911" class="md-nav__link">
+  <a href="#911-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.11 关键测试解读
+        9.11 与 PyTorch 对照
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.11 关键测试解读">
+    <nav class="md-nav" aria-label="9.11 与 PyTorch 对照">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#9111-backward" class="md-nav__link">
+  <a href="#9111-autograd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.11.1 多线程 backward 正确性
+        9.11.1 Autograd 对照
       
     </span>
   </a>
@@ -1615,76 +1681,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#9112-double-backward" class="md-nav__link">
+  <a href="#9112-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.11.2 Double backward
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9113-allocator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.3 Allocator 统计
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9114-poolallocator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.4 PoolAllocator 命中率
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9115-profiler" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.5 Profiler 事件记录
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9116" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.6 梯度钩子
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9117-anomaly-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.7 Anomaly Detection
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9118-gradient-checkpointing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.8 Gradient Checkpointing
+        9.11.2 Allocator 对照
       
     </span>
   </a>
@@ -1700,7 +1700,112 @@
   <a href="#912" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.12 下一章预告
+        9.12 关键测试解读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.12 关键测试解读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#9121-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.1 多线程 backward 正确性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9122-double-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.2 Double backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9123-allocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.3 Allocator 统计
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9124-poolallocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.4 PoolAllocator 命中率
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9125-profiler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.5 Profiler 事件记录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9126" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.6 梯度钩子
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9127-anomaly-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.7 Anomaly Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9128-gradient-checkpointing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.8 Gradient Checkpointing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#913" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.13 下一章预告
       
     </span>
   </a>
@@ -2177,22 +2282,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#93-engine" class="md-nav__link">
+  <a href="#93-c" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3 多线程 Engine
+        9.3 多线程基础速成（C++ 并发编程入门）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.3 多线程 Engine">
+    <nav class="md-nav" aria-label="9.3 多线程基础速成（C++ 并发编程入门）">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#931" class="md-nav__link">
+  <a href="#931-mutex" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3.1 为什么要多线程
+        9.3.1 mutex：互斥锁
       
     </span>
   </a>
@@ -2200,10 +2305,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#932-threadpool" class="md-nav__link">
+  <a href="#942-condition_variable-" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3.2 ThreadPool 类
+        9.4.2 condition_variable：等待-通知
       
     </span>
   </a>
@@ -2211,10 +2316,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#933-run_backward_mt" class="md-nav__link">
+  <a href="#943-atomic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3.3 run_backward_mt：依赖计数调度
+        9.4.3 atomic：无锁原子操作
       
     </span>
   </a>
@@ -2222,10 +2327,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#934-pytorch-engine" class="md-nav__link">
+  <a href="#944" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.3.4 与 PyTorch Engine 对照
+        9.4.4 死锁的条件与避免
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#945-false-sharing-cache-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4.5 false sharing 与 cache line
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#946-lambda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4.6 lambda 表达式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#947-auto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4.7 auto 与类型推导
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#948-stdmove-stdforward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4.8 std::move 与 std::forward
       
     </span>
   </a>
@@ -2238,22 +2387,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#94-double-backward" class="md-nav__link">
+  <a href="#94-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4 Double Backward：高阶导数
+        9.4 多线程 Engine
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.4 Double Backward：高阶导数">
+    <nav class="md-nav" aria-label="9.4 多线程 Engine">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#941-double-backward" class="md-nav__link">
+  <a href="#941" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4.1 什么是 double backward
+        9.4.1 为什么要多线程
       
     </span>
   </a>
@@ -2261,10 +2410,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#942-create_graph" class="md-nav__link">
+  <a href="#942-threadpool" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4.2 create_graph 参数
+        9.4.2 ThreadPool 类
       
     </span>
   </a>
@@ -2272,10 +2421,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#943-mulnode-autogradmul" class="md-nav__link">
+  <a href="#943-run_backward_mt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4.3 MulNode 用 autograd::mul
+        9.4.3 run_backward_mt：依赖计数调度
       
     </span>
   </a>
@@ -2283,21 +2432,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#944-broadcast_to-grad_fn-bug" class="md-nav__link">
+  <a href="#944-pytorch-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.4.4 broadcast_to 保留 grad_fn 的 bug
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#945" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.4.5 端到端示例
+        9.4.4 与 PyTorch Engine 对照
       
     </span>
   </a>
@@ -2310,22 +2448,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#95-allocator" class="md-nav__link">
+  <a href="#95-double-backward" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5 自定义 Allocator
+        9.5 Double Backward：高阶导数
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.5 自定义 Allocator">
+    <nav class="md-nav" aria-label="9.5 Double Backward：高阶导数">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#951-allocator" class="md-nav__link">
+  <a href="#951-double-backward" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.1 为什么需要自定义 Allocator
+        9.5.1 什么是 double backward
       
     </span>
   </a>
@@ -2333,10 +2471,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#952-allocator" class="md-nav__link">
+  <a href="#952-create_graph" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.2 Allocator 接口
+        9.5.2 create_graph 参数
       
     </span>
   </a>
@@ -2344,10 +2482,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#953-defaultallocator-mallocfree" class="md-nav__link">
+  <a href="#953-mulnode-autogradmul" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.3 DefaultAllocator：带统计的 malloc/free
+        9.5.3 MulNode 用 autograd::mul
       
     </span>
   </a>
@@ -2355,10 +2493,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#954-poolallocator" class="md-nav__link">
+  <a href="#954-broadcast_to-grad_fn-bug" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.4 PoolAllocator：内存池
+        9.5.4 broadcast_to 保留 grad_fn 的 bug
       
     </span>
   </a>
@@ -2366,32 +2504,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#955-allocator" class="md-nav__link">
+  <a href="#955" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.5.5 全局 Allocator 管理
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#956-storage-allocator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.5.6 Storage 改用 Allocator
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#957-c10allocator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.5.7 与 c10::Allocator 对照
+        9.5.5 端到端示例
       
     </span>
   </a>
@@ -2404,22 +2520,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#96-autograd-profiler" class="md-nav__link">
+  <a href="#96-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6 Autograd Profiler
+        9.6 自定义 Allocator
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.6 Autograd Profiler">
+    <nav class="md-nav" aria-label="9.6 自定义 Allocator">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#961-profiler" class="md-nav__link">
+  <a href="#961-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.1 为什么需要 Profiler
+        9.6.1 为什么需要自定义 Allocator
       
     </span>
   </a>
@@ -2427,10 +2543,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#962-profiler" class="md-nav__link">
+  <a href="#962-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.2 Profiler 设计
+        9.6.2 Allocator 接口
       
     </span>
   </a>
@@ -2438,10 +2554,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#963-run_backward" class="md-nav__link">
+  <a href="#963-defaultallocator-mallocfree" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.3 集成到 run_backward
+        9.6.3 DefaultAllocator：带统计的 malloc/free
       
     </span>
   </a>
@@ -2449,10 +2565,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#964-python" class="md-nav__link">
+  <a href="#964-poolallocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.4 Python 端使用
+        9.6.4 PoolAllocator：内存池
       
     </span>
   </a>
@@ -2460,10 +2576,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#965-pytorch" class="md-nav__link">
+  <a href="#965-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.6.5 与 PyTorch 对照
+        9.6.5 全局 Allocator 管理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#966-storage-allocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.6.6 Storage 改用 Allocator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#967-c10allocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.6.7 与 c10::Allocator 对照
       
     </span>
   </a>
@@ -2476,22 +2614,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#97-backward-hooks" class="md-nav__link">
+  <a href="#97-autograd-profiler" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7 梯度钩子（Backward Hooks）
+        9.7 Autograd Profiler
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.7 梯度钩子（Backward Hooks）">
+    <nav class="md-nav" aria-label="9.7 Autograd Profiler">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#971" class="md-nav__link">
+  <a href="#971-profiler" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7.1 什么是梯度钩子
+        9.7.1 为什么需要 Profiler
       
     </span>
   </a>
@@ -2499,10 +2637,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#972" class="md-nav__link">
+  <a href="#972-profiler" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7.2 实现
+        9.7.2 Profiler 设计
       
     </span>
   </a>
@@ -2510,10 +2648,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#973-python" class="md-nav__link">
+  <a href="#973-run_backward" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7.3 Python 端使用
+        9.7.3 集成到 run_backward
       
     </span>
   </a>
@@ -2521,10 +2659,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#974-pybind11" class="md-nav__link">
+  <a href="#974-python" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.7.4 pybind11 绑定
+        9.7.4 Python 端使用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#975-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.7.5 与 PyTorch 对照
       
     </span>
   </a>
@@ -2537,22 +2686,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#98-anomaly-detection" class="md-nav__link">
+  <a href="#98-backward-hooks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.8 Anomaly Detection
+        9.8 梯度钩子（Backward Hooks）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.8 Anomaly Detection">
+    <nav class="md-nav" aria-label="9.8 梯度钩子（Backward Hooks）">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#981-anomaly-detection" class="md-nav__link">
+  <a href="#981" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.8.1 什么是 Anomaly Detection
+        9.8.1 什么是梯度钩子
       
     </span>
   </a>
@@ -2582,10 +2731,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#984-pytorch" class="md-nav__link">
+  <a href="#984-pybind11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.8.4 与 PyTorch 对照
+        9.8.4 pybind11 绑定
       
     </span>
   </a>
@@ -2598,22 +2747,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#99-gradient-checkpointing" class="md-nav__link">
+  <a href="#99-anomaly-detection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9 Gradient Checkpointing
+        9.9 Anomaly Detection
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.9 Gradient Checkpointing">
+    <nav class="md-nav" aria-label="9.9 Anomaly Detection">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#991" class="md-nav__link">
+  <a href="#991-anomaly-detection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9.1 用重计算换内存
+        9.9.1 什么是 Anomaly Detection
       
     </span>
   </a>
@@ -2621,10 +2770,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#992-checkpointnode" class="md-nav__link">
+  <a href="#992" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9.2 CheckpointNode 设计
+        9.9.2 实现
       
     </span>
   </a>
@@ -2632,10 +2781,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#993-nograd" class="md-nav__link">
+  <a href="#993-python" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9.3 前向：NoGrad 执行
+        9.9.3 Python 端使用
       
     </span>
   </a>
@@ -2643,43 +2792,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#994-backward" class="md-nav__link">
+  <a href="#994-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.9.4 Backward：重计算
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#995-python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.9.5 Python 端使用
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#996-vs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.9.6 内存 vs 计算的权衡
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#997-pytorch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.9.7 与 PyTorch 对照
+        9.9.4 与 PyTorch 对照
       
     </span>
   </a>
@@ -2692,22 +2808,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#910-pytorch" class="md-nav__link">
+  <a href="#910-gradient-checkpointing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.10 与 PyTorch 对照
+        9.10 Gradient Checkpointing
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.10 与 PyTorch 对照">
+    <nav class="md-nav" aria-label="9.10 Gradient Checkpointing">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#9101-autograd" class="md-nav__link">
+  <a href="#9101" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.10.1 Autograd 对照
+        9.10.1 用重计算换内存
       
     </span>
   </a>
@@ -2715,10 +2831,65 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#9102-allocator" class="md-nav__link">
+  <a href="#9102-checkpointnode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.10.2 Allocator 对照
+        9.10.2 CheckpointNode 设计
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9103-nograd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.3 前向：NoGrad 执行
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9104-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.4 Backward：重计算
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9105-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.5 Python 端使用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9106-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.6 内存 vs 计算的权衡
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9107-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10.7 与 PyTorch 对照
       
     </span>
   </a>
@@ -2731,22 +2902,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#911" class="md-nav__link">
+  <a href="#911-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.11 关键测试解读
+        9.11 与 PyTorch 对照
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9.11 关键测试解读">
+    <nav class="md-nav" aria-label="9.11 与 PyTorch 对照">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#9111-backward" class="md-nav__link">
+  <a href="#9111-autograd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.11.1 多线程 backward 正确性
+        9.11.1 Autograd 对照
       
     </span>
   </a>
@@ -2754,76 +2925,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#9112-double-backward" class="md-nav__link">
+  <a href="#9112-allocator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.11.2 Double backward
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9113-allocator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.3 Allocator 统计
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9114-poolallocator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.4 PoolAllocator 命中率
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9115-profiler" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.5 Profiler 事件记录
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9116" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.6 梯度钩子
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9117-anomaly-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.7 Anomaly Detection
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9118-gradient-checkpointing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9.11.8 Gradient Checkpointing
+        9.11.2 Allocator 对照
       
     </span>
   </a>
@@ -2839,7 +2944,112 @@
   <a href="#912" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9.12 下一章预告
+        9.12 关键测试解读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.12 关键测试解读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#9121-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.1 多线程 backward 正确性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9122-double-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.2 Double backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9123-allocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.3 Allocator 统计
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9124-poolallocator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.4 PoolAllocator 命中率
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9125-profiler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.5 Profiler 事件记录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9126" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.6 梯度钩子
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9127-anomaly-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.7 Anomaly Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9128-gradient-checkpointing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.12.8 Gradient Checkpointing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#913" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.13 下一章预告
       
     </span>
   </a>
@@ -3175,8 +3385,270 @@
 </code></pre></div>
 <p>流程：拓扑排序 → 逆序遍历 → 每个 Node 调 <code>apply(grad)</code> 得到对各输入的梯度 → 沿 <code>next_edges</code> 传给前驱 → 多后继汇合时累加。</p>
 <hr />
-<h2 id="93-engine">9.3 多线程 Engine<a class="headerlink" href="#93-engine" title="Permanent link">&para;</a></h2>
-<h3 id="931">9.3.1 为什么要多线程<a class="headerlink" href="#931" title="Permanent link">&para;</a></h3>
+<h2 id="93-c">9.3 多线程基础速成（C++ 并发编程入门）<a class="headerlink" href="#93-c" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>本节讲解后续多线程 Engine 代码中用到的 C++ 并发原语。
+如果你已熟悉 C++ 多线程，跳到 9.4。</p>
+</blockquote>
+<h3 id="931-mutex">9.3.1 mutex：互斥锁<a class="headerlink" href="#931-mutex" title="Permanent link">&para;</a></h3>
+<p>多个线程同时修改同一数据会<strong>数据竞争</strong>（data race），结果不可预测。mutex 保证同一时刻只有一个线程访问临界区。</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mutex&gt;</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="w"> </span><span class="n">mtx</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">shared_counter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">increment</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">mtx</span><span class="p">.</span><span class="n">lock</span><span class="p">();</span><span class="w">           </span><span class="c1">// 加锁（其他线程会阻塞等待）</span>
+<span class="w">    </span><span class="n">shared_counter</span><span class="o">++</span><span class="p">;</span><span class="w">     </span><span class="c1">// 临界区：只有一个线程能执行</span>
+<span class="w">    </span><span class="n">mtx</span><span class="p">.</span><span class="n">unlock</span><span class="p">();</span><span class="w">         </span><span class="c1">// 解锁</span>
+<span class="p">}</span>
+
+<span class="c1">// 问题: 如果中间抛异常，unlock 永远不执行 → 死锁</span>
+<span class="c1">// 解决: RAII 封装 → lock_guard</span>
+</code></pre></div>
+<p><strong><code>std::lock_guard</code></strong>（RAII 封装，推荐）：</p>
+<div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">increment_safe</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">mtx</span><span class="p">);</span><span class="w">  </span><span class="c1">// 构造时加锁</span>
+<span class="w">    </span><span class="n">shared_counter</span><span class="o">++</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">// 析构时自动解锁，即使抛异常也安全</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong><code>std::unique_lock</code></strong>（更灵活，可手动解锁/再加锁）：</p>
+<div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">flexible</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">mtx</span><span class="p">);</span><span class="w">  </span><span class="c1">// 加锁</span>
+<span class="w">    </span><span class="n">do_something</span><span class="p">();</span>
+<span class="w">    </span><span class="n">lock</span><span class="p">.</span><span class="n">unlock</span><span class="p">();</span><span class="w">                           </span><span class="c1">// 手动解锁</span>
+<span class="w">    </span><span class="n">do_other</span><span class="p">();</span><span class="w">                              </span><span class="c1">// 不需要锁</span>
+<span class="w">    </span><span class="n">lock</span><span class="p">.</span><span class="n">lock</span><span class="p">();</span><span class="w">                             </span><span class="c1">// 再加锁</span>
+<span class="w">    </span><span class="n">do_more</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>锁类型</th>
+<th>灵活性</th>
+<th>开销</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lock_guard</code></td>
+<td>低（构造加锁，析构解锁）</td>
+<td>最小</td>
+<td>简单临界区</td>
+</tr>
+<tr>
+<td><code>unique_lock</code></td>
+<td>高（可 unlock/lock）</td>
+<td>略大</td>
+<td>配合 condition_variable</td>
+</tr>
+<tr>
+<td><code>scoped_lock</code></td>
+<td>低（多锁同时）</td>
+<td>小</td>
+<td>避免死锁的多锁场景</td>
+</tr>
+</tbody>
+</table>
+<h3 id="942-condition_variable-">9.4.2 condition_variable：等待-通知<a class="headerlink" href="#942-condition_variable-" title="Permanent link">&para;</a></h3>
+<p>mutex 只能"互斥"，不能"等待某个条件成立"。<code>condition_variable</code> 解决这个问题。</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;condition_variable&gt;</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="w"> </span><span class="n">mtx</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">condition_variable</span><span class="w"> </span><span class="n">cv</span><span class="p">;</span>
+<span class="kt">bool</span><span class="w"> </span><span class="n">ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="c1">// 等待线程</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">waiter</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">mtx</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cv</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">ready</span><span class="p">;</span><span class="w"> </span><span class="p">});</span><span class="w">  </span><span class="c1">// 等待 ready == true</span>
+<span class="w">    </span><span class="c1">// wait 内部: unlock → 阻塞 → 被唤醒 → re-lock</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"proceed!</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// 通知线程</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">notifier</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">mtx</span><span class="p">);</span>
+<span class="w">        </span><span class="n">ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w">  </span><span class="c1">// 设置条件</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">cv</span><span class="p">.</span><span class="n">notify_one</span><span class="p">();</span><span class="w">  </span><span class="c1">// 唤醒一个等待线程</span>
+<span class="w">    </span><span class="c1">// cv.notify_all();  // 唤醒所有等待线程</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>wait 的内部流程</strong>：
+<div class="highlight"><pre><span></span><code>1. 检查 lambda 条件 → false
+2. unlock mutex → 让其他线程能修改 ready
+3. 阻塞当前线程（不占 CPU）
+4. 被 notify 唤醒
+5. re-lock mutex
+6. 再次检查 lambda → true → 继续
+</code></pre></div></p>
+<p><strong>为什么用 lambda 版 wait</strong>：防止<strong>虚假唤醒</strong>（spurious wakeup）——OS 可能无故唤醒线程，lambda 确保条件真的满足才继续。</p>
+<p><strong>minitorch Engine 中的 cv</strong>：线程池的 worker 等待任务队列非空：</p>
+<div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">worker</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">queue_mutex_</span><span class="p">);</span>
+<span class="w">        </span><span class="n">cv_</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">]</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="o">!</span><span class="n">queue_</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">stop_</span><span class="p">;</span><span class="w"> </span><span class="p">});</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">stop_</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">queue_</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">task</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">queue_</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
+<span class="w">        </span><span class="n">queue_</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+<span class="w">        </span><span class="n">lock</span><span class="p">.</span><span class="n">unlock</span><span class="p">();</span>
+<span class="w">        </span><span class="n">task</span><span class="p">();</span><span class="w">  </span><span class="c1">// 执行任务</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="943-atomic">9.4.3 atomic：无锁原子操作<a class="headerlink" href="#943-atomic" title="Permanent link">&para;</a></h3>
+<p>有些简单操作不需要 mutex，用 <code>atomic</code> 更高效：</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;atomic&gt;</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">counter</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">increment</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">counter</span><span class="o">++</span><span class="p">;</span><span class="w">  </span><span class="c1">// 原子操作，无需 mutex</span>
+<span class="w">    </span><span class="c1">// 或 counter.fetch_add(1);</span>
+<span class="p">}</span>
+
+<span class="c1">// 对比 mutex 版（慢 10-50×）</span>
+<span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="w"> </span><span class="n">mtx</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">counter2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">increment_slow</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">mtx</span><span class="p">);</span>
+<span class="w">    </span><span class="n">counter2</span><span class="o">++</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>atomic 的原理</strong>：CPU 的原子指令（x86 的 <code>LOCK</code> 前缀），硬件保证不可中断。</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>atomic 方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>读</td>
+<td><code>load()</code></td>
+<td>原子读</td>
+</tr>
+<tr>
+<td>写</td>
+<td><code>store(v)</code></td>
+<td>原子写</td>
+</tr>
+<tr>
+<td>加</td>
+<td><code>fetch_add(n)</code></td>
+<td>原子加，返回旧值</td>
+</tr>
+<tr>
+<td>比较</td>
+<td><code>compare_exchange_strong(expected, desired)</code></td>
+<td>CAS，无锁核心</td>
+</tr>
+</tbody>
+</table>
+<p><strong>minitorch 中的 atomic</strong>：多线程 Engine 的依赖计数 <code>atomic&lt;int&gt; pending_deps</code>——每个线程原子递减，无需 mutex。</p>
+<h3 id="944">9.4.4 死锁的条件与避免<a class="headerlink" href="#944" title="Permanent link">&para;</a></h3>
+<p><strong>死锁的四个必要条件</strong>（Coffman 条件）：</p>
+<ol>
+<li><strong>互斥</strong>：资源不能共享</li>
+<li><strong>持有并等待</strong>：拿着 A 锁等 B 锁</li>
+<li><strong>不可剥夺</strong>：不能强制抢锁</li>
+<li><strong>循环等待</strong>：T1 等 T2 的锁，T2 等 T1 的锁</li>
+</ol>
+<p><strong>避免策略</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 反模式：锁顺序不一致 → 死锁</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">f</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">A</span><span class="p">);</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">B</span><span class="p">);</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">g</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">B</span><span class="p">);</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">A</span><span class="p">);</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// 顺序反了！</span>
+<span class="c1">// T1 调 f: 持有 A，等 B</span>
+<span class="c1">// T2 调 g: 持有 B，等 A → 死锁</span>
+
+<span class="c1">// 修复：全局统一的锁顺序</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">f</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">A</span><span class="p">);</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">B</span><span class="p">);</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">g</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">A</span><span class="p">);</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">B</span><span class="p">);</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// 顺序一致</span>
+
+<span class="c1">// 或用 scoped_lock 一次锁多个（避免死锁）</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">f</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">scoped_lock</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">);</span><span class="w">  </span><span class="c1">// 原子地获取两把锁</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="945-false-sharing-cache-line">9.4.5 false sharing 与 cache line<a class="headerlink" href="#945-false-sharing-cache-line" title="Permanent link">&para;</a></h3>
+<p><strong>cache line</strong> 是 CPU 缓存的基本单位（通常 64 字节）。两个线程写同一 cache line 的不同变量会导致<strong>false sharing</strong>——缓存频繁失效，性能暴跌。</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 反模式：两个 atomic 在同一 cache line</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Bad</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">a</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w">  </span><span class="c1">// 线程 1 写</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">b</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w">  </span><span class="c1">// 线程 2 写</span>
+<span class="w">    </span><span class="c1">// a 和 b 相邻 → 同一 cache line → false sharing</span>
+<span class="p">};</span>
+
+<span class="c1">// 修复：用 alignas 填充到 cache line 大小</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Good</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">alignas</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">a</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w">  </span><span class="c1">// 独占一个 cache line</span>
+<span class="w">    </span><span class="k">alignas</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">b</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w">  </span><span class="c1">// 独占另一个</span>
+<span class="p">};</span>
+</code></pre></div>
+<p><strong>影响</strong>：false sharing 可能让多线程比单线程还慢。在性能敏感的多线程代码中，用 <code>alignas(64)</code> 对齐热点数据。</p>
+<h3 id="946-lambda">9.4.6 lambda 表达式<a class="headerlink" href="#946-lambda" title="Permanent link">&para;</a></h3>
+<p>C++11 引入 lambda（匿名函数），类似 Python 的 <code>lambda</code> 但更强大：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Python:   f = lambda x, y: x + y</span>
+<span class="c1">// C++:</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+<span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span><span class="w">  </span><span class="c1">// → 3</span>
+
+<span class="c1">// 捕获外部变量</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">factor</span><span class="p">](</span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">factor</span><span class="p">;</span><span class="w"> </span><span class="p">};</span><span class="w">  </span><span class="c1">// 值捕获</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">scale_ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="n">factor</span><span class="p">](</span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">factor</span><span class="p">;</span><span class="w"> </span><span class="p">};</span><span class="w">  </span><span class="c1">// 引用捕获</span>
+
+<span class="c1">// 捕获方式</span>
+<span class="p">[</span><span class="o">=</span><span class="p">]</span><span class="w">        </span><span class="c1">// 值捕获所有外部变量</span>
+<span class="p">[</span><span class="o">&amp;</span><span class="p">]</span><span class="w">        </span><span class="c1">// 引用捕获所有外部变量</span>
+<span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">y</span><span class="p">]</span><span class="w">    </span><span class="c1">// x 值捕获，y 引用捕获</span>
+<span class="p">[</span><span class="k">this</span><span class="p">]</span><span class="w">     </span><span class="c1">// 捕获 this 指针（成员函数中）</span>
+</code></pre></div>
+<p><strong>minitorch 中的 lambda</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 算子模板用 lambda 注入操作</span>
+<span class="n">binary_op</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">;</span><span class="w"> </span><span class="p">});</span><span class="w">  </span><span class="c1">// add</span>
+<span class="n">binary_op</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">y</span><span class="p">;</span><span class="w"> </span><span class="p">});</span><span class="w">  </span><span class="c1">// mul</span>
+
+<span class="c1">// 线程池提交 lambda</span>
+<span class="n">pool</span><span class="p">.</span><span class="n">submit</span><span class="p">([</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="n">grad</span><span class="p">]</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">this</span><span class="o">-&gt;</span><span class="n">process_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="n">grad</span><span class="p">);</span><span class="w"> </span><span class="p">});</span>
+</code></pre></div>
+<h3 id="947-auto">9.4.7 auto 与类型推导<a class="headerlink" href="#947-auto" title="Permanent link">&para;</a></h3>
+<p>C++ 的 <code>auto</code> 类似 Python 的动态类型，但是<strong>编译时推导</strong>（类型确定后不可变）：</p>
+<div class="highlight"><pre><span></span><code><span class="k">auto</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">42</span><span class="p">;</span><span class="w">              </span><span class="c1">// int</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.14</span><span class="p">;</span><span class="w">            </span><span class="c1">// double</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">};</span><span class="w">  </span><span class="c1">// std::vector&lt;int&gt;</span>
+<span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">z</span><span class="p">;</span><span class="w">            </span><span class="c1">// 引用</span>
+<span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">cref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">z</span><span class="p">;</span><span class="w">     </span><span class="c1">// const 引用</span>
+
+<span class="c1">// 对比 Python（运行时动态）</span>
+<span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">42</span><span class="w">       </span><span class="err">#</span><span class="w"> </span><span class="kt">int</span>
+<span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"hello"</span><span class="w">  </span><span class="err">#</span><span class="w"> </span><span class="n">str</span><span class="err">（</span><span class="n">可以变类型</span><span class="err">）</span>
+<span class="c1">// C++ 的 auto 不能变类型</span>
+</code></pre></div>
+<h3 id="948-stdmove-stdforward">9.4.8 std::move 与 std::forward<a class="headerlink" href="#948-stdmove-stdforward" title="Permanent link">&para;</a></h3>
+<p><code>std::move</code> 是 move semantics 的显式触发（Ch8 讲过）。<code>std::forward</code> 用于<strong>完美转发</strong>——保持参数的左右值属性：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// std::move: 无条件转右值</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">moved</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">x</span><span class="p">);</span><span class="w">  </span><span class="c1">// x 变右值</span>
+
+<span class="c1">// std::forward: 条件转发（模板中保持参数属性）</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">wrapper</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">arg</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// std::forward&lt;T&gt;(arg): 如果 arg 原本是左值，转发为左值；否则右值</span>
+<span class="w">    </span><span class="n">target</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">forward</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">arg</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>minitorch 中的 move</strong>：<code>TensorImpl</code> 构造时 <code>std::move(data)</code> 避免拷贝大 vector。</p>
+<hr />
+<h2 id="94-engine">9.4 多线程 Engine<a class="headerlink" href="#94-engine" title="Permanent link">&para;</a></h2>
+<h3 id="941">9.4.1 为什么要多线程<a class="headerlink" href="#941" title="Permanent link">&para;</a></h3>
 <p>计算图中，<strong>无依赖关系的 Node 可以并行执行</strong>。例如：</p>
 <div class="highlight"><pre><span></span><code>        loss
        /    \
@@ -3186,7 +3658,7 @@
 </code></pre></div>
 <p><code>L1</code> 和 <code>L2</code> 互不依赖（都不在对方的路径上），可以并行 backward。<code>a</code>/<code>b</code> 必须等 <code>L1</code> 完成，<code>c</code>/<code>d</code> 必须等 <code>L2</code>。</p>
 <p>PyTorch 的 <code>Engine::execute_with_thread_pool</code> 正是这么做的：用线程池 + 依赖计数，Node 的所有后继都完成后才调度它。</p>
-<h3 id="932-threadpool">9.3.2 ThreadPool 类<a class="headerlink" href="#932-threadpool" title="Permanent link">&para;</a></h3>
+<h3 id="942-threadpool">9.4.2 ThreadPool 类<a class="headerlink" href="#942-threadpool" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// c10/thread_pool.h</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ThreadPool</span><span class="w"> </span><span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
@@ -3251,7 +3723,7 @@
 <li><strong>worker 线程</strong>：<code>cv_.wait</code> 等任务队列非空 → 取任务 → 执行 → <code>active_--</code> → 如果全完成则 <code>done_cv_.notify_all</code>。</li>
 <li><strong>主线程</strong>：<code>submit</code> 投任务 → <code>wait_all</code> 等 <code>active_ == 0 &amp;&amp; tasks_.empty()</code>。</li>
 </ul>
-<h3 id="933-run_backward_mt">9.3.3 run_backward_mt：依赖计数调度<a class="headerlink" href="#933-run_backward_mt" title="Permanent link">&para;</a></h3>
+<h3 id="943-run_backward_mt">9.4.3 run_backward_mt：依赖计数调度<a class="headerlink" href="#943-run_backward_mt" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">run_backward_mt</span><span class="p">(</span><span class="n">NodePtr</span><span class="w"> </span><span class="n">root</span><span class="p">,</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">root_grad</span><span class="p">,</span>
 <span class="w">                     </span><span class="kt">bool</span><span class="w"> </span><span class="n">retain_graph</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">retain_grad</span><span class="p">,</span>
 <span class="w">                     </span><span class="kt">int</span><span class="w"> </span><span class="n">num_threads</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">create_graph</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -3350,7 +3822,7 @@
 <p class="admonition-title">为什么用 vector<atomic> 而不是 unordered_map<atomic>？</p>
 <p><code>std::atomic</code> 不可拷贝/移动，不能直接放在 <code>unordered_map</code> 中。用 <code>vector&lt;atomic&lt;int&gt;&gt;</code> + <code>unordered_map&lt;Node*, size_t&gt;</code> 做索引，是 C++ 中的标准做法。</p>
 </div>
-<h3 id="934-pytorch-engine">9.3.4 与 PyTorch Engine 对照<a class="headerlink" href="#934-pytorch-engine" title="Permanent link">&para;</a></h3>
+<h3 id="944-pytorch-engine">9.4.4 与 PyTorch Engine 对照<a class="headerlink" href="#944-pytorch-engine" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3383,12 +3855,12 @@
 </table>
 <p>PyTorch 的 Engine 更复杂：多设备（CPU + 多 GPU）、CUDA stream 同步、优先级队列。但<strong>核心思路一致</strong>：依赖计数 + 线程池 + 原子调度。</p>
 <hr />
-<h2 id="94-double-backward">9.4 Double Backward：高阶导数<a class="headerlink" href="#94-double-backward" title="Permanent link">&para;</a></h2>
-<h3 id="941-double-backward">9.4.1 什么是 double backward<a class="headerlink" href="#941-double-backward" title="Permanent link">&para;</a></h3>
+<h2 id="95-double-backward">9.5 Double Backward：高阶导数<a class="headerlink" href="#95-double-backward" title="Permanent link">&para;</a></h2>
+<h3 id="951-double-backward">9.5.1 什么是 double backward<a class="headerlink" href="#951-double-backward" title="Permanent link">&para;</a></h3>
 <p>一阶导：<code>y = x^2</code> → <code>dy/dx = 2x</code>。
 二阶导：<code>d²y/dx² = 2</code>。</p>
 <p>在 autograd 中，二阶导 = 对一阶导再 backward 一次。但一阶导 <code>2x</code> 本身是一个<strong>计算图</strong>（<code>x → mul(2, x)</code>），要对它 backward，这个图必须存在——即 <code>create_graph=true</code>。</p>
-<h3 id="942-create_graph">9.4.2 create_graph 参数<a class="headerlink" href="#942-create_graph" title="Permanent link">&para;</a></h3>
+<h3 id="952-create_graph">9.5.2 create_graph 参数<a class="headerlink" href="#952-create_graph" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// c10/tensor.h</span>
 <span class="kt">void</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">gradient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span>
 <span class="w">              </span><span class="kt">bool</span><span class="w"> </span><span class="n">retain_graph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span>
@@ -3403,7 +3875,7 @@
 <li><strong>梯度汇合用 <code>autograd::add</code></strong>：多后继梯度求和也建图。</li>
 </ol>
 <p>这样，反向传播本身产生的新计算（梯度计算）也被记录成图，可以再 backward。</p>
-<h3 id="943-mulnode-autogradmul">9.4.3 MulNode 用 autograd::mul<a class="headerlink" href="#943-mulnode-autogradmul" title="Permanent link">&para;</a></h3>
+<h3 id="953-mulnode-autogradmul">9.5.3 MulNode 用 autograd::mul<a class="headerlink" href="#953-mulnode-autogradmul" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MulNode</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Node</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">grad</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">grad_a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mul</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span><span class="w"> </span><span class="n">orig_b</span><span class="p">);</span><span class="w">    </span><span class="c1">// autograd::mul，不是 ops::mul</span>
@@ -3416,7 +3888,7 @@
 <p><code>autograd::mul</code> 在 <code>is_grad_enabled()</code> 时会建图（挂 MulNode）。<code>ops::mul</code> 永远不建图。</p>
 <p>当 <code>create_graph=true</code>：<code>NoGradGuard</code> 不启用 → <code>is_grad_enabled()=true</code> → <code>autograd::mul</code> 建图 → <code>grad_a</code> 有 <code>grad_fn</code> → 可以再 backward。</p>
 <p>当 <code>create_graph=false</code>：<code>NoGradGuard</code> 启用 → <code>is_grad_enabled()=false</code> → <code>autograd::mul</code> 不建图 → <code>grad_a</code> 无 <code>grad_fn</code> → 不能再 backward（但省内存）。</p>
-<h3 id="944-broadcast_to-grad_fn-bug">9.4.4 broadcast_to 保留 grad_fn 的 bug<a class="headerlink" href="#944-broadcast_to-grad_fn-bug" title="Permanent link">&para;</a></h3>
+<h3 id="954-broadcast_to-grad_fn-bug">9.5.4 broadcast_to 保留 grad_fn 的 bug<a class="headerlink" href="#954-broadcast_to-grad_fn-bug" title="Permanent link">&para;</a></h3>
 <p><strong>问题</strong>：<code>y = x * w</code>（x 是 <code>[3]</code>，w 是 <code>[1]</code> 广播到 <code>[3]</code>）。backward 时 <code>grad_x = grad_y * w_broadcast</code>。但 <code>w_broadcast</code> 是广播张量，它的 <code>grad_fn</code> 为空、<code>is_leaf=false</code>。<code>collect_edges</code> 为它创建 <code>AccumulateGrad(w_broadcast)</code>，梯度累加到 <code>w_broadcast</code> 而非原始 <code>w</code>——<strong>w 的梯度丢失</strong>。</p>
 <p><strong>修复</strong>：<code>broadcast_to</code> 保留原始张量的 <code>grad_fn</code> 和 <code>is_leaf</code>：</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// aten/ops.cpp</span>
@@ -3431,7 +3903,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>这样 <code>w_broadcast-&gt;grad_fn()</code> 返回 <code>w</code> 的 <code>grad_fn</code>（或空，表示叶子），<code>collect_edges</code> 正确找到原始 <code>w</code> 的 <code>AccumulateGrad</code>。</p>
-<h3 id="945">9.4.5 端到端示例<a class="headerlink" href="#945" title="Permanent link">&para;</a></h3>
+<h3 id="955">9.5.5 端到端示例<a class="headerlink" href="#955" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mt</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -3451,8 +3923,8 @@
 </ol>
 <p>二阶 backward 时，对 <code>x.grad</code> 的图再 backward，得到 <code>d(x)/dx = 1</code>，乘以 <code>[1,1,1]</code> 得 <code>[1,1,1]</code>... 但因为 <code>y = x²</code>，<code>dy/dx = 2x</code>，<code>d²y/dx² = 2</code>。实际结果取决于 <code>g</code> 和二阶 backward 的 gradient 参数。</p>
 <hr />
-<h2 id="95-allocator">9.5 自定义 Allocator<a class="headerlink" href="#95-allocator" title="Permanent link">&para;</a></h2>
-<h3 id="951-allocator">9.5.1 为什么需要自定义 Allocator<a class="headerlink" href="#951-allocator" title="Permanent link">&para;</a></h3>
+<h2 id="96-allocator">9.6 自定义 Allocator<a class="headerlink" href="#96-allocator" title="Permanent link">&para;</a></h2>
+<h3 id="961-allocator">9.6.1 为什么需要自定义 Allocator<a class="headerlink" href="#961-allocator" title="Permanent link">&para;</a></h3>
 <p>默认 <code>new</code>/<code>delete</code> 的问题：</p>
 <ol>
 <li><strong>碎片化</strong>：频繁分配/释放不同大小，内存碎片化。</li>
@@ -3460,7 +3932,7 @@
 <li><strong>不可控</strong>：无法统计分配量、无法限制内存、无法对齐。</li>
 </ol>
 <p>PyTorch 的 <code>c10::Allocator</code> 解决这些：<code>CPUAllocator</code>、<code>CUDAAllocator</code>、<code>PinnedMemoryAllocator</code>... Storage 通过 Allocator 分配内存。</p>
-<h3 id="952-allocator">9.5.2 Allocator 接口<a class="headerlink" href="#952-allocator" title="Permanent link">&para;</a></h3>
+<h3 id="962-allocator">9.6.2 Allocator 接口<a class="headerlink" href="#962-allocator" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// c10/allocator.h</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Allocator</span><span class="w"> </span><span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
@@ -3477,7 +3949,7 @@
 <span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">name</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">};</span>
 </code></pre></div>
-<h3 id="953-defaultallocator-mallocfree">9.5.3 DefaultAllocator：带统计的 malloc/free<a class="headerlink" href="#953-defaultallocator-mallocfree" title="Permanent link">&para;</a></h3>
+<h3 id="963-defaultallocator-mallocfree">9.6.3 DefaultAllocator：带统计的 malloc/free<a class="headerlink" href="#963-defaultallocator-mallocfree" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DefaultAllocator</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Allocator</span><span class="w"> </span><span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
 <span class="w">    </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">allocate</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
@@ -3507,7 +3979,7 @@
 <span class="p">};</span>
 </code></pre></div>
 <p><code>std::atomic&lt;size_t&gt;</code> 保证多线程下统计正确。<code>peak_ = std::max(peak_.load(), current_.load())</code> 不是原子操作，但峰值统计允许偶尔不精确。</p>
-<h3 id="954-poolallocator">9.5.4 PoolAllocator：内存池<a class="headerlink" href="#954-poolallocator" title="Permanent link">&para;</a></h3>
+<h3 id="964-poolallocator">9.6.4 PoolAllocator：内存池<a class="headerlink" href="#964-poolallocator" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">PoolAllocator</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Allocator</span><span class="w"> </span><span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
 <span class="w">    </span><span class="k">explicit</span><span class="w"> </span><span class="n">PoolAllocator</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">pool_threshold</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">)</span>
@@ -3571,7 +4043,7 @@
 <li><strong>deallocate</strong>：如果池中总字节未超 <code>threshold_</code>，放入 <code>free_blocks_</code>（不 delete）；否则真正 <code>delete[]</code>。</li>
 </ul>
 <p><strong>效果</strong>：训练循环中反复创建/释放相同大小的张量（如每步的梯度），<code>pool_hits_</code> 远大于 <code>pool_misses_</code>，省掉大部分 <code>new</code>/<code>delete</code> 调用。</p>
-<h3 id="955-allocator">9.5.5 全局 Allocator 管理<a class="headerlink" href="#955-allocator" title="Permanent link">&para;</a></h3>
+<h3 id="965-allocator">9.6.5 全局 Allocator 管理<a class="headerlink" href="#965-allocator" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// c10/allocator.cpp</span>
 <span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Allocator</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">global_allocator_ref</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Allocator</span><span class="o">&gt;</span><span class="w"> </span><span class="n">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">DefaultAllocator</span><span class="o">&gt;</span><span class="p">();</span>
@@ -3589,7 +4061,7 @@
 <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">set_global_allocator</span><span class="p">(</span><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">PoolAllocator</span><span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">))</span>
 <span class="c1"># 之后所有 Storage 分配都走内存池</span>
 </code></pre></div>
-<h3 id="956-storage-allocator">9.5.6 Storage 改用 Allocator<a class="headerlink" href="#956-storage-allocator" title="Permanent link">&para;</a></h3>
+<h3 id="966-storage-allocator">9.6.6 Storage 改用 Allocator<a class="headerlink" href="#966-storage-allocator" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// c10/storage.cpp</span>
 <span class="n">Storage</span><span class="o">::</span><span class="n">Storage</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">data_</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">),</span><span class="w"> </span><span class="n">size_</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">size</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -3604,7 +4076,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>Storage 不再直接 <code>new</code>/<code>delete</code>，全部通过 <code>get_global_allocator()</code>。切换 allocator 时，Storage 代码一行不改。</p>
-<h3 id="957-c10allocator">9.5.7 与 c10::Allocator 对照<a class="headerlink" href="#957-c10allocator" title="Permanent link">&para;</a></h3>
+<h3 id="967-c10allocator">9.6.7 与 c10::Allocator 对照<a class="headerlink" href="#967-c10allocator" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3641,8 +4113,8 @@
 </table>
 <p>PyTorch 的 <code>c10::CUDAAllocator</code> 更复杂：caching allocator 维护按大小分桶的空闲列表（类似 jemalloc），跨 stream 同步，OOM 时回收。但<strong>接口一致</strong>：<code>allocate</code>/<code>deallocate</code> + 统计。</p>
 <hr />
-<h2 id="96-autograd-profiler">9.6 Autograd Profiler<a class="headerlink" href="#96-autograd-profiler" title="Permanent link">&para;</a></h2>
-<h3 id="961-profiler">9.6.1 为什么需要 Profiler<a class="headerlink" href="#961-profiler" title="Permanent link">&para;</a></h3>
+<h2 id="97-autograd-profiler">9.7 Autograd Profiler<a class="headerlink" href="#97-autograd-profiler" title="Permanent link">&para;</a></h2>
+<h3 id="971-profiler">9.7.1 为什么需要 Profiler<a class="headerlink" href="#971-profiler" title="Permanent link">&para;</a></h3>
 <p>训练大模型时，backward 耗时往往占 60-80%。我们需要知道：</p>
 <ul>
 <li>每个 Node 执行多久？</li>
@@ -3650,7 +4122,7 @@
 <li>backward 期间分配了多少内存？</li>
 </ul>
 <p>PyTorch 提供 <code>torch.autograd.profiler</code>，我们在 C++ 层实现一个轻量版。</p>
-<h3 id="962-profiler">9.6.2 Profiler 设计<a class="headerlink" href="#962-profiler" title="Permanent link">&para;</a></h3>
+<h3 id="972-profiler">9.7.2 Profiler 设计<a class="headerlink" href="#972-profiler" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// autograd/profiler.h</span>
 <span class="k">struct</span><span class="w"> </span><span class="nc">ProfileEvent</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">node_name</span><span class="p">;</span><span class="w">       </span><span class="c1">// "MulNode", "AddNode", ...</span>
@@ -3675,7 +4147,7 @@
 
 <span class="n">Profiler</span><span class="o">&amp;</span><span class="w"> </span><span class="nf">get_global_profiler</span><span class="p">();</span>
 </code></pre></div>
-<h3 id="963-run_backward">9.6.3 集成到 run_backward<a class="headerlink" href="#963-run_backward" title="Permanent link">&para;</a></h3>
+<h3 id="973-run_backward">9.7.3 集成到 run_backward<a class="headerlink" href="#973-run_backward" title="Permanent link">&para;</a></h3>
 <p>在 <code>run_backward</code> 的每个 Node 执行前后记录：</p>
 <div class="highlight"><pre><span></span><code><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">profiler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_global_profiler</span><span class="p">();</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">t0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">high_resolution_clock</span><span class="o">::</span><span class="n">now</span><span class="p">();</span>
@@ -3689,7 +4161,7 @@
 <span class="w">    </span><span class="n">profiler</span><span class="p">.</span><span class="n">record</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">us</span><span class="p">,</span><span class="w"> </span><span class="n">mem_before</span><span class="p">,</span>
 <span class="w">                    </span><span class="n">get_global_allocator</span><span class="p">().</span><span class="n">total_allocated</span><span class="p">(),</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </code></pre></div>
-<h3 id="964-python">9.6.4 Python 端使用<a class="headerlink" href="#964-python" title="Permanent link">&para;</a></h3>
+<h3 id="974-python">9.7.4 Python 端使用<a class="headerlink" href="#974-python" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">_cpp_ext</span>
 
 <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">profiler_start</span><span class="p">()</span>
@@ -3702,7 +4174,7 @@
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">event</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> us, "</span>
           <span class="sa">f</span><span class="s2">"mem: </span><span class="si">{</span><span class="n">event</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">event</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2"> bytes"</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="965-pytorch">9.6.5 与 PyTorch 对照<a class="headerlink" href="#965-pytorch" title="Permanent link">&para;</a></h3>
+<h3 id="975-pytorch">9.7.5 与 PyTorch 对照<a class="headerlink" href="#975-pytorch" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3730,8 +4202,8 @@
 </tbody>
 </table>
 <hr />
-<h2 id="97-backward-hooks">9.7 梯度钩子（Backward Hooks）<a class="headerlink" href="#97-backward-hooks" title="Permanent link">&para;</a></h2>
-<h3 id="971">9.7.1 什么是梯度钩子<a class="headerlink" href="#971" title="Permanent link">&para;</a></h3>
+<h2 id="98-backward-hooks">9.8 梯度钩子（Backward Hooks）<a class="headerlink" href="#98-backward-hooks" title="Permanent link">&para;</a></h2>
+<h3 id="981">9.8.1 什么是梯度钩子<a class="headerlink" href="#981" title="Permanent link">&para;</a></h3>
 <p><code>register_hook(fn)</code> 在叶子张量上注册一个回调，backward 时梯度到达该张量后、累加之前调用 <code>fn(grad)</code>。钩子可以：</p>
 <ul>
 <li><strong>监控</strong>：打印梯度范数、检测梯度爆炸/消失</li>
@@ -3739,7 +4211,7 @@
 <li><strong>调试</strong>：记录每步梯度分布</li>
 </ul>
 <p>对应 PyTorch 的 <code>tensor.register_hook()</code>。</p>
-<h3 id="972">9.7.2 实现<a class="headerlink" href="#972" title="Permanent link">&para;</a></h3>
+<h3 id="982">9.8.2 实现<a class="headerlink" href="#982" title="Permanent link">&para;</a></h3>
 <p>在 <code>TensorImpl</code> 中添加钩子字段：</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// c10/tensor.h</span>
 <span class="k">using</span><span class="w"> </span><span class="n">HookFn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="p">(</span><span class="n">TensorImplPtr</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
@@ -3760,7 +4232,7 @@
 <span class="w">    </span><span class="c1">// ... 累加梯度 ...</span>
 <span class="p">}</span>
 </code></pre></div>
-<h3 id="973-python">9.7.3 Python 端使用<a class="headerlink" href="#973-python" title="Permanent link">&para;</a></h3>
+<h3 id="983-python">9.8.3 Python 端使用<a class="headerlink" href="#983-python" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># 注册钩子：梯度翻倍</span>
@@ -3772,7 +4244,7 @@
 <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kc">False</span><span class="p">))</span>
 <span class="c1"># x.grad = 2x * 2 = 4x = [4, 8, 12]</span>
 </code></pre></div>
-<h3 id="974-pybind11">9.7.4 pybind11 绑定<a class="headerlink" href="#974-pybind11" title="Permanent link">&para;</a></h3>
+<h3 id="984-pybind11">9.8.4 pybind11 绑定<a class="headerlink" href="#984-pybind11" title="Permanent link">&para;</a></h3>
 <p>钩子函数从 Python 传入，需用 <code>py::gil_scoped_acquire</code> 确保 GIL：</p>
 <div class="highlight"><pre><span></span><code><span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"register_hook"</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">py</span><span class="o">::</span><span class="n">object</span><span class="w"> </span><span class="n">fn</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">t</span><span class="o">-&gt;</span><span class="n">register_hook</span><span class="p">([</span><span class="n">fn</span><span class="p">](</span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">grad</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="p">{</span>
@@ -3784,12 +4256,12 @@
 <span class="p">})</span>
 </code></pre></div>
 <hr />
-<h2 id="98-anomaly-detection">9.8 Anomaly Detection<a class="headerlink" href="#98-anomaly-detection" title="Permanent link">&para;</a></h2>
-<h3 id="981-anomaly-detection">9.8.1 什么是 Anomaly Detection<a class="headerlink" href="#981-anomaly-detection" title="Permanent link">&para;</a></h3>
+<h2 id="99-anomaly-detection">9.9 Anomaly Detection<a class="headerlink" href="#99-anomaly-detection" title="Permanent link">&para;</a></h2>
+<h3 id="991-anomaly-detection">9.9.1 什么是 Anomaly Detection<a class="headerlink" href="#991-anomaly-detection" title="Permanent link">&para;</a></h3>
 <p>训练中出现 NaN/Inf 梯度时，默认不会报错——NaN 会静默传播，最终模型权重全部变 NaN，难以定位根因。</p>
 <p><code>anomaly_check</code> 在每次梯度生成时检测 NaN/Inf，立即抛异常，帮助定位产生 NaN 的那个 Node。</p>
 <p>对应 PyTorch 的 <code>torch.autograd.detect_anomaly()</code>。</p>
-<h3 id="982">9.8.2 实现<a class="headerlink" href="#982" title="Permanent link">&para;</a></h3>
+<h3 id="992">9.9.2 实现<a class="headerlink" href="#992" title="Permanent link">&para;</a></h3>
 <p>在 <code>grad_mode.h</code> 中添加全局标志：</p>
 <div class="highlight"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="k">thread_local</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">anomaly_check_enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
 
@@ -3821,7 +4293,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>在 <code>run_backward</code> 中，每个梯度生成后调用 <code>check_anomaly(grad)</code>。</p>
-<h3 id="983-python">9.8.3 Python 端使用<a class="headerlink" href="#983-python" title="Permanent link">&para;</a></h3>
+<h3 id="993-python">9.9.3 Python 端使用<a class="headerlink" href="#993-python" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">set_anomaly_check_enabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
@@ -3831,15 +4303,15 @@
 <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># "Anomaly detected: NaN or Inf in gradient"</span>
 </code></pre></div>
-<h3 id="984-pytorch">9.8.4 与 PyTorch 对照<a class="headerlink" href="#984-pytorch" title="Permanent link">&para;</a></h3>
+<h3 id="994-pytorch">9.9.4 与 PyTorch 对照<a class="headerlink" href="#994-pytorch" title="Permanent link">&para;</a></h3>
 <p>PyTorch 的 <code>detect_anomaly()</code> 上下文管理器更复杂：它还会记录前向执行栈，在异常消息中显示产生 NaN 的 Python 代码行。我们的实现只检测+抛异常，不含栈追踪。</p>
 <hr />
-<h2 id="99-gradient-checkpointing">9.9 Gradient Checkpointing<a class="headerlink" href="#99-gradient-checkpointing" title="Permanent link">&para;</a></h2>
-<h3 id="991">9.9.1 用重计算换内存<a class="headerlink" href="#991" title="Permanent link">&para;</a></h3>
+<h2 id="910-gradient-checkpointing">9.10 Gradient Checkpointing<a class="headerlink" href="#910-gradient-checkpointing" title="Permanent link">&para;</a></h2>
+<h3 id="9101">9.10.1 用重计算换内存<a class="headerlink" href="#9101" title="Permanent link">&para;</a></h3>
 <p>深层网络训练时，前向产生大量中间激活（每层输出），backward 需要这些激活来计算梯度。激活全部保存在内存中，显存成为瓶颈。</p>
 <p><strong>Gradient checkpointing</strong> 的思路：前向时<strong>不保存</strong>中间激活，只保存输入；backward 时<strong>重新执行前向</strong>以重算激活，再计算梯度。牺牲一次前向计算换取大幅内存节省。</p>
 <p>对应 <code>torch.utils.checkpoint.checkpoint</code>。</p>
-<h3 id="992-checkpointnode">9.9.2 CheckpointNode 设计<a class="headerlink" href="#992-checkpointnode" title="Permanent link">&para;</a></h3>
+<h3 id="9102-checkpointnode">9.10.2 CheckpointNode 设计<a class="headerlink" href="#9102-checkpointnode" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// autograd/checkpoint.h</span>
 <span class="k">using</span><span class="w"> </span><span class="n">CheckpointFn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 
@@ -3852,7 +4324,7 @@
 <span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">grad</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
 <span class="p">};</span>
 </code></pre></div>
-<h3 id="993-nograd">9.9.3 前向：NoGrad 执行<a class="headerlink" href="#993-nograd" title="Permanent link">&para;</a></h3>
+<h3 id="9103-nograd">9.10.3 前向：NoGrad 执行<a class="headerlink" href="#9103-nograd" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">TensorImplPtr</span><span class="w"> </span><span class="nf">checkpoint</span><span class="p">(</span><span class="n">CheckpointFn</span><span class="w"> </span><span class="n">fn</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;</span><span class="w"> </span><span class="n">inputs</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// 前向在 NoGrad 下执行（不建图、不保存中间激活）</span>
 <span class="w">    </span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">output</span><span class="p">;</span>
@@ -3876,7 +4348,7 @@
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">output</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
-<h3 id="994-backward">9.9.4 Backward：重计算<a class="headerlink" href="#994-backward" title="Permanent link">&para;</a></h3>
+<h3 id="9104-backward">9.10.4 Backward：重计算<a class="headerlink" href="#9104-backward" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;</span><span class="w"> </span><span class="n">CheckpointNode</span><span class="o">::</span><span class="n">apply</span><span class="p">(</span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">grad</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">EnableGradGuard</span><span class="w"> </span><span class="n">enable_grad</span><span class="p">;</span><span class="w">  </span><span class="c1">// 重计算需要建图</span>
 
@@ -3904,7 +4376,7 @@
 1. <strong>detached 副本</strong>：重计算用输入的数据副本，不触碰原始图的 <code>grad_fn</code>，避免覆盖。
 2. <strong>EnableGradGuard</strong>：重计算时需要 grad enabled 以建局部图；之后 <code>backward</code> 内部的 <code>NoGradGuard</code> 会关闭 grad。
 3. <strong>局部 backward</strong>：在重计算的局部图上反向传播，得到输入梯度，返回给主 Engine 继续传播。</p>
-<h3 id="995-python">9.9.5 Python 端使用<a class="headerlink" href="#995-python" title="Permanent link">&para;</a></h3>
+<h3 id="9105-python">9.10.5 Python 端使用<a class="headerlink" href="#9105-python" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">fn</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
@@ -3915,7 +4387,7 @@
 <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="kc">False</span><span class="p">))</span>
 <span class="c1"># x.grad = 2x = [2, 4, 6]  ← 与不使用 checkpoint 结果一致</span>
 </code></pre></div>
-<h3 id="996-vs">9.9.6 内存 vs 计算的权衡<a class="headerlink" href="#996-vs" title="Permanent link">&para;</a></h3>
+<h3 id="9106-vs">9.10.6 内存 vs 计算的权衡<a class="headerlink" href="#9106-vs" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3941,7 +4413,7 @@
 </tbody>
 </table>
 <p>对 N 层网络，每 k 层设一个 checkpoint，内存从 O(N) 降到 O(N/k)，计算量增加约 k/(k+1) 倍。</p>
-<h3 id="997-pytorch">9.9.7 与 PyTorch 对照<a class="headerlink" href="#997-pytorch" title="Permanent link">&para;</a></h3>
+<h3 id="9107-pytorch">9.10.7 与 PyTorch 对照<a class="headerlink" href="#9107-pytorch" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3970,8 +4442,8 @@
 </table>
 <p>PyTorch 的实现还支持 <code>use_reentrant</code> 参数（两种模式）、多输出、CPU offload 等。我们的实现是 reentrant 模式的基础版。</p>
 <hr />
-<h2 id="910-pytorch">9.10 与 PyTorch 对照<a class="headerlink" href="#910-pytorch" title="Permanent link">&para;</a></h2>
-<h3 id="9101-autograd">9.10.1 Autograd 对照<a class="headerlink" href="#9101-autograd" title="Permanent link">&para;</a></h3>
+<h2 id="911-pytorch">9.11 与 PyTorch 对照<a class="headerlink" href="#911-pytorch" title="Permanent link">&para;</a></h2>
+<h3 id="9111-autograd">9.11.1 Autograd 对照<a class="headerlink" href="#9111-autograd" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -4033,7 +4505,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="9102-allocator">9.10.2 Allocator 对照<a class="headerlink" href="#9102-allocator" title="Permanent link">&para;</a></h3>
+<h3 id="9112-allocator">9.11.2 Allocator 对照<a class="headerlink" href="#9112-allocator" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -4071,8 +4543,8 @@
 </tbody>
 </table>
 <hr />
-<h2 id="911">9.11 关键测试解读<a class="headerlink" href="#911" title="Permanent link">&para;</a></h2>
-<h3 id="9111-backward">9.11.1 多线程 backward 正确性<a class="headerlink" href="#9111-backward" title="Permanent link">&para;</a></h3>
+<h2 id="912">9.12 关键测试解读<a class="headerlink" href="#912" title="Permanent link">&para;</a></h2>
+<h3 id="9121-backward">9.12.1 多线程 backward 正确性<a class="headerlink" href="#9121-backward" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_backward_mt_matches_single_thread</span><span class="p">():</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -4087,7 +4559,7 @@
     <span class="k">assert</span> <span class="n">grad_single</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">grad_mt</span><span class="p">)</span>
 </code></pre></div>
 <p>验证多线程结果与单线程一致。</p>
-<h3 id="9112-double-backward">9.11.2 Double backward<a class="headerlink" href="#9112-double-backward" title="Permanent link">&para;</a></h3>
+<h3 id="9122-double-backward">9.12.2 Double backward<a class="headerlink" href="#9122-double-backward" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_double_backward</span><span class="p">():</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
@@ -4099,7 +4571,7 @@
     <span class="c1"># d(2x)/dx = 2</span>
     <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]</span>
 </code></pre></div>
-<h3 id="9113-allocator">9.11.3 Allocator 统计<a class="headerlink" href="#9113-allocator" title="Permanent link">&para;</a></h3>
+<h3 id="9123-allocator">9.12.3 Allocator 统计<a class="headerlink" href="#9123-allocator" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_allocator_stats</span><span class="p">():</span>
     <span class="n">alloc</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">DefaultAllocator</span><span class="p">()</span>
     <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">set_global_allocator</span><span class="p">(</span><span class="n">alloc</span><span class="p">)</span>
@@ -4107,7 +4579,7 @@
     <span class="k">assert</span> <span class="n">alloc</span><span class="o">.</span><span class="n">num_allocations</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">1</span>
     <span class="k">assert</span> <span class="n">alloc</span><span class="o">.</span><span class="n">total_allocated</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">3</span>
 </code></pre></div>
-<h3 id="9114-poolallocator">9.11.4 PoolAllocator 命中率<a class="headerlink" href="#9114-poolallocator" title="Permanent link">&para;</a></h3>
+<h3 id="9124-poolallocator">9.12.4 PoolAllocator 命中率<a class="headerlink" href="#9124-poolallocator" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_pool_allocator_reuse</span><span class="p">():</span>
     <span class="n">alloc</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">PoolAllocator</span><span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
     <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">set_global_allocator</span><span class="p">(</span><span class="n">alloc</span><span class="p">)</span>
@@ -4116,7 +4588,7 @@
         <span class="c1"># t 析构 → 内存回池</span>
     <span class="k">assert</span> <span class="n">alloc</span><span class="o">.</span><span class="n">pool_hits</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>   <span class="c1"># 有重用</span>
 </code></pre></div>
-<h3 id="9115-profiler">9.11.5 Profiler 事件记录<a class="headerlink" href="#9115-profiler" title="Permanent link">&para;</a></h3>
+<h3 id="9125-profiler">9.12.5 Profiler 事件记录<a class="headerlink" href="#9125-profiler" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_profiler_events</span><span class="p">():</span>
     <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">profiler_start</span><span class="p">()</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
@@ -4128,7 +4600,7 @@
     <span class="c1"># 每个 event: (name, duration_us, mem_before, mem_after, thread_id)</span>
     <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span><span class="p">)</span>  <span class="c1"># duration &gt;= 0</span>
 </code></pre></div>
-<h3 id="9116">9.11.6 梯度钩子<a class="headerlink" href="#9116" title="Permanent link">&para;</a></h3>
+<h3 id="9126">9.12.6 梯度钩子<a class="headerlink" href="#9126" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_hook_modify_grad</span><span class="p">():</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
     <span class="c1"># 钩子使梯度翻倍</span>
@@ -4139,7 +4611,7 @@
     <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kc">False</span><span class="p">))</span>
     <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">]</span>  <span class="c1"># 2x * 2 = 4x</span>
 </code></pre></div>
-<h3 id="9117-anomaly-detection">9.11.7 Anomaly Detection<a class="headerlink" href="#9117-anomaly-detection" title="Permanent link">&para;</a></h3>
+<h3 id="9127-anomaly-detection">9.12.7 Anomaly Detection<a class="headerlink" href="#9127-anomaly-detection" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_anomaly_detect_inf_grad</span><span class="p">():</span>
     <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">set_anomaly_check_enabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -4150,7 +4622,7 @@
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">set_anomaly_check_enabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="9118-gradient-checkpointing">9.11.8 Gradient Checkpointing<a class="headerlink" href="#9118-gradient-checkpointing" title="Permanent link">&para;</a></h3>
+<h3 id="9128-gradient-checkpointing">9.12.8 Gradient Checkpointing<a class="headerlink" href="#9128-gradient-checkpointing" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_checkpoint_vs_no_checkpoint</span><span class="p">():</span>
     <span class="c1"># 普通前向</span>
     <span class="n">x1</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
@@ -4168,7 +4640,7 @@
     <span class="k">assert</span> <span class="n">x2</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="n">x1</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span>  <span class="c1"># 结果一致</span>
 </code></pre></div>
 <hr />
-<h2 id="912">9.12 下一章预告<a class="headerlink" href="#912" title="Permanent link">&para;</a></h2>
+<h2 id="913">9.13 下一章预告<a class="headerlink" href="#913" title="Permanent link">&para;</a></h2>
 <p>本章的 C++ 核心只跑在 CPU 上。下一章（Ch10）我们给它接上 <strong>CUDA</strong>——让算子在 GPU 上跑，并引入 <strong>dispatcher</strong> 机制：同一个算子名（<code>"add"</code>）按张量的 device 自动路由到 CPU kernel 或 CUDA kernel。</p>
 <p>你会看到：</p>
 <ul>
