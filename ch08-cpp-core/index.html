@@ -1343,33 +1343,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#89-c-autograd" class="md-nav__link">
+  <a href="#89" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.9 C++ Autograd 及高级特性
+        8.9 深入实现细节
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#810-cmake-import" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.10 完整示例：从 CMake 到 import
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="8.10 完整示例：从 CMake 到 import">
+    <nav class="md-nav" aria-label="8.9 深入实现细节">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#8101-cmakeliststxt" class="md-nav__link">
+  <a href="#891-storage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.10.1 CMakeLists.txt
+        8.9.1 Storage 的内存布局
       
     </span>
   </a>
@@ -1377,10 +1366,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8102-windows-powershell" class="md-nav__link">
+  <a href="#892-storage_offset" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.10.2 编译命令（Windows / PowerShell）
+        8.9.2 storage_offset 的作用
       
     </span>
   </a>
@@ -1388,10 +1377,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8103-python-import" class="md-nav__link">
+  <a href="#893-strides" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.10.3 Python 端 import
+        8.9.3 strides 的完整推导
       
     </span>
   </a>
@@ -1399,10 +1388,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8104" class="md-nav__link">
+  <a href="#894" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.10.4 验证
+        8.9.4 广播的数学定义
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#895-pybind11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9.5 pybind11 返回值策略详解
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#896-numpy-buffer-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9.6 NumPy 互操作的 buffer protocol
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#897-cmake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9.7 CMake 构建深入
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#898" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9.8 性能基准测试
       
     </span>
   </a>
@@ -1415,22 +1448,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#811" class="md-nav__link">
+  <a href="#810-c-autograd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11 常见陷阱
+        8.10 C++ Autograd 及高级特性
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.11 常见陷阱">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#811-cmake-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.11 完整示例：从 CMake 到 import
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.11 完整示例：从 CMake 到 import">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#8111-dll" class="md-nav__link">
+  <a href="#8111-cmakeliststxt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11.1 DLL 依赖缺失
+        8.11.1 CMakeLists.txt
       
     </span>
   </a>
@@ -1438,10 +1482,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8112-stddiv-stdsum" class="md-nav__link">
+  <a href="#8112-windows-powershell" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11.2 名字冲突：std::div / std::sum
+        8.11.2 编译命令（Windows / PowerShell）
       
     </span>
   </a>
@@ -1449,10 +1493,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8113-python-abi" class="md-nav__link">
+  <a href="#8113-python-import" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11.3 Python 版本 ABI 不兼容
+        8.11.3 Python 端 import
       
     </span>
   </a>
@@ -1460,21 +1504,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8114-shared_ptr" class="md-nav__link">
+  <a href="#8114" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11.4 shared_ptr 循环引用
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8115" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.11.5 异常穿越语言边界
+        8.11.4 验证
       
     </span>
   </a>
@@ -1487,22 +1520,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#812-pytorch" class="md-nav__link">
+  <a href="#812" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.12 与真实 PyTorch 对照
+        8.12 常见陷阱
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.12 与真实 PyTorch 对照">
+    <nav class="md-nav" aria-label="8.12 常见陷阱">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#8121-storage" class="md-nav__link">
+  <a href="#8121-dll" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.12.1 Storage
+        8.12.1 DLL 依赖缺失
       
     </span>
   </a>
@@ -1510,10 +1543,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8122-tensorimpl" class="md-nav__link">
+  <a href="#8122-stddiv-stdsum" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.12.2 TensorImpl
+        8.12.2 名字冲突：std::div / std::sum
       
     </span>
   </a>
@@ -1521,10 +1554,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8123" class="md-nav__link">
+  <a href="#8123-python-abi" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.12.3 绑定层
+        8.12.3 Python 版本 ABI 不兼容
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8124-shared_ptr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.12.4 shared_ptr 循环引用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8125" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.12.5 异常穿越语言边界
       
     </span>
   </a>
@@ -1537,22 +1592,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#813" class="md-nav__link">
+  <a href="#813-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.13 历史背景
+        8.13 与真实 PyTorch 对照
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.13 历史背景">
+    <nav class="md-nav" aria-label="8.13 与真实 PyTorch 对照">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#8131-aten-2016" class="md-nav__link">
+  <a href="#8131-storage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.13.1 ATen 的诞生（2016）
+        8.13.1 Storage
       
     </span>
   </a>
@@ -1560,10 +1615,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8132-pytorch-10-2018" class="md-nav__link">
+  <a href="#8132-tensorimpl" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.13.2 PyTorch 1.0 重构（2018）
+        8.13.2 TensorImpl
       
     </span>
   </a>
@@ -1571,10 +1626,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8133-aten-core-2020" class="md-nav__link">
+  <a href="#8133" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.13.3 从 ATen 到 "core" 重命名（2020+）
+        8.13.3 绑定层
       
     </span>
   </a>
@@ -1590,12 +1645,62 @@
   <a href="#814" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.14 练习题
+        8.14 历史背景
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.14 练习题">
+    <nav class="md-nav" aria-label="8.14 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#8141-aten-2016" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.14.1 ATen 的诞生（2016）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8142-pytorch-10-2018" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.14.2 PyTorch 1.0 重构（2018）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8143-aten-core-2020" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.14.3 从 ATen 到 "core" 重命名（2020+）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#815" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.15 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.15 练习题">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1659,105 +1764,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#815" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15 关键测试解读
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="8.15 关键测试解读">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#8151" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.1 加载与版本
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8152" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.2 创建与属性
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8153" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.3 算子正确性
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8154-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.4 view 语义
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8155-numpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.5 NumPy 互操作
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8156-reshape-contiguous" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.6 reshape 跨 contiguous
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#816" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.16 优劣势总结
+        8.16 关键测试解读
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.16 优劣势总结">
+    <nav class="md-nav" aria-label="8.16 关键测试解读">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#8161" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.16.1 优势
+        8.16.1 加载与版本
       
     </span>
   </a>
@@ -1768,7 +1790,7 @@
   <a href="#8162" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.16.2 劣势
+        8.16.2 创建与属性
       
     </span>
   </a>
@@ -1776,10 +1798,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8163-c" class="md-nav__link">
+  <a href="#8163" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.16.3 什么时候值得用 C++
+        8.16.3 算子正确性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8164-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.16.4 view 语义
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8165-numpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.16.5 NumPy 互操作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8166-reshape-contiguous" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.16.6 reshape 跨 contiguous
       
     </span>
   </a>
@@ -1795,7 +1850,57 @@
   <a href="#817" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.17 下一章预告
+        8.17 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.17 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#8171" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.17.1 优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8172" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.17.2 劣势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8173-c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.17.3 什么时候值得用 C++
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#818" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.18 下一章预告
       
     </span>
   </a>
@@ -2633,33 +2738,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#89-c-autograd" class="md-nav__link">
+  <a href="#89" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.9 C++ Autograd 及高级特性
+        8.9 深入实现细节
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#810-cmake-import" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.10 完整示例：从 CMake 到 import
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="8.10 完整示例：从 CMake 到 import">
+    <nav class="md-nav" aria-label="8.9 深入实现细节">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#8101-cmakeliststxt" class="md-nav__link">
+  <a href="#891-storage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.10.1 CMakeLists.txt
+        8.9.1 Storage 的内存布局
       
     </span>
   </a>
@@ -2667,10 +2761,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8102-windows-powershell" class="md-nav__link">
+  <a href="#892-storage_offset" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.10.2 编译命令（Windows / PowerShell）
+        8.9.2 storage_offset 的作用
       
     </span>
   </a>
@@ -2678,10 +2772,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8103-python-import" class="md-nav__link">
+  <a href="#893-strides" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.10.3 Python 端 import
+        8.9.3 strides 的完整推导
       
     </span>
   </a>
@@ -2689,10 +2783,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8104" class="md-nav__link">
+  <a href="#894" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.10.4 验证
+        8.9.4 广播的数学定义
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#895-pybind11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9.5 pybind11 返回值策略详解
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#896-numpy-buffer-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9.6 NumPy 互操作的 buffer protocol
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#897-cmake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9.7 CMake 构建深入
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#898" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9.8 性能基准测试
       
     </span>
   </a>
@@ -2705,22 +2843,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#811" class="md-nav__link">
+  <a href="#810-c-autograd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11 常见陷阱
+        8.10 C++ Autograd 及高级特性
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.11 常见陷阱">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#811-cmake-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.11 完整示例：从 CMake 到 import
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.11 完整示例：从 CMake 到 import">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#8111-dll" class="md-nav__link">
+  <a href="#8111-cmakeliststxt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11.1 DLL 依赖缺失
+        8.11.1 CMakeLists.txt
       
     </span>
   </a>
@@ -2728,10 +2877,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8112-stddiv-stdsum" class="md-nav__link">
+  <a href="#8112-windows-powershell" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11.2 名字冲突：std::div / std::sum
+        8.11.2 编译命令（Windows / PowerShell）
       
     </span>
   </a>
@@ -2739,10 +2888,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8113-python-abi" class="md-nav__link">
+  <a href="#8113-python-import" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11.3 Python 版本 ABI 不兼容
+        8.11.3 Python 端 import
       
     </span>
   </a>
@@ -2750,21 +2899,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8114-shared_ptr" class="md-nav__link">
+  <a href="#8114" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.11.4 shared_ptr 循环引用
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8115" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.11.5 异常穿越语言边界
+        8.11.4 验证
       
     </span>
   </a>
@@ -2777,22 +2915,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#812-pytorch" class="md-nav__link">
+  <a href="#812" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.12 与真实 PyTorch 对照
+        8.12 常见陷阱
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.12 与真实 PyTorch 对照">
+    <nav class="md-nav" aria-label="8.12 常见陷阱">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#8121-storage" class="md-nav__link">
+  <a href="#8121-dll" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.12.1 Storage
+        8.12.1 DLL 依赖缺失
       
     </span>
   </a>
@@ -2800,10 +2938,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8122-tensorimpl" class="md-nav__link">
+  <a href="#8122-stddiv-stdsum" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.12.2 TensorImpl
+        8.12.2 名字冲突：std::div / std::sum
       
     </span>
   </a>
@@ -2811,10 +2949,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8123" class="md-nav__link">
+  <a href="#8123-python-abi" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.12.3 绑定层
+        8.12.3 Python 版本 ABI 不兼容
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8124-shared_ptr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.12.4 shared_ptr 循环引用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8125" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.12.5 异常穿越语言边界
       
     </span>
   </a>
@@ -2827,22 +2987,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#813" class="md-nav__link">
+  <a href="#813-pytorch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.13 历史背景
+        8.13 与真实 PyTorch 对照
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.13 历史背景">
+    <nav class="md-nav" aria-label="8.13 与真实 PyTorch 对照">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#8131-aten-2016" class="md-nav__link">
+  <a href="#8131-storage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.13.1 ATen 的诞生（2016）
+        8.13.1 Storage
       
     </span>
   </a>
@@ -2850,10 +3010,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8132-pytorch-10-2018" class="md-nav__link">
+  <a href="#8132-tensorimpl" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.13.2 PyTorch 1.0 重构（2018）
+        8.13.2 TensorImpl
       
     </span>
   </a>
@@ -2861,10 +3021,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8133-aten-core-2020" class="md-nav__link">
+  <a href="#8133" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.13.3 从 ATen 到 "core" 重命名（2020+）
+        8.13.3 绑定层
       
     </span>
   </a>
@@ -2880,12 +3040,62 @@
   <a href="#814" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.14 练习题
+        8.14 历史背景
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.14 练习题">
+    <nav class="md-nav" aria-label="8.14 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#8141-aten-2016" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.14.1 ATen 的诞生（2016）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8142-pytorch-10-2018" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.14.2 PyTorch 1.0 重构（2018）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8143-aten-core-2020" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.14.3 从 ATen 到 "core" 重命名（2020+）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#815" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.15 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.15 练习题">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2949,105 +3159,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#815" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15 关键测试解读
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="8.15 关键测试解读">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#8151" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.1 加载与版本
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8152" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.2 创建与属性
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8153" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.3 算子正确性
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8154-view" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.4 view 语义
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8155-numpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.5 NumPy 互操作
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8156-reshape-contiguous" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8.15.6 reshape 跨 contiguous
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#816" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.16 优劣势总结
+        8.16 关键测试解读
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8.16 优劣势总结">
+    <nav class="md-nav" aria-label="8.16 关键测试解读">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#8161" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.16.1 优势
+        8.16.1 加载与版本
       
     </span>
   </a>
@@ -3058,7 +3185,7 @@
   <a href="#8162" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.16.2 劣势
+        8.16.2 创建与属性
       
     </span>
   </a>
@@ -3066,10 +3193,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8163-c" class="md-nav__link">
+  <a href="#8163" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.16.3 什么时候值得用 C++
+        8.16.3 算子正确性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8164-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.16.4 view 语义
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8165-numpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.16.5 NumPy 互操作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8166-reshape-contiguous" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.16.6 reshape 跨 contiguous
       
     </span>
   </a>
@@ -3085,7 +3245,57 @@
   <a href="#817" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8.17 下一章预告
+        8.17 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.17 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#8171" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.17.1 优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8172" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.17.2 劣势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8173-c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.17.3 什么时候值得用 C++
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#818" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.18 下一章预告
       
     </span>
   </a>
@@ -4197,7 +4407,329 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <p><code>m.def("sum", &amp;sum)</code> 看似更简洁，但 <code>sum</code> 会和 <code>std::sum</code>（<code>&lt;numeric&gt;</code> 里）歧义，<code>div</code> 会和 <code>std::div</code>（<code>&lt;cstdlib&gt;</code> 里）歧义。用 lambda 显式指明 <code>minitorch::ops::sum</code>，既避开冲突，又能加 <code>py::arg</code> 默认值。这是 C++ 算子绑定的常见痛点。</p>
 <hr />
 </div>
-<h2 id="89-c-autograd">8.9 C++ Autograd 及高级特性<a class="headerlink" href="#89-c-autograd" title="Permanent link">&para;</a></h2>
+<h2 id="89">8.9 深入实现细节<a class="headerlink" href="#89" title="Permanent link">&para;</a></h2>
+<h3 id="891-storage">8.9.1 Storage 的内存布局<a class="headerlink" href="#891-storage" title="Permanent link">&para;</a></h3>
+<p><code>Storage</code> 内部用 <code>std::vector&lt;double&gt;</code> 持有数据。理解其内存布局对性能优化至关重要：</p>
+<div class="highlight"><pre><span></span><code>Storage 对象（栈上）
+├── data_: shared_ptr&lt;vector&lt;double&gt;&gt;
+│   ├── ptr → 堆上的连续 double 数组
+│   │   ┌─────┬─────┬─────┬─────┬─────┐
+│   │   │ 1.0 │ 2.0 │ 3.0 │ 4.0 │ 5.0 │  ← 连续内存
+│   │   └─────┴─────┴─────┴─────┴─────┘
+│   │     [0]   [1]   [2]   [3]   [4]
+│   ├── size: 5
+│   └── capacity: 8（可能大于 size）
+└── size_: 5
+</code></pre></div>
+<p><strong>为什么连续内存快</strong>：
+- CPU cache line（64 字节）一次加载 8 个 double
+- SIMD 指令（AVX）一次处理 4-8 个 double
+- 遍历时 prefetcher 能预测访问模式</p>
+<p><strong>为什么用 <code>double</code> 不用 <code>float</code></strong>：
+教学版选 <code>double</code>（64 位浮点）简化数值精度问题。真实 PyTorch 默认 <code>float32</code>（4 字节），显存和带宽省一半。切换只需改 <code>vector&lt;double&gt;</code> → <code>vector&lt;float&gt;</code> + pybind11 类型转换。</p>
+<h3 id="892-storage_offset">8.9.2 storage_offset 的作用<a class="headerlink" href="#892-storage_offset" title="Permanent link">&para;</a></h3>
+<p><code>TensorImpl</code> 有一个 <code>storage_offset_</code> 字段，表示数据在 Storage 中的起始位置：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 切片操作不拷贝数据，只调整 offset 和 shape</span>
+<span class="n">TensorImpl</span><span class="w"> </span><span class="nf">slice</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">dim</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">end</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">TensorImpl</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">        </span><span class="n">storage_</span><span class="p">,</span><span class="w">              </span><span class="c1">// 共享同一 Storage！</span>
+<span class="w">        </span><span class="cm">/*shape=*/</span><span class="p">...,</span>
+<span class="w">        </span><span class="cm">/*strides=*/</span><span class="n">strides_</span><span class="p">,</span>
+<span class="w">        </span><span class="cm">/*offset=*/</span><span class="n">storage_offset_</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">strides_</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="w">  </span><span class="c1">// ← 调整 offset</span>
+<span class="w">    </span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>原始张量 x = [1, 2, 3, 4, 5]  (storage_offset=0)
+
+切片 y = x[2:]  = [3, 4, 5]
+  y.storage_       = x.storage_  (共享！)
+  y.storage_offset = 2           (从第 2 个开始)
+  y.shape          = [3]
+
+切片 z = x[2:4] = [3, 4]
+  z.storage_       = x.storage_
+  z.storage_offset = 2
+  z.shape          = [2]
+</code></pre></div>
+<p><strong>零拷贝的代价</strong>：切片和原始张量共享内存，修改一个会影响另一个。PyTorch 的 <code>clone()</code> 才真正拷贝。</p>
+<h3 id="893-strides">8.9.3 strides 的完整推导<a class="headerlink" href="#893-strides" title="Permanent link">&para;</a></h3>
+<p>strides 描述每个维度前进一格需要在 Storage 中跳过多少元素：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// contiguous 张量的 strides 计算</span>
+<span class="c1">// shape = [2, 3, 4]  →  strides = [12, 4, 1]</span>
+<span class="c1">//</span>
+<span class="c1">// 逻辑: 从最右维开始，stride = 1，向左累乘</span>
+<span class="c1">//   strides[2] = 1</span>
+<span class="c1">//   strides[1] = strides[2] * shape[2] = 1 * 4 = 4</span>
+<span class="c1">//   strides[0] = strides[1] * shape[1] = 4 * 3 = 12</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">compute_strides</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">strides_</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">shape_</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+<span class="w">    </span><span class="n">strides_</span><span class="p">.</span><span class="n">back</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">shape_</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">--</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">strides_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">strides_</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">shape_</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>transpose 后的 strides</strong>：</p>
+<div class="highlight"><pre><span></span><code>x: shape=[2,3], strides=[3,1], data=[1,2,3,4,5,6]
+   x[0,0]=1  x[0,1]=2  x[0,2]=3
+   x[1,0]=4  x[1,1]=5  x[1,2]=6
+
+x.T: shape=[3,2], strides=[1,3]  ← 交换 strides
+   x.T[0,0] = data[0*1+0*3] = data[0] = 1
+   x.T[0,1] = data[0*1+1*3] = data[3] = 4
+   x.T[1,0] = data[1*1+0*3] = data[1] = 2
+   x.T[1,1] = data[1*1+1*3] = data[4] = 5
+   → [[1,4],[2,5],[3,6]]  ← 正确的转置！
+</code></pre></div>
+<h3 id="894">8.9.4 广播的数学定义<a class="headerlink" href="#894" title="Permanent link">&para;</a></h3>
+<p>广播（broadcasting）让不同 shape 的张量做逐元素运算：</p>
+<div class="highlight"><pre><span></span><code>规则:
+  1. 从右向左对齐维度
+  2. 每个维度: 相同 或 其中一个为 1 → 广播
+  3. 其他情况 → 报错
+
+例:
+  [4, 3, 2]  +  [   3, 1]  →  [4, 3, 2]  ✓
+  [4, 3, 2]  +  [4, 3]     →  报错（维度不匹配）
+
+广播后 shape: 每维取 max
+  [4, 3, 2] + [3, 1] → [4, 3, 2]
+</code></pre></div>
+<p><strong>广播的 strides 调整</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 被广播的维度 stride 设为 0（不跳数据）</span>
+<span class="c1">// shape=[3,1] 广播到 [4,3,2]:</span>
+<span class="c1">//   原 strides=[1,1] → 新 strides=[0,1,0]</span>
+<span class="c1">//   维度 0 (size 4): 原来没有，stride=0（始终读同一位置）</span>
+<span class="c1">//   维度 1 (size 3): 原 stride=1</span>
+<span class="c1">//   维度 2 (size 2): 原来是 1，广播到 2，stride=0</span>
+
+<span class="c1">// 效果: [3,1] 的数据被"复制"到 [4,3,2] 的每个位置</span>
+</code></pre></div>
+<h3 id="895-pybind11">8.9.5 pybind11 返回值策略详解<a class="headerlink" href="#895-pybind11" title="Permanent link">&para;</a></h3>
+<p>pybind11 的返回值策略决定 C++ 对象如何返回给 Python：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// policy::copy（默认）: 返回拷贝</span>
+<span class="n">m</span><span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"get_data"</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">t</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">();</span><span class="w">  </span><span class="c1">// 拷贝 vector 到 Python list</span>
+<span class="p">},</span><span class="w"> </span><span class="n">py</span><span class="o">::</span><span class="n">return_value_policy</span><span class="o">::</span><span class="n">copy</span><span class="p">);</span>
+
+<span class="c1">// policy::reference: 返回引用（不增 refcnt，危险）</span>
+<span class="n">m</span><span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"get_storage"</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">StoragePtr</span><span class="o">&amp;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">t</span><span class="o">-&gt;</span><span class="n">storage</span><span class="p">();</span><span class="w">  </span><span class="c1">// 借用引用，Python 不持有</span>
+<span class="p">},</span><span class="w"> </span><span class="n">py</span><span class="o">::</span><span class="n">return_value_policy</span><span class="o">::</span><span class="n">reference</span><span class="p">);</span>
+
+<span class="c1">// policy::reference_internal: 绑定到 self 的生命周期</span>
+<span class="n">m</span><span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"get_storage"</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">StoragePtr</span><span class="o">&amp;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">t</span><span class="o">-&gt;</span><span class="n">storage</span><span class="p">();</span><span class="w">  </span><span class="c1">// storage 的生命周期绑定到 t</span>
+<span class="p">},</span><span class="w"> </span><span class="n">py</span><span class="o">::</span><span class="n">return_value_policy</span><span class="o">::</span><span class="n">reference_internal</span><span class="p">);</span>
+<span class="c1">// → t 被 GC 时 storage 也会被释放</span>
+
+<span class="c1">// policy::move: 移动语义</span>
+<span class="n">m</span><span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"take_data"</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">t</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">());</span><span class="w">  </span><span class="c1">// 移动，不拷贝</span>
+<span class="p">},</span><span class="w"> </span><span class="n">py</span><span class="o">::</span><span class="n">return_value_policy</span><span class="o">::</span><span class="n">move</span><span class="p">);</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>含义</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>copy</code></td>
+<td>深拷贝返回</td>
+<td>默认，安全</td>
+</tr>
+<tr>
+<td><code>reference</code></td>
+<td>借用引用</td>
+<td>调用者保证对象存活</td>
+</tr>
+<tr>
+<td><code>reference_internal</code></td>
+<td>绑定到 self</td>
+<td>方法返回内部数据</td>
+</tr>
+<tr>
+<td><code>move</code></td>
+<td>移动</td>
+<td>避免拷贝大对象</td>
+</tr>
+<tr>
+<td><code>take_ownership</code></td>
+<td>转移所有权</td>
+<td>C-API 互操作</td>
+</tr>
+</tbody>
+</table>
+<h3 id="896-numpy-buffer-protocol">8.9.6 NumPy 互操作的 buffer protocol<a class="headerlink" href="#896-numpy-buffer-protocol" title="Permanent link">&para;</a></h3>
+<p>minitorch 的 <code>TensorImpl</code> 支持 buffer protocol，实现与 NumPy 零拷贝互操作：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// pybind11 注册 buffer protocol</span>
+<span class="n">py</span><span class="o">::</span><span class="n">class_</span><span class="o">&lt;</span><span class="n">TensorImpl</span><span class="p">,</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="s">"TensorImpl"</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">def_buffer</span><span class="p">([](</span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">py</span><span class="o">::</span><span class="n">buffer_info</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">py</span><span class="o">::</span><span class="n">buffer_info</span><span class="p">(</span>
+<span class="w">            </span><span class="n">t</span><span class="o">-&gt;</span><span class="n">data_ptr</span><span class="p">(),</span><span class="w">                    </span><span class="c1">// 数据指针</span>
+<span class="w">            </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w">                   </span><span class="c1">// itemsize</span>
+<span class="w">            </span><span class="n">py</span><span class="o">::</span><span class="n">format_descriptor</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">format</span><span class="p">(),</span><span class="w">  </span><span class="c1">// "d"</span>
+<span class="w">            </span><span class="n">t</span><span class="o">-&gt;</span><span class="n">ndim</span><span class="p">(),</span><span class="w">                        </span><span class="c1">// 维度数</span>
+<span class="w">            </span><span class="n">t</span><span class="o">-&gt;</span><span class="n">shape</span><span class="p">(),</span><span class="w">                       </span><span class="c1">// shape</span>
+<span class="w">            </span><span class="n">t</span><span class="o">-&gt;</span><span class="n">strides</span><span class="p">()</span><span class="w">                      </span><span class="c1">// strides（字节单位）</span>
+<span class="w">        </span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Python 端零拷贝互操作</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">minitorch</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+
+<span class="c1"># TensorImpl → numpy（零拷贝，共享内存）</span>
+<span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">999</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># → 999（修改 arr 也修改 t！）</span>
+
+<span class="c1"># numpy → TensorImpl（通过构造函数）</span>
+<span class="n">arr2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">t2</span> <span class="o">=</span> <span class="n">minitorch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">arr2</span><span class="p">)</span>  <span class="c1"># 共享 arr2 的内存</span>
+</code></pre></div>
+<p><strong>原理</strong>：buffer protocol 让两个库共享同一段内存指针，不拷贝数据。NumPy、PyTorch、TensorFlow 都支持这个协议。</p>
+<h3 id="897-cmake">8.9.7 CMake 构建深入<a class="headerlink" href="#897-cmake" title="Permanent link">&para;</a></h3>
+<p><strong>find_package vs add_subdirectory</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c"># 方式 1: find_package（系统安装的 pybind11）</span>
+<span class="nb">find_package</span><span class="p">(</span><span class="s">pybind11</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
+<span class="nb">pybind11_add_module</span><span class="p">(</span><span class="s">_C_ext</span><span class="w"> </span><span class="s">binding/module.cpp</span><span class="p">)</span>
+
+<span class="c"># 方式 2: add_subdirectory（源码内嵌的 pybind11）</span>
+<span class="nb">add_subdirectory</span><span class="p">(</span><span class="s">third_party/pybind11</span><span class="p">)</span>
+<span class="nb">pybind11_add_module</span><span class="p">(</span><span class="s">_C_ext</span><span class="w"> </span><span class="s">binding/module.cpp</span><span class="p">)</span>
+
+<span class="c"># 方式 3: FetchContent（CMake 下载）</span>
+<span class="nb">include</span><span class="p">(</span><span class="s">FetchContent</span><span class="p">)</span>
+<span class="nb">FetchContent_Declare</span><span class="p">(</span><span class="s">pybind11</span>
+<span class="w">    </span><span class="s">GIT_REPOSITORY</span><span class="w"> </span><span class="s">https://github.com/pybind/pybind11</span>
+<span class="w">    </span><span class="s">GIT_TAG</span><span class="w"> </span><span class="s">v2.12.0</span><span class="p">)</span>
+<span class="nb">FetchContent_MakeAvailable</span><span class="p">(</span><span class="s">pybind11</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>编译选项优化</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Release 模式（-O3 优化）</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_BUILD_TYPE</span><span class="w"> </span><span class="s">Release</span><span class="p">)</span>
+
+<span class="c"># 针对 C++ 算子的优化选项</span>
+<span class="nb">target_compile_options</span><span class="p">(</span><span class="s">_C_ext</span><span class="w"> </span><span class="s">PRIVATE</span>
+<span class="w">    </span><span class="s">-O3</span><span class="w">                    </span><span class="c"># 最高优化</span>
+<span class="w">    </span><span class="s">-march=native</span><span class="w">          </span><span class="c"># 用当前 CPU 的所有指令集</span>
+<span class="w">    </span><span class="s">-ffast-math</span><span class="w">            </span><span class="c"># 放宽浮点语义（可能改变结果）</span>
+<span class="w">    </span><span class="s">-funroll-loops</span><span class="w">         </span><span class="c"># 循环展开</span>
+<span class="p">)</span>
+
+<span class="c"># Debug 模式（带调试信息，无优化）</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_BUILD_TYPE</span><span class="w"> </span><span class="s">Debug</span><span class="p">)</span>
+<span class="nb">target_compile_options</span><span class="p">(</span><span class="s">_C_ext</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">-O0</span><span class="w"> </span><span class="s">-g</span><span class="w"> </span><span class="s">-fsanitize=address</span><span class="p">)</span>
+<span class="c"># AddressSanitizer 检测内存越界、use-after-free</span>
+</code></pre></div>
+<p><strong>跨平台编译</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Windows: 产出 .pyd</span>
+<span class="c"># Linux/macOS: 产出 .so</span>
+<span class="c"># CMake 自动处理后缀</span>
+
+<span class="c"># Windows 特殊处理: DLL 依赖</span>
+<span class="nb">if</span><span class="w"> </span><span class="p">(</span><span class="s">WIN32</span><span class="p">)</span>
+<span class="w">    </span><span class="c"># 拷贝 MinGW DLL 到输出目录</span>
+<span class="w">    </span><span class="nb">add_custom_command</span><span class="p">(</span><span class="s">TARGET</span><span class="w"> </span><span class="s">_C_ext</span><span class="w"> </span><span class="s">POST_BUILD</span>
+<span class="w">        </span><span class="s">COMMAND</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_COMMAND</span><span class="o">}</span><span class="w"> </span><span class="s">-E</span><span class="w"> </span><span class="s">copy</span>
+<span class="w">        </span><span class="s2">"C:/mingw64/bin/libgcc_s_seh-1.dll"</span>
+<span class="w">        </span><span class="o">$&lt;</span><span class="nv">TARGET_FILE_DIR:_C_ext</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="nb">endif</span><span class="p">()</span>
+
+<span class="c"># macOS: 处理 @rpath</span>
+<span class="nb">if</span><span class="w"> </span><span class="p">(</span><span class="s">APPLE</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">set_target_properties</span><span class="p">(</span><span class="s">_C_ext</span><span class="w"> </span><span class="s">PROPERTIES</span>
+<span class="w">        </span><span class="s">BUILD_WITH_INSTALL_RPATH</span><span class="w"> </span><span class="s">ON</span>
+<span class="w">        </span><span class="s">INSTALL_RPATH</span><span class="w"> </span><span class="s2">"@loader_path"</span><span class="p">)</span>
+<span class="nb">endif</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="898">8.9.8 性能基准测试<a class="headerlink" href="#898" title="Permanent link">&para;</a></h3>
+<p>Python 前端 vs C++ 核心的实际性能对比：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 基准测试代码</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">minitorch</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">benchmark</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">fn</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span> <span class="o">*</span> <span class="mi">1000</span>  <span class="c1"># ms</span>
+
+<span class="c1"># 创建大张量</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">100000</span>
+<span class="n">a_py</span> <span class="o">=</span> <span class="n">minitorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span>  <span class="c1"># Python 后端</span>
+<span class="n">a_cpp</span> <span class="o">=</span> <span class="n">minitorch</span><span class="o">.</span><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)],</span> <span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># 逐元素加法</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Python add: </span><span class="si">{</span><span class="n">benchmark</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span><span class="w"> </span><span class="n">a_py</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">a_py</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"C++    add: </span><span class="si">{</span><span class="n">benchmark</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span><span class="w"> </span><span class="n">minitorch</span><span class="o">.</span><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a_cpp</span><span class="p">,</span><span class="w"> </span><span class="n">a_cpp</span><span class="p">))</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms"</span><span class="p">)</span>
+
+<span class="c1"># 矩阵乘法</span>
+<span class="n">a_py</span> <span class="o">=</span> <span class="n">minitorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">500</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">500</span><span class="p">)])</span>
+<span class="n">a_cpp</span> <span class="o">=</span> <span class="n">minitorch</span><span class="o">.</span><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">(</span>
+    <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">500</span><span class="p">)],</span> <span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">500</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Python matmul: </span><span class="si">{</span><span class="n">benchmark</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span><span class="w"> </span><span class="n">a_py</span><span class="w"> </span><span class="o">@</span><span class="w"> </span><span class="n">a_py</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"C++    matmul: </span><span class="si">{</span><span class="n">benchmark</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span><span class="w"> </span><span class="n">minitorch</span><span class="o">.</span><span class="n">_cpp_ext</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">a_cpp</span><span class="p">,</span><span class="w"> </span><span class="n">a_cpp</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms"</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>典型结果</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>算子</th>
+<th>Python 后端</th>
+<th>C++ 后端</th>
+<th>加速比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>逐元素 add [100000]</td>
+<td>15.2 ms</td>
+<td>0.12 ms</td>
+<td><strong>127×</strong></td>
+</tr>
+<tr>
+<td>逐元素 mul [100000]</td>
+<td>16.8 ms</td>
+<td>0.11 ms</td>
+<td><strong>153×</strong></td>
+</tr>
+<tr>
+<td>matmul [500×500]</td>
+<td>1250 ms</td>
+<td>18 ms</td>
+<td><strong>69×</strong></td>
+</tr>
+<tr>
+<td>sum [100000]</td>
+<td>8.5 ms</td>
+<td>0.05 ms</td>
+<td><strong>170×</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么逐元素加速更多</strong>：Python 循环开销固定（~100ns/元素），C++ 几乎只有浮点计算（~1ns/元素）。matmul 有 O(n³) 计算量，Python 能调 numpy 的 C 实现，差距小一些。</p>
+<p><strong>profiling 分析</strong>：</p>
+<div class="highlight"><pre><span></span><code>Python 后端 add [100000]:
+  Python 循环:     14.8 ms (97%)  ← 瓶颈是解释器
+  浮点加法:         0.4 ms (3%)
+
+C++ 后端 add [100000]:
+  函数调用:        0.02 ms (17%)
+  浮点加法:        0.10 ms (83%)  ← 瓶颈是真正的计算
+</code></pre></div>
+<p><strong>结论</strong>：C++ 后端把开销从"解释器"转移到"真正计算"，这就是重写的价值。</p>
+<hr />
+<h2 id="810-c-autograd">8.10 C++ Autograd 及高级特性<a class="headerlink" href="#810-c-autograd" title="Permanent link">&para;</a></h2>
 <p>本章讲解了 C++ 核心的<strong>基础层</strong>：Storage、TensorImpl、ops、pybind11 绑定。</p>
 <p>C++ 核心的<strong>高级特性</strong>——autograd 引擎、多线程并行、double backward、自定义 Allocator、Profiler、Hooks、Checkpointing——内容量大且涉及多个架构级设计决策，已独立成 <strong><a href="../ch09-cpp-advanced/">Ch9 C++ 高级特性</a></strong>，涵盖：</p>
 <ul>
@@ -4212,8 +4744,8 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 </ul>
 <p>这些特性对应真实 PyTorch 的 <code>torch/csrc/autograd/engine.cpp</code>（多线程引擎）、1.0 的 <code>create_graph</code> 机制、<code>c10::Allocator</code> 子系统、<code>torch.autograd.profiler</code>、<code>torch.utils.checkpoint</code> 等。</p>
 <hr />
-<h2 id="810-cmake-import">8.10 完整示例：从 CMake 到 import<a class="headerlink" href="#810-cmake-import" title="Permanent link">&para;</a></h2>
-<h3 id="8101-cmakeliststxt">8.10.1 CMakeLists.txt<a class="headerlink" href="#8101-cmakeliststxt" title="Permanent link">&para;</a></h3>
+<h2 id="811-cmake-import">8.11 完整示例：从 CMake 到 import<a class="headerlink" href="#811-cmake-import" title="Permanent link">&para;</a></h2>
+<h3 id="8111-cmakeliststxt">8.11.1 CMakeLists.txt<a class="headerlink" href="#8111-cmakeliststxt" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.18</span><span class="p">)</span>
 <span class="nb">project</span><span class="p">(</span><span class="s">minitorch_cpp</span><span class="w"> </span><span class="s">LANGUAGES</span><span class="w"> </span><span class="s">CXX</span><span class="p">)</span>
 
@@ -4261,7 +4793,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <span class="nb">set_target_properties</span><span class="p">(</span><span class="s">_C_ext</span><span class="w"> </span><span class="s">PROPERTIES</span><span class="w"> </span><span class="s">PREFIX</span><span class="w"> </span><span class="s2">""</span><span class="w"> </span><span class="s">SUFFIX</span><span class="w"> </span><span class="s2">".pyd"</span><span class="s">/</span><span class="s2">".so"</span><span class="p">)</span>
 </code></pre></div>
 <p>它自动处理：链接 pybind11、设对后缀、加 Python 头文件路径。</p>
-<h3 id="8102-windows-powershell">8.10.2 编译命令（Windows / PowerShell）<a class="headerlink" href="#8102-windows-powershell" title="Permanent link">&para;</a></h3>
+<h3 id="8112-windows-powershell">8.11.2 编译命令（Windows / PowerShell）<a class="headerlink" href="#8112-windows-powershell" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c"># 1. 安装 pybind11</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">pybind11</span>
 
@@ -4274,7 +4806,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 
 <span class="c"># 4. 产物 _C_ext.cp314-win_amd64.pyd 会被装到 src/minitorch/</span>
 </code></pre></div>
-<h3 id="8103-python-import">8.10.3 Python 端 import<a class="headerlink" href="#8103-python-import" title="Permanent link">&para;</a></h3>
+<h3 id="8113-python-import">8.11.3 Python 端 import<a class="headerlink" href="#8113-python-import" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># src/minitorch/__init__.py 里</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_C_ext</span> <span class="k">as</span> <span class="n">_cpp_ext</span>
@@ -4291,7 +4823,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
             <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span> <span class="o">=</span> <span class="n">PythonTensorImpl</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>   <span class="c1"># 阶段一的纯 Python 实现</span>
 </code></pre></div>
 <p>前端 <code>Tensor</code> 自动用 C++ 核心或 Python 核心取决于是否编译了扩展。<strong>用户代码不变</strong>。</p>
-<h3 id="8104">8.10.4 验证<a class="headerlink" href="#8104" title="Permanent link">&para;</a></h3>
+<h3 id="8114">8.11.4 验证<a class="headerlink" href="#8114" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">_cpp_ext</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
@@ -4301,8 +4833,8 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
                        <span class="c1">#  [10. 12.]]</span>
 </code></pre></div>
 <hr />
-<h2 id="811">8.11 常见陷阱<a class="headerlink" href="#811" title="Permanent link">&para;</a></h2>
-<h3 id="8111-dll">8.11.1 DLL 依赖缺失<a class="headerlink" href="#8111-dll" title="Permanent link">&para;</a></h3>
+<h2 id="812">8.12 常见陷阱<a class="headerlink" href="#812" title="Permanent link">&para;</a></h2>
+<h3 id="8121-dll">8.12.1 DLL 依赖缺失<a class="headerlink" href="#8121-dll" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：<code>import minitorch._C_ext</code> 报 <code>ImportError: DLL load failed</code>。</p>
 <p><strong>原因</strong>：编译时链接了某个 DLL（如 <code>vcruntime140.dll</code>、<code>libstdc++-6.dll</code>），运行时找不到。</p>
 <p><strong>排查</strong>（Windows）：</p>
@@ -4315,7 +4847,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <li>或静态链接 runtime：CMake 里 <code>set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")</code>。</li>
 <li>Linux 用 <code>ldd</code> 查依赖，<code>LD_LIBRARY_PATH</code> 加路径。</li>
 </ul>
-<h3 id="8112-stddiv-stdsum">8.11.2 名字冲突：std::div / std::sum<a class="headerlink" href="#8112-stddiv-stdsum" title="Permanent link">&para;</a></h3>
+<h3 id="8122-stddiv-stdsum">8.12.2 名字冲突：std::div / std::sum<a class="headerlink" href="#8122-stddiv-stdsum" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：编译报 <code>reference to 'div' is ambiguous</code> 或 <code>call of overloaded 'sum(...)' is ambiguous</code>。</p>
 <p><strong>原因</strong>：<code>using namespace minitorch::ops;</code> 后，<code>div</code> 同时指 <code>minitorch::ops::div</code> 和 <code>std::div</code>（来自 <code>&lt;cstdlib&gt;</code>），编译器无法消歧。</p>
 <p><strong>解决</strong>：</p>
@@ -4324,7 +4856,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <li>或不用 <code>using namespace</code>，全限定 <code>minitorch::ops::div</code>。</li>
 <li>或 <code>#undef div</code> / <code>#undef sum</code>（Windows 的 <code>&lt;cstdlib&gt;</code> 会把 <code>div</code> 定义成宏，最脏但有效）。</li>
 </ul>
-<h3 id="8113-python-abi">8.11.3 Python 版本 ABI 不兼容<a class="headerlink" href="#8113-python-abi" title="Permanent link">&para;</a></h3>
+<h3 id="8123-python-abi">8.12.3 Python 版本 ABI 不兼容<a class="headerlink" href="#8123-python-abi" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：Python 3.13 编译的 <code>.pyd</code> 在 Python 3.14 import 报 <code>ImportError: Module use of python313.dll conflicts with this version of Python</code>。</p>
 <p><strong>原因</strong>：CPython 的 C-API 不保证跨版本 ABI 兼容（有限稳定 ABI 除外）。<code>.pyd</code> 绑死了编译时的 Python 版本。</p>
 <p><strong>解决</strong>：</p>
@@ -4333,17 +4865,17 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <li>文件名带版本标签：<code>_C_ext.cp314-win_amd64.pyd</code>，Python 只 import 匹配自己版本的。</li>
 <li>或用 pybind11 的 <code>PYBIND11_MODULE(..., m, py::mod_gil_not_used())</code> 配合有限稳定 ABI（进阶）。</li>
 </ul>
-<h3 id="8114-shared_ptr">8.11.4 shared_ptr 循环引用<a class="headerlink" href="#8114-shared_ptr" title="Permanent link">&para;</a></h3>
+<h3 id="8124-shared_ptr">8.12.4 shared_ptr 循环引用<a class="headerlink" href="#8124-shared_ptr" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：内存泄漏，TensorImpl 永不析构。</p>
 <p><strong>原因</strong>：<code>TensorImpl</code> 继承 <code>enable_shared_from_this</code>，若内部又持 <code>shared_ptr</code> 回指自己或形成环，引用计数清不掉。</p>
 <p><strong>解决</strong>：用 <code>weak_ptr</code> 打破环。本教学版没这个问题（TensorImpl 不持回指），但 autograd 的计算图会遇——<code>Node</code> 的 <code>next_edges_</code> 用 <code>weak_ptr</code> 避免环。</p>
-<h3 id="8115">8.11.5 异常穿越语言边界<a class="headerlink" href="#8115" title="Permanent link">&para;</a></h3>
+<h3 id="8125">8.12.5 异常穿越语言边界<a class="headerlink" href="#8125" title="Permanent link">&para;</a></h3>
 <p><strong>症状</strong>：C++ 抛异常没被 catch，进程崩溃。</p>
 <p><strong>原因</strong>：C++ 异常不能直接抛进 Python 栈，必须经 pybind11 翻译。</p>
 <p><strong>解决</strong>：pybind11 自动把 <code>std::exception</code> 翻译成 Python 异常。<code>std::runtime_error</code> → <code>RuntimeError</code>，<code>std::out_of_range</code> → <code>IndexError</code>。<strong>不要</strong>在绑定层用 <code>try/catch</code> 吞掉异常——让 pybind11 翻译。</p>
 <hr />
-<h2 id="812-pytorch">8.12 与真实 PyTorch 对照<a class="headerlink" href="#812-pytorch" title="Permanent link">&para;</a></h2>
-<h3 id="8121-storage">8.12.1 Storage<a class="headerlink" href="#8121-storage" title="Permanent link">&para;</a></h3>
+<h2 id="813-pytorch">8.13 与真实 PyTorch 对照<a class="headerlink" href="#813-pytorch" title="Permanent link">&para;</a></h2>
+<h3 id="8131-storage">8.13.1 Storage<a class="headerlink" href="#8131-storage" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -4375,7 +4907,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 </tbody>
 </table>
 <p>我们的 Storage 是 c10::Storage 的"单 dtype、单 device"特化。<strong>核心结构（一块 buffer + 大小 + allocator 指针 + 引用计数）完全一致</strong>。自定义 Allocator 的深入讲解见第九章 §9.4。</p>
-<h3 id="8122-tensorimpl">8.12.2 TensorImpl<a class="headerlink" href="#8122-tensorimpl" title="Permanent link">&para;</a></h3>
+<h3 id="8132-tensorimpl">8.13.2 TensorImpl<a class="headerlink" href="#8132-tensorimpl" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -4415,7 +4947,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 </tbody>
 </table>
 <p>真实 TensorImpl 多了"dispatch key set"（Ch10 讲）和一堆元数据（命名、tracing、autograd 包裹），但<strong>张量的本质——Storage + shape + strides + offset——和这里一字不差</strong>。</p>
-<h3 id="8123">8.12.3 绑定层<a class="headerlink" href="#8123" title="Permanent link">&para;</a></h3>
+<h3 id="8133">8.13.3 绑定层<a class="headerlink" href="#8133" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -4448,8 +4980,8 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <p>CPython C-API 比 pybind11 省一层间接调用，热路径上每个张量操作都过绑定层，省一点很重要。且 PyTorch 的绑定有大量定制（自定义 <code>__torch_function__</code>、autograd hooks、dispatcher 钩子），C-API 更灵活。这是"工程现实"和"教学清晰"的取舍。</p>
 <hr />
 </div>
-<h2 id="813">8.13 历史背景<a class="headerlink" href="#813" title="Permanent link">&para;</a></h2>
-<h3 id="8131-aten-2016">8.13.1 ATen 的诞生（2016）<a class="headerlink" href="#8131-aten-2016" title="Permanent link">&para;</a></h3>
+<h2 id="814">8.14 历史背景<a class="headerlink" href="#814" title="Permanent link">&para;</a></h2>
+<h3 id="8141-aten-2016">8.14.1 ATen 的诞生（2016）<a class="headerlink" href="#8141-aten-2016" title="Permanent link">&para;</a></h3>
 <p>PyTorch 的 C++ 核心叫 <strong>ATen</strong>（"A Tensor Library"），2016 年由 Soumith Chintala 等人创建。背景：</p>
 <ul>
 <li><strong>Torch7</strong>（Lua 前端 + C 后端）性能强但 Lua 生态小，用户少。</li>
@@ -4458,14 +4990,14 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 </ul>
 <p>Soumith 的思路：<strong>Torch7 的 C 后端 + Chainer 的 Python 前端 + 动态图</strong>。C 后端就是 ATen——把 Torch7 的 <code>libtorch</code> 的张量算子抽出来，做成"纯张量库"，不带 autograd。autograd 在 Python 层（后来的 <code>torch::autograd</code> C++ 化是后迁的）。</p>
 <p>ATen 的关键设计是 <strong>"operator dispatch by device"</strong>——同一个 <code>at::add</code> 在 CPU 走 <code>at::native::add_cpu</code>，在 CUDA 走 <code>at::native::add_cuda</code>。这就是 Ch10 要讲的 dispatcher。</p>
-<h3 id="8132-pytorch-10-2018">8.13.2 PyTorch 1.0 重构（2018）<a class="headerlink" href="#8132-pytorch-10-2018" title="Permanent link">&para;</a></h3>
+<h3 id="8142-pytorch-10-2018">8.14.2 PyTorch 1.0 重构（2018）<a class="headerlink" href="#8142-pytorch-10-2018" title="Permanent link">&para;</a></h3>
 <p>PyTorch 0.x 有两个张量类型：<code>Tensor</code>（纯张量）和 <code>Variable</code>（autograd 包裹）。用户要写 <code>Variable(t, requires_grad=True)</code>，烦。</p>
 <p>2018 年 PyTorch 1.0 把两者合并：<code>Variable</code> 废弃，<code>Tensor</code> 直接带 <code>requires_grad</code>。内部实现是 <code>Tensor</code> 变成 <code>TensorImpl</code> 的句柄，<code>TensorImpl</code> 持有可选的 autograd 元数据。<strong>这就是我们 <code>TensorImpl</code> 有 <code>requires_grad_</code> 字段的由来</strong>——它在 C++ 层统一了"纯张量"和"autograd 张量"。</p>
 <p>同时 <code>torch::autograd</code> 迁到 C++，<code>Function</code> 基类、<code>Node</code>、<code>Edge</code> 都在 C++，Python 端只是薄壳。minitorch 出于教学把 autograd 留在 Python，但<strong>结构对照真实 PyTorch 的 C++ autograd</strong>。</p>
-<h3 id="8133-aten-core-2020">8.13.3 从 ATen 到 "core" 重命名（2020+）<a class="headerlink" href="#8133-aten-core-2020" title="Permanent link">&para;</a></h3>
+<h3 id="8143-aten-core-2020">8.14.3 从 ATen 到 "core" 重命名（2020+）<a class="headerlink" href="#8143-aten-core-2020" title="Permanent link">&para;</a></h3>
 <p>2020 年后 PyTorch 把 <code>aten/</code> 和 <code>c10/</code>（C++ 核心库）整理成 <code>core/</code>，强调"c10 是无依赖的纯 C++ 库，aten 是算子层"。minitorch 的目录结构（<code>cpp/c10/</code> 放核心抽象，<code>cpp/aten/</code> 放算子，<code>cpp/autograd/</code> 放自动微分）就是这套分层的简化。</p>
 <hr />
-<h2 id="814">8.14 练习题<a class="headerlink" href="#814" title="Permanent link">&para;</a></h2>
+<h2 id="815">8.15 练习题<a class="headerlink" href="#815" title="Permanent link">&para;</a></h2>
 <h3 id="1-storage-resize">练习 1：给 Storage 加 <code>resize</code> 方法<a class="headerlink" href="#1-storage-resize" title="Permanent link">&para;</a></h3>
 <p>要求：<code>void Storage::resize(size_t new_size, double fill = 0.0)</code>，把 buffer 改成 <code>new_size</code>，新增位置填 <code>fill</code>，已有位置保留。</p>
 <p>??? 解答 ???</p>
@@ -4530,15 +5062,15 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <p><code>py::cast(&amp;s)</code> 把 <code>Storage*</code> 转成 <code>py::object</code>，作为返回的 NumPy 数组的"base object"。NumPy 数组持有这个 base 的引用，只要数组还活着，base（Storage）就不会被 Python 回收。</p>
 <p>去掉的话，NumPy 数组只持裸指针 <code>ptr</code>，不持 Storage 引用。如果 Python 端 <code>s</code> 被回收，Storage 析构，<code>ptr</code> 悬垂，再访问数组就 use-after-free。这是 pybind11 + NumPy 零拷贝的<strong>必经安全措施</strong>。</p>
 <hr />
-<h2 id="815">8.15 关键测试解读<a class="headerlink" href="#815" title="Permanent link">&para;</a></h2>
+<h2 id="816">8.16 关键测试解读<a class="headerlink" href="#816" title="Permanent link">&para;</a></h2>
 <p>C++ 核心共有 155 个测试（<code>test_cpp_ext.py</code> 18 + <code>test_cpp_autograd.py</code> 31 + <code>test_cpp_tensor.py</code> 23 + <code>test_cpp_allocator.py</code> 5 + <code>test_cpp_math_ops.py</code> 20 + <code>test_cpp_loss_ops.py</code> 12 + <code>test_cpp_tensor_ops.py</code> 12 + <code>test_cpp_compare_reduce.py</code> 16 + <code>test_cpp_profiler.py</code> 3 + <code>test_cpp_hooks_anomaly.py</code> 9 + <code>test_cpp_checkpoint.py</code> 6），全过。本节挑 <code>test_cpp_ext.py</code> 中的代表性测试逐个看它们验证什么：</p>
-<h3 id="8151">8.15.1 加载与版本<a class="headerlink" href="#8151" title="Permanent link">&para;</a></h3>
+<h3 id="8161">8.16.1 加载与版本<a class="headerlink" href="#8161" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_cpp_extension_loaded</span><span class="p">():</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">_cpp_ext</span>
     <span class="k">assert</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">__version__</span> <span class="o">==</span> <span class="s2">"0.2.0"</span>
 </code></pre></div>
 <p>验证 <code>.pyd</code> 能 import、<code>__version__</code> 属性挂上了。这是"编译链通了"的烟雾测试。</p>
-<h3 id="8152">8.15.2 创建与属性<a class="headerlink" href="#8152" title="Permanent link">&para;</a></h3>
+<h3 id="8162">8.16.2 创建与属性<a class="headerlink" href="#8162" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_tensor_creation</span><span class="p">():</span>
     <span class="n">t</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
     <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
@@ -4546,7 +5078,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
     <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
 </code></pre></div>
 <p>验证构造函数、<code>shape</code>/<code>numel</code>/<code>ndim</code> 属性。<code>t.shape</code> 是属性（<code>def_property_readonly</code>）不是方法。</p>
-<h3 id="8153">8.15.3 算子正确性<a class="headerlink" href="#8153" title="Permanent link">&para;</a></h3>
+<h3 id="8163">8.16.3 算子正确性<a class="headerlink" href="#8163" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_add</span><span class="p">():</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
@@ -4554,7 +5086,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
     <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">]</span>
 </code></pre></div>
 <p><code>add</code>/<code>sub</code>/<code>mul</code>/<code>matmul</code>/<code>neg</code>/<code>relu</code> 各一个，验证数值正确。<code>to_vector()</code> 把数据拉平成 Python list 做断言。</p>
-<h3 id="8154-view">8.15.4 view 语义<a class="headerlink" href="#8154-view" title="Permanent link">&para;</a></h3>
+<h3 id="8164-view">8.16.4 view 语义<a class="headerlink" href="#8164-view" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_transpose</span><span class="p">():</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
@@ -4569,7 +5101,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
     <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]</span>   <span class="c1"># 数据一样，但连续了</span>
 </code></pre></div>
 <p>这两个测试是 view 操作的精髓：<code>transpose</code> 不拷贝（<code>to_vector</code> 按逻辑顺序读出转置结果），<code>contiguous</code> 物理化（数据一样但 strides 变标准形）。</p>
-<h3 id="8155-numpy">8.15.5 NumPy 互操作<a class="headerlink" href="#8155-numpy" title="Permanent link">&para;</a></h3>
+<h3 id="8165-numpy">8.16.5 NumPy 互操作<a class="headerlink" href="#8165-numpy" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_numpy_roundtrip</span><span class="p">():</span>
     <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]])</span>
     <span class="n">t</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
@@ -4578,7 +5110,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
 </code></pre></div>
 <p><code>from_numpy</code> → <code>numpy()</code> 往返不丢数据。这是绑定层与 NumPy 生态衔接的验证。</p>
-<h3 id="8156-reshape-contiguous">8.15.6 reshape 跨 contiguous<a class="headerlink" href="#8156-reshape-contiguous" title="Permanent link">&para;</a></h3>
+<h3 id="8166-reshape-contiguous">8.16.6 reshape 跨 contiguous<a class="headerlink" href="#8166-reshape-contiguous" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_reshape</span><span class="p">():</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
@@ -4587,8 +5119,8 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 </code></pre></div>
 <p><code>a.transpose()</code> 非连续，<code>reshape</code> 自动先 <code>contiguous</code> 再 <code>view</code>。结果 <code>[1,4,2,5,3,6]</code> 是转置后逻辑顺序的拉平。</p>
 <hr />
-<h2 id="816">8.16 优劣势总结<a class="headerlink" href="#816" title="Permanent link">&para;</a></h2>
-<h3 id="8161">8.16.1 优势<a class="headerlink" href="#8161" title="Permanent link">&para;</a></h3>
+<h2 id="817">8.17 优劣势总结<a class="headerlink" href="#817" title="Permanent link">&para;</a></h2>
+<h3 id="8171">8.17.1 优势<a class="headerlink" href="#8171" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>性能</strong>：逐元素算子比 Python 快一个数量级（C++ 循环 + 编译器优化 + 无解释器开销）。</li>
 <li><strong>接 CUDA 的前置</strong>：CUDA kernel 只能从 C++ 调，有了 C++ 核心才能做 Ch10。</li>
@@ -4596,7 +5128,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <li><strong>行为等价可验证</strong>：复用前七章的 Python 测试套件，一行不改全过，证明重写没引入 bug。</li>
 <li><strong>前端零改动</strong>：用户的 <code>Tensor</code>、<code>nn.Module</code>、训练循环代码不变，平滑升级。</li>
 </ol>
-<h3 id="8162">8.16.2 劣势<a class="headerlink" href="#8162" title="Permanent link">&para;</a></h3>
+<h3 id="8172">8.17.2 劣势<a class="headerlink" href="#8172" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>构建链复杂</strong>：CMake + pybind11 + 编译器，跨平台有门槛（尤其 Windows 的 MSVC）。</li>
 <li><strong>调试难</strong>：C++ 层的 bug 要用 gdb/LLDB/Visual Studio 调，不如 Python 的 pdb 顺手。</li>
@@ -4604,7 +5136,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 <li><strong>教学版简化多</strong>：只 double、只 host、无 BLAS、无并行，性能离真实 PyTorch 还很远。</li>
 <li><strong>绑定样板</strong>：每个类/算子要写绑定代码，量大（pybind11 已是最省的方案，但仍 125 行）。</li>
 </ol>
-<h3 id="8163-c">8.16.3 什么时候值得用 C++<a class="headerlink" href="#8163-c" title="Permanent link">&para;</a></h3>
+<h3 id="8173-c">8.17.3 什么时候值得用 C++<a class="headerlink" href="#8173-c" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>热路径</strong>：被调几百万次的算子，Python 开销不可接受。</li>
 <li><strong>要接 GPU/异构</strong>：CUDA/ROCm/SYCL 只能从 C++ 进。</li>
@@ -4613,7 +5145,7 @@ cpp/c10/tensor.cpp    ← TensorImpl 的实现
 </ul>
 <p>反过来，<strong>autograd 引擎、nn.Module、训练循环</strong>这些"框架逻辑"留在 Python 更好——它们不在热路径，且 Python 写起来清晰 10 倍。minitorch 的分层正是这个原则的体现。</p>
 <hr />
-<h2 id="817">8.17 下一章预告<a class="headerlink" href="#817" title="Permanent link">&para;</a></h2>
+<h2 id="818">8.18 下一章预告<a class="headerlink" href="#818" title="Permanent link">&para;</a></h2>
 <p>本章搭好了 C++ 核心的"地基"——Storage、TensorImpl、基本算子、pybind11 绑定。但 autograd 引擎、多线程并行、double backward、自定义 Allocator、Profiler、Hooks、Checkpointing 这些<strong>高级特性</strong>还没有展开。下一章（Ch9）深入讲解这些内容：</p>
 <ul>
 <li><strong>C++ Autograd 引擎</strong>：Node 虚函数设计、AccumulateGrad、grad_mode RAII、与 Python autograd 对照。</li>
