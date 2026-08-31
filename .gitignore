@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# uv
+uv.lock
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDE
+.vscode/
+.idea/
+.codeartsdoer/
+.codegraph/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts (C++ stage two)
+*.so
+*.pyd
+*.o
+*.obj
+cmake_build/
+wheelhouse/
+
+# MkDocs site
+docs/site/
+
+# Data / checkpoints
+examples/data/
+*.pt
+*.ckpt

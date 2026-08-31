@@ -1,0 +1,89 @@
+site_name: minitorch
+site_description: 从零实现迷你版 PyTorch，学习底层原理与设计原则
+site_author: minitorch contributor
+repo_url: https://github.com/wanglh39/minitorch
+repo_name: wanglh39/minitorch
+docs_dir: docs/docs
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.tabs
+    - content.tabs.link
+  palette:
+    - scheme: default
+      primary: deep orange
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换深色模式
+    - scheme: slate
+      primary: deep orange
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换浅色模式
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.mark
+  - footnotes
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            paths: [src]
+
+nav:
+  - 首页: index.md
+  - 阶段一·纯 Python:
+      - Ch1 张量与存储: ch01-tensor-storage.md
+      - Ch2 算子与分发: ch02-ops-dispatcher.md
+      - Ch3 自动微分引擎: ch03-autograd-engine.md
+      - Ch4 计算图机制: ch04-computation-graph.md
+      - Ch5 nn.Module 体系: ch05-nn-module.md
+      - Ch6 优化器系统: ch06-optimizer.md
+      - Ch7 损失与训练循环: ch07-loss-training.md
+      - Ch11 数据加载与采样: ch11-dataloader.md
+      - Ch12 持久化与混合精度: ch12-serialization-amp.md
+      - Ch13 图与编译导论: ch13-fx-compile.md
+  - 阶段二·C++ 核心:
+      - Ch8 C++ 核心重写: ch08-cpp-core.md
+      - Ch9 C++ 高级特性: ch09-cpp-advanced.md
+      - Ch10 CUDA 与 dispatcher: ch10-cuda-dispatcher.md
+  - 附录:
+      - 附录索引: appendix/index.md
+      - A1 分布式训练: appendix/a1-distributed.md
+      - A2 量化导论: appendix/a2-quantization.md
+      - A3 TorchScript 与 ONNX: appendix/a3-torchscript-onnx.md
+      - A4 profiler: appendix/a4-profiler.md
+      - A5 dispatch key 链: appendix/a5-dispatch-key.md
+      - A6 CPython C-API: appendix/a6-c-api.md
+  - 与真实 PyTorch 的差异: differences.md
