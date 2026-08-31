@@ -42,6 +42,7 @@ wheelhouse/
 
 # MkDocs site
 docs/site/
+site/
 
 # Data / checkpoints
 examples/data/
