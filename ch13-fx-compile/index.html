@@ -3093,9 +3093,9 @@ multi-input result: [4. 6.]
 </table>
 <div class="admonition tip">
 <p class="admonition-title">torch.compile 为什么更强</p>
-</div>
 <p>Dynamo 不靠 Proxy，而是<strong>改写 Python 字节码</strong>：在执行时拦截每个 <code>CALL</code> 指令，把算子记录进图。遇到 <code>if x &gt; 0</code> 时，它记录当前 x 的值作为 <strong>guard</strong>，生成一个"当 x&gt;0 时用这个图"的特化版本。下次 x 又 &gt;0 就复用，否则重新追踪。这样既保留了图优化，又支持了 control flow 和动态 shape。代价是实现极其复杂（要理解 CPython 字节码、帧栈、guard 逻辑）。</p>
 <hr />
+</div>
 <h2 id="138">13.8 历史背景<a class="headerlink" href="#138" title="Permanent link">&para;</a></h2>
 <p><strong>图与编译在深度学习框架里的演化：</strong></p>
 <ul>

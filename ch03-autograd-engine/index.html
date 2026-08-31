@@ -2653,10 +2653,10 @@
 等价地，按"原图"（前向图）的<strong>逆拓扑序</strong>遍历，也就是"输出到输入"的顺序。</p>
 <div class="admonition tip">
 <p class="admonition-title">直觉</p>
-</div>
 <p>前向图：输入 → ... → 输出（一条条边指向下游）。
 反向图：把所有边反向，输出 → ... → 输入。
 反向传播就是沿反向图走一遍，走法是"先算下游、再算上游"——也就是反向图的拓扑序。</p>
+</div>
 <h3 id="324-dfs">3.2.4 DFS 后序 = 拓扑序<a class="headerlink" href="#324-dfs" title="Permanent link">&para;</a></h3>
 <p>对一张 DAG，从某节点出发做 DFS，<strong>后序遍历</strong>（先递归子节点，再访问自己）得到的序列，
 <strong>逆序</strong>就是一个拓扑序。</p>
@@ -2839,9 +2839,9 @@
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">递归深度</p>
-</div>
 <p>Python 默认递归深度 1000。如果计算图深度超过 1000（如长 RNN），会栈溢出。
 PyTorch 用显式栈迭代避免这个问题。minitorch 教学版保留递归以便阅读。</p>
+</div>
 <h3 id="343-enginepyrun_backward">3.4.3 <code>engine.py</code>：<code>run_backward</code> 主循环<a class="headerlink" href="#343-enginepyrun_backward" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run_backward</span><span class="p">(</span>
     <span class="n">root</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span>
@@ -3164,13 +3164,13 @@ B.next_edges = []
 </table>
 <div class="admonition tip">
 <p class="admonition-title">PyTorch 多线程引擎详解</p>
-</div>
 <p>PyTorch 的反向引擎核心是 <code>ReadyQueue</code>：每个 Node 算完后，把它的前驱的"未完成依赖计数"减 1，
 计数归零的前驱入队。多个工作线程从队列取节点并行执行。
 依赖关系通过 <code>node-&gt;num_outputs_</code>（出度）追踪。
 这能让无依赖的子图（如两个独立的分支）并行反向，加速大模型训练。
 minitorch 单线程顺序执行，逻辑简单但无并行加速。</p>
 <hr />
+</div>
 <h2 id="38">3.8 历史背景<a class="headerlink" href="#38" title="Permanent link">&para;</a></h2>
 <h3 id="381-ad">3.8.1 反向模式 AD 的起源<a class="headerlink" href="#381-ad" title="Permanent link">&para;</a></h3>
 <p>反向模式自动微分最早可追溯到 1970 年代 Seppo Linnainmaa 的论文，

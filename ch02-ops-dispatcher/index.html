@@ -2663,7 +2663,6 @@ backward 再取出来。最典型的就是 <code>Mul</code>：反向需要原输
 <h3 id="224">2.2.4 计算图是"顺手"建出来的<a class="headerlink" href="#224" title="Permanent link">&para;</a></h3>
 <div class="admonition tip">
 <p class="admonition-title">心智模型</p>
-</div>
 <p>前向计算时，每经过一个可微算子，就在输出张量上挂一个"小标签" <code>grad_fn</code>，
 记录"我是被哪个算子从哪些输入算出来的"。这些标签连起来就是计算图。</p>
 <p>用图示意一次 <code>z = (x * x) + (x * x)</code> 的前向：</p>
@@ -2681,6 +2680,7 @@ backward 再取出来。最典型的就是 <code>Mul</code>：反向需要原输
 <li><strong>同一个 <code>x</code> 被用了两次</strong>，所以图里有两个 <code>AccumulateGrad(x)</code> 实例，反向时它们的梯度会被<strong>累加</strong>到同一个 <code>x.grad</code>。</li>
 <li><strong><code>z</code> 是输出</strong>，它的 <code>grad_fn</code> 是整张图的入口，反向引擎从这里开始走。</li>
 </ol>
+</div>
 <h3 id="225">2.2.5 类比：快递面单<a class="headerlink" href="#225" title="Permanent link">&para;</a></h3>
 <p>把 <code>Tensor</code> 想象成快递包裹，<code>grad_fn</code> 是贴在包裹上的"面单"：</p>
 <ul>
@@ -2860,9 +2860,9 @@ c = a + b             # 前向：b 被广播成 (3, 4)
 </ol>
 <div class="admonition warning">
 <p class="admonition-title">易错点</p>
-</div>
 <p><code>_reduce_grad</code> 只处理"前向广播过的维度"。如果 <code>grad</code> 和 <code>shape</code> 完全一致，
 函数原样返回，不会有任何副作用。所以<strong>每个二元算子的反向都无脑调一次</strong>是安全的。</p>
+</div>
 <h3 id="245-function-apply">2.4.5 <code>Function</code> 基类与 <code>apply</code><a class="headerlink" href="#245-function-apply" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Function</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""自动微分算子基类。子类实现 forward/backward 静态方法。"""</span>
@@ -3273,12 +3273,12 @@ out[0] = [1.0, 2.0, 3.0, 4.0]
 </table>
 <div class="admonition tip">
 <p class="admonition-title">关键差异详解</p>
-</div>
 <p>PyTorch 的分发是<strong>多层的</strong>：一个 <code>torch::add</code> 调用会先走 <code>Autograd</code> key（建图），
 再走 <code>CPU</code> key（数值）。minitorch 把这两层硬编码进了 <code>apply</code>（建图）和 <code>_add</code>（数值），
 没有显式的 Autograd dispatch key。这种"两层硬编码"在教学上更清晰，
 但牺牲了 PyTorch 分发系统的可扩展性（如 functorch 的 vmap 就靠插入新 dispatch key 实现）。</p>
 <hr />
+</div>
 <h2 id="28">2.8 历史背景<a class="headerlink" href="#28" title="Permanent link">&para;</a></h2>
 <h3 id="281-pytorch">2.8.1 PyTorch 之前的自动微分<a class="headerlink" href="#281-pytorch" title="Permanent link">&para;</a></h3>
 <p>在 PyTorch 之前，主流深度学习框架的自动微分有两类做法：</p>

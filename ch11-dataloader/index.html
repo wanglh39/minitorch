@@ -2390,17 +2390,17 @@ PyTorch 把这件事拆成了三个角色：<code>Dataset</code>、<code>Sampler
 <p>它假设数据是<strong>流</strong>，没有长度概念，也不能跳着读。就像一根水管：你只能接住流出来的水，不能问"第 3 滴是什么"。</p>
 <div class="admonition tip">
 <p class="admonition-title">什么时候用 IterableDataset？</p>
-</div>
 <ul>
 <li>数据太大放不下内存（TB 级日志、数千万行数据库）。</li>
 <li>数据来自网络流、Kafka、生成器。</li>
 <li>数据是"无限"的（强化学习的 episode 流）。</li>
 <li>数据本身就有顺序依赖（时序预测，打乱会破坏时间结构）。</li>
 </ul>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">map-style 的代价</p>
-</div>
 <p>map-style 要求你能 O(1) 跳到任意位置。如果你的数据存在云端对象存储、每条都要单独 HTTP 请求，那 <code>__getitem__(10000)</code> 会非常慢——这时候反而 IterableDataset 顺序读更高效。</p>
+</div>
 <h3 id="1123-sampler">11.2.3 Sampler：把"顺序"这件事独立出来<a class="headerlink" href="#1123-sampler" title="Permanent link">&para;</a></h3>
 <p>为什么不直接在 <code>Dataset</code> 里加个 <code>shuffle=True</code>？因为<strong>顺序和数据是两件事</strong>：</p>
 <ul>
@@ -3108,7 +3108,6 @@ cds[0], cds[3], cds[6]: (array([0]),) (array([3]),) (array([6]),)
 </table>
 <div class="admonition tip">
 <p class="admonition-title">真实 PyTorch 多了什么</p>
-</div>
 <p>最关键的是 <strong><code>num_workers &gt; 0</code> 的多进程预取</strong>。它涉及：
 - 子进程用 <code>multiprocessing</code> 启动，各自独立 GIL。
 - 数据通过 <code>multiprocessing.Queue</code> 传递，Tensor 走共享内存避免拷贝。
@@ -3117,6 +3116,7 @@ cds[0], cds[3], cds[6]: (array([0]),) (array([3]),) (array([6]),)
 - <code>persistent_workers=True</code> 避免每个 epoch 重启子进程。</p>
 <p>这些都是工程细节，不影响理解数据管线的"骨架"，所以教学版省略。</p>
 <hr />
+</div>
 <h2 id="118">11.8 历史背景<a class="headerlink" href="#118" title="Permanent link">&para;</a></h2>
 <p>PyTorch 的数据管线并非一开始就长这样。</p>
 <ul>
@@ -3334,12 +3334,12 @@ cds[0], cds[3], cds[6]: (array([0]),) (array([3]),) (array([6]),)
 <p>这些是真正"上 GPU 训练"前必须搞懂的事。</p>
 <div class="admonition tip">
 <p class="admonition-title">阶段小结</p>
-</div>
 <p>至此，minitorch 的数据管线已经完整：Dataset 定义数据、Sampler 定顺序、DataLoader 切批并 collate。下一章我们离开数据，进入"训练产物怎么存"和"怎么用低精度加速训练"这两个工程必修课。掌握本章后，你应当能独立设计一套数据加载方案，并理解每个设计选择背后的权衡。</p>
 <hr />
 <blockquote>
 <p>本章代码：<code>src/minitorch/data/dataset.py</code>、<code>src/minitorch/data/sampler.py</code>、<code>src/minitorch/data/dataloader.py</code>。测试：<code>tests/test_data.py</code>。</p>
 </blockquote>
+</div>
 
 
 

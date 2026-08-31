@@ -3348,8 +3348,8 @@
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">为什么用 vector<atomic> 而不是 unordered_map<atomic>？</p>
-</div>
 <p><code>std::atomic</code> 不可拷贝/移动，不能直接放在 <code>unordered_map</code> 中。用 <code>vector&lt;atomic&lt;int&gt;&gt;</code> + <code>unordered_map&lt;Node*, size_t&gt;</code> 做索引，是 C++ 中的标准做法。</p>
+</div>
 <h3 id="934-pytorch-engine">9.3.4 与 PyTorch Engine 对照<a class="headerlink" href="#934-pytorch-engine" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

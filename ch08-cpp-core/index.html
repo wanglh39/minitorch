@@ -2972,12 +2972,12 @@
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">三层各自的一句话职责</p>
-</div>
 <ul>
 <li><strong>前端</strong>：定义"用户怎么用"——API 长什么样、Module 怎么组织、autograd 怎么建图。</li>
 <li><strong>核心</strong>：定义"实际怎么算"——内存怎么布局、算子怎么遍历、CUDA 怎么 launch。</li>
 <li><strong>绑定</strong>：定义"两层怎么对话"——C++ 对象怎么变成 Python 句柄、异常怎么翻译、引用计数怎么对齐。</li>
 </ul>
+</div>
 <h3 id="822-c">8.2.2 为什么用 C++ 而不是别的<a class="headerlink" href="#822-c" title="Permanent link">&para;</a></h3>
 <p>能加速 Python 的方案很多，逐个对比：</p>
 <table>
@@ -3038,9 +3038,9 @@
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">别误解"重写"</p>
-</div>
 <p>我们重写的是<strong>核心计算</strong>，不是整个 minitorch。autograd 引擎、计算图、nn.Module 这些"框架逻辑"仍在 Python——因为它们不在热路径上，且 Python 写起来更清晰。真实 PyTorch 的 autograd 也在 C++，但那是工程优化，不是教学必需。</p>
 <hr />
+</div>
 <h2 id="83">8.3 设计决策与权衡<a class="headerlink" href="#83" title="Permanent link">&para;</a></h2>
 <h3 id="831">8.3.1 决策表<a class="headerlink" href="#831" title="Permanent link">&para;</a></h3>
 <table>
@@ -3243,9 +3243,9 @@
 <p>关键变化：所有构造/析构都走 <code>get_global_allocator()</code>。默认是 <code>DefaultAllocator</code>（直接 <code>new/delete</code> + 统计），可切换为 <code>PoolAllocator</code>（维护空闲块列表，deallocate 时不真正释放而是放入池中，下次 allocate 同尺寸时复用）。详见 Ch9 §9.4。</p>
 <div class="admonition tip">
 <p class="admonition-title">为什么 <code>data()</code> 返回裸指针而不是 <code>vector&amp;</code></p>
-</div>
 <p>算子的内层循环要 <code>double* p = storage-&gt;data();</code> 然后裸指针遍历 <code>p[i]</code>。如果返回 <code>vector&amp;</code>，每次访问多一次 <code>vector::operator[]</code>（虽然有内联，但语义上多一层）。真实 PyTorch 的 <code>c10::Storage::data()</code> 也返回裸指针。</p>
 <hr />
+</div>
 <h2 id="85-tensorimpl-c">8.5 代码逐行实现：TensorImpl C++ 类<a class="headerlink" href="#85-tensorimpl-c" title="Permanent link">&para;</a></h2>
 <p><code>TensorImpl</code> 是张量的"实现核心"——持有 Storage + shape + strides + offset。对应阶段一的 <code>src/minitorch/tensor.py</code>，对应真实 PyTorch 的 <code>at::TensorImpl</code>。</p>
 <h3 id="851-cppc10tensorh">8.5.1 头文件 <code>cpp/c10/tensor.h</code>（关键部分）<a class="headerlink" href="#851-cppc10tensorh" title="Permanent link">&para;</a></h3>
@@ -3405,8 +3405,8 @@
 <p><code>transpose</code> 后张量非连续（strides 不是 <code>[12,4,1]</code> 那种标准形）。<code>contiguous()</code> 按逻辑顺序读一遍数据，写到新 Storage，得到连续张量。这是 <code>view</code> 要求连续的原因——<code>view</code> 不拷贝，只能在连续 buffer 上重解 shape。</p>
 <div class="admonition warning">
 <p class="admonition-title">索引递增的小技巧</p>
-</div>
 <p>内层 <code>for (int64_t d = ndim()-1; d &gt;= 0; --d) { if (++indices[d] &lt; shape_[d]) break; indices[d] = 0; }</code> 是"进位加法"——从最右维加 1，满了进位到左维。这等价于 <code>np.ndindex</code>，但不用乘法，每步 O(ndim) 最坏，常数极小。</p>
+</div>
 <h3 id="856-transpose">8.5.6 <code>transpose</code>：零拷贝<a class="headerlink" href="#856-transpose" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">TensorImplPtr</span><span class="w"> </span><span class="nf">TensorImpl::transpose</span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="n">dim0</span><span class="p">,</span><span class="w"> </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">dim1</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dim0</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">dim0</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">ndim</span><span class="p">();</span><span class="w">    </span><span class="c1">// 支持负索引</span>
@@ -3503,8 +3503,8 @@
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">模板 vs 虚函数</p>
-</div>
 <p>这里用编译期模板（<code>template &lt;typename Op&gt;</code>），<code>op</code> 调用在编译期就内联进循环。如果用虚函数（<code>std::function</code> 或继承），每次循环多一次间接调用。教学版用模板，性能最佳；真实 PyTorch 用代码生成批量产生特化代码，思路相同。</p>
+</div>
 <h3 id="863-neg-relu">8.6.3 一元算子（neg / relu）<a class="headerlink" href="#863-neg-relu" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">TensorImplPtr</span><span class="w"> </span><span class="nf">relu</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="o">-&gt;</span><span class="n">numel</span><span class="p">();</span>
@@ -3657,9 +3657,9 @@
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">为什么用 lambda 包一层</p>
-</div>
 <p><code>m.def("sum", &amp;sum)</code> 看似更简洁，但 <code>sum</code> 会和 <code>std::sum</code>（<code>&lt;numeric&gt;</code> 里）歧义，<code>div</code> 会和 <code>std::div</code>（<code>&lt;cstdlib&gt;</code> 里）歧义。用 lambda 显式指明 <code>minitorch::ops::sum</code>，既避开冲突，又能加 <code>py::arg</code> 默认值。这是 C++ 算子绑定的常见痛点。</p>
 <hr />
+</div>
 <h2 id="88-c-autograd">8.8 C++ Autograd 及高级特性<a class="headerlink" href="#88-c-autograd" title="Permanent link">&para;</a></h2>
 <p>本章讲解了 C++ 核心的<strong>基础层</strong>：Storage、TensorImpl、ops、pybind11 绑定。</p>
 <p>C++ 核心的<strong>高级特性</strong>——autograd 引擎、多线程并行、double backward、自定义 Allocator、Profiler、Hooks、Checkpointing——内容量大且涉及多个架构级设计决策，已独立成 <strong><a href="../ch09-cpp-advanced/">Ch9 C++ 高级特性</a></strong>，涵盖：</p>
@@ -3908,9 +3908,9 @@
 <p>PyTorch 早期（0.x）全用 CPython C-API，样板爆炸。后来部分迁到 pybind11（<code>torch::autograd</code> 的 C++ 前端），但核心 <code>torch/csrc/</code> 仍是 C-API（历史包袱 + 极致性能）。我们用 pybind11 是"如果今天重写会怎么做"的选择。</p>
 <div class="admonition tip">
 <p class="admonition-title">为什么 PyTorch 不全换 pybind11</p>
-</div>
 <p>CPython C-API 比 pybind11 省一层间接调用，热路径上每个张量操作都过绑定层，省一点很重要。且 PyTorch 的绑定有大量定制（自定义 <code>__torch_function__</code>、autograd hooks、dispatcher 钩子），C-API 更灵活。这是"工程现实"和"教学清晰"的取舍。</p>
 <hr />
+</div>
 <h2 id="812">8.12 历史背景<a class="headerlink" href="#812" title="Permanent link">&para;</a></h2>
 <h3 id="8121-aten-2016">8.12.1 ATen 的诞生（2016）<a class="headerlink" href="#8121-aten-2016" title="Permanent link">&para;</a></h3>
 <p>PyTorch 的 C++ 核心叫 <strong>ATen</strong>（"A Tensor Library"），2016 年由 Soumith Chintala 等人创建。背景：</p>

@@ -3103,12 +3103,12 @@
 <p>关键点：</p>
 <div class="admonition tip">
 <p class="admonition-title"><code>__getattr__</code> vs <code>__getattribute__</code></p>
-</div>
 <ul>
 <li><code>__getattribute__</code>：<strong>每次</strong>属性访问都调用，性能开销大，容易递归爆栈。</li>
 <li><code>__getattr__</code>：<strong>只在正常查找失败时</strong>才调用，安全且高效。</li>
 </ul>
 <p>minitorch 用 <code>__getattr__</code>。所以 <code>self.training</code> 这种在 <code>__dict__</code> 里的属性，<strong>不会</strong>触发 <code>__getattr__</code>，直接走快速路径。只有 <code>self.weight</code>（不在 <code>__dict__</code>，在 <code>_parameters</code>）才会触发 <code>__getattr__</code>。</p>
+</div>
 <h3 id="524-mromethod-resolution-order-super">5.2.4 MRO（Method Resolution Order）与 <code>super()</code><a class="headerlink" href="#524-mromethod-resolution-order-super" title="Permanent link">&para;</a></h3>
 <p><code>Module.__setattr__</code> 里有一行 <code>super().__setattr__(name, value)</code>。这里的 <code>super()</code> 在 Python 3 里是动态的，等价于：</p>
 <div class="highlight"><pre><span></span><code><span class="nb">super</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
@@ -3349,8 +3349,8 @@ self._buffers:    dict[str, Tensor]      # 不可学习但需保存的状态（r
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">为什么不直接用 Tensor？</p>
-</div>
 <p>如果直接 <code>self.weight = Tensor(...)</code>，<code>__setattr__</code> 不会把它放进 <code>_parameters</code>（因为不是 <code>Parameter</code> 实例），优化器就收集不到。<code>Parameter</code> 的<strong>类型本身</strong>就是信号。这是"类型即语义"的典型应用。</p>
+</div>
 <h3 id="542-modulepy__init__">5.4.2 <code>module.py</code>：<code>__init__</code><a class="headerlink" href="#542-modulepy__init__" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Module</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3384,8 +3384,8 @@ self._buffers:    dict[str, Tensor]      # 不可学习但需保存的状态（r
 </ul>
 <div class="admonition tip">
 <p class="admonition-title">为什么不直接 <code>self.__dict__[name] = value</code>？</p>
-</div>
 <p>等价。但用 <code>super().__setattr__</code> 更"正统"，未来如果 MRO 中间插入了别的 <code>__setattr__</code>（如某个 mixin），能正确转发。这是防御性编程。</p>
+</div>
 <h3 id="544-modulepy__getattr__">5.4.4 <code>module.py</code>：<code>__getattr__</code> 反查<a class="headerlink" href="#544-modulepy__getattr__" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="c1"># ⚠️ 只在 self.__dict__ 没找到 name 时才被调用</span>
@@ -3409,8 +3409,8 @@ self._buffers:    dict[str, Tensor]      # 不可学习但需保存的状态（r
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">一个经典坑</p>
-</div>
 <p>在 <code>__getattr__</code> 里写 <code>self._parameters</code> 会<strong>无限递归</strong>：<code>self._parameters</code> 触发 <code>__getattr__("_parameters")</code>，里面又 <code>self._parameters</code>... 所以必须用 <code>self.__dict__.get("_parameters")</code>。这是写 <code>__getattr__</code> 的铁律。</p>
+</div>
 <h3 id="545-modulepy__call__-hooks">5.4.5 <code>module.py</code>：<code>__call__</code> 与 hooks<a class="headerlink" href="#545-modulepy__call__-hooks" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_pre_hooks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -3544,8 +3544,8 @@ self._buffers:    dict[str, Tensor]      # 不可学习但需保存的状态（r
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">与 PyTorch 的差异</p>
-</div>
 <p>PyTorch 的 <code>ModuleList</code> 没有 <code>forward</code>，调 <code>ml(x)</code> 会 <code>NotImplementedError</code>。minitorch 给了默认顺序执行，这是教学简化。生产代码里 <code>ModuleList</code> 通常用在 <code>Module</code> 子类的 <code>forward</code> 里手动控制执行顺序。</p>
+</div>
 <h3 id="5411-linearpylinear">5.4.11 <code>linear.py</code>：Linear 层<a class="headerlink" href="#5411-linearpylinear" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Linear</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
@@ -3605,12 +3605,12 @@ self._buffers:    dict[str, Tensor]      # 不可学习但需保存的状态（r
 </ul>
 <div class="admonition tip">
 <p class="admonition-title">为什么 buffer 不直接 <code>self.running_mean = tensor</code>？</p>
-</div>
 <p>如果 <code>self.running_mean = some_tensor</code>，<code>__setattr__</code> 判断 <code>some_tensor</code> 不是 <code>Parameter</code> 也不是 <code>Module</code>，走默认分支进 <code>__dict__</code>。这样 <code>state_dict</code> 收集不到它（<code>state_dict</code> 只遍历 <code>_parameters</code>/<code>_buffers</code>/<code>_modules</code>），保存模型时会丢。所以 buffer 必须用 <code>register_buffer</code> 显式注册到 <code>_buffers</code> 字典。</p>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">minitorch 的 <code>state_dict</code> 漏了 buffer 的加载</p>
-</div>
 <p>看 <code>load_state_dict</code> 的实现：它只遍历 <code>_parameters</code>，<strong>没</strong>遍历 <code>_buffers</code>。所以即使 <code>state_dict</code> 里有 buffer 的键，<code>load_state_dict</code> 也不会灌回 buffer。这是 minitorch 的一个简化缺陷（PyTorch 的 <code>load_state_dict</code> 会处理 buffer）。如果要支持 BatchNorm 的完整保存加载，得在 <code>load_state_dict</code> 里加一段遍历 <code>_buffers</code> 的逻辑。</p>
+</div>
 <h3 id="5414">5.4.14 三大注册表的对比总结<a class="headerlink" href="#5414" title="Permanent link">&para;</a></h3>
 <p>把 <code>_parameters</code>、<code>_modules</code>、<code>_buffers</code> 放在一起对比，记住一个口诀：</p>
 <blockquote>

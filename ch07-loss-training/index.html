@@ -3161,8 +3161,8 @@ loss = NLLLoss(log_probs, target) # -mean(log_probs[target])
 <p><code>NLLLoss</code>（Negative Log Likelihood）只是取 <code>log_probs[target]</code> 取负求均值，不涉及 exp，不会溢出。</p>
 <div class="admonition tip">
 <p class="admonition-title">拆分的教学价值</p>
-</div>
 <p>拆开不是为了性能，是为了<strong>暴露数值稳定技巧</strong>。学生能看到 <code>LogSoftmax</code> 里减 max 的代码，理解为什么。如果合成一个 <code>cross_entropy</code> 黑盒，技巧藏在内部，教学不友好。PyTorch 也这样拆，<code>F.cross_entropy</code> 内部调 <code>log_softmax</code> + <code>nll_loss</code>。</p>
+</div>
 <h3 id="726-logsoftmax-backward">7.2.6 LogSoftmax 的 backward<a class="headerlink" href="#726-logsoftmax-backward" title="Permanent link">&para;</a></h3>
 <p><code>y = log_softmax(x)</code>，即 <code>y_i = x_i - log(Σ exp(x))</code>。求雅可比：</p>
 <div class="highlight"><pre><span></span><code>∂y_i/∂x_j = δ_ij - softmax(x)_j
@@ -3436,8 +3436,8 @@ x = 0:  不可导
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">为什么不直接 <code>np.log(np.sum(np.exp(arr)))</code>？</p>
-</div>
 <p>如果 <code>arr = [1000, 1001, 1002]</code>，<code>np.exp(1000)</code> = inf，<code>sum</code> = inf，<code>log(inf)</code> = inf。结果全是 inf 或 nan。减 max 后 <code>arr - max = [-2, -1, 0]</code>，<code>exp</code> 都在 <code>[exp(-2), 1]</code>，安全。</p>
+</div>
 <h3 id="743-functionalpysoftmax">7.4.3 <code>functional.py</code>：Softmax<a class="headerlink" href="#743-functionalpysoftmax" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Softmax</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
     <span class="nd">@staticmethod</span>
@@ -3535,12 +3535,12 @@ x = 0:  不可导
 </ul>
 <div class="admonition tip">
 <p class="admonition-title">两种实现损失的风格</p>
-</div>
 <ul>
 <li><strong>自定义 backward</strong>（<code>NLLLoss</code>、<code>LogSoftmax</code>）：手写 forward 和 backward。性能好，但要小心 backward 公式正确。</li>
 <li><strong>组合现有算子</strong>（<code>mse_loss</code>）：用 <code>+</code>、<code>-</code>、<code>*</code>、<code>**</code>、<code>.mean()</code> 等。无需写 backward，autograd 自动。但建图节点多，性能略差。</li>
 </ul>
 <p>minitorch 的 <code>mse_loss</code> 用组合，<code>cross_entropy</code> 用自定义（因为 log_softmax 的数值稳定要手动处理）。</p>
+</div>
 <h3 id="746-losspymodule">7.4.6 <code>loss.py</code>：Module 包装<a class="headerlink" href="#746-losspymodule" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MSELoss</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
@@ -3562,9 +3562,9 @@ x = 0:  不可导
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">严格说应该调 super().<strong>init</strong>()</p>
-</div>
 <p><code>MSELoss()</code> 没调 <code>super().__init__()</code>，<code>_parameters</code> 等不存在。但因为 <code>MSELoss</code> 不注册任何参数/子模块，且 <code>__getattr__</code> 用 <code>.get(..., {})</code> 防御了缺失，所以能跑。如果调 <code>crit.parameters()</code> 会触发 <code>__getattr__("_parameters")</code> 返回 <code>{}</code>，<code>yield from {}</code> 不 yield，正常。但这是脆弱的，建议加 <code>super().__init__()</code>。</p>
 <hr />
+</div>
 <h2 id="75">7.5 完整示例<a class="headerlink" href="#75" title="Permanent link">&para;</a></h2>
 <h3 id="751-mseloss">7.5.1 MSELoss 前向与反向<a class="headerlink" href="#751-mseloss" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>

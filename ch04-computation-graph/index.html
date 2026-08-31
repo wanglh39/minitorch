@@ -2617,22 +2617,22 @@ B.variable = x
 <h3 id="423-vs">4.2.3 动态图 vs 静态图<a class="headerlink" href="#423-vs" title="Permanent link">&para;</a></h3>
 <div class="admonition tip">
 <p class="admonition-title">核心区别</p>
-</div>
 <p><strong>静态图</strong>（TF1/Theano）：先编译一张图，反复执行同一张图。
 <strong>动态图</strong>（PyTorch/minitorch）：每次前向<strong>新建一张图</strong>，反向后<strong>丢弃</strong>。</p>
 <p>动态图的含义：</p>
 <div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># 每次前向都建一张新图</span>
-    <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>        <span class="c1"># 反向走这张图</span>
-    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-    <span class="c1"># 图在 backward 后被释放，下一轮前向建新图</span>
+<span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># 每次前向都建一张新图</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>        <span class="c1"># 反向走这张图</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+<span class="c1"># 图在 backward 后被释放，下一轮前向建新图</span>
 </code></pre></div>
 <p>每个 batch 都是一张全新的图。如果模型里有 <code>if pred &gt; 0:</code> 这种控制流，
 不同 batch 的图结构可能不同——动态图天然支持，静态图要 <code>tf.cond</code> 等特殊 API。</p>
 <p>代价是：动态图无法做跨 batch 的全局优化（如算子融合），每次前向都有建图开销。
 <code>torch.compile</code> 就是想"把动态图静态化"以获得优化机会。</p>
+</div>
 <h3 id="424">4.2.4 图的生命周期三阶段<a class="headerlink" href="#424" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>阶段 1：建图（前向）
   每次 Function.apply 都新建 Node，挂到输出.grad_fn
@@ -3207,13 +3207,13 @@ retain_grad 后: y3.grad = [1.0]
 </table>
 <div class="admonition tip">
 <p class="admonition-title">PyTorch 的 <code>create_graph</code> vs <code>retain_graph</code></p>
-</div>
 <p>PyTorch 的 <code>backward(create_graph=True)</code> 会在反向过程中<strong>为反向图本身建图</strong>，
 这样就能对梯度再求梯度（高阶导数）。
 <code>retain_graph=True</code> 只是保留前向图，不建反向图。
 两者正交：<code>retain_graph</code> 控制"前向图留不留"，<code>create_graph</code> 控制"反向图建不建"。
 minitorch 暂不支持 <code>create_graph</code>，反向固定在 <code>no_grad</code> 下。</p>
 <hr />
+</div>
 <h2 id="48">4.8 历史背景<a class="headerlink" href="#48" title="Permanent link">&para;</a></h2>
 <h3 id="481">4.8.1 动态图的诞生<a class="headerlink" href="#481" title="Permanent link">&para;</a></h3>
 <p>PyTorch 之前，TensorFlow 1.x 和 Theano 用静态图：先 <code>tf.Graph()</code> 编译，再 <code>session.run()</code> 反复执行。

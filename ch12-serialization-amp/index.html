@@ -3223,9 +3223,9 @@ step 10  loss=0.2134  scale=2048.0  found_inf=False   # growth_interval=10 触�
 </table>
 <div class="admonition tip">
 <p class="admonition-title">bf16 是什么</p>
-</div>
 <p>bf16（bfloat16）：1 + 8 + 7 位。指数位和 fp32 一样多，所以<strong>范围和 fp32 一样</strong>（±3.4e38），只是精度差（~1%）。这意味着 bf16 <strong>几乎不会溢出</strong>，也不需要 GradScaler。Google TPU 最早用，现在 NVIDIA A100/H100 也支持。是 fp16 的有力替代。</p>
 <hr />
+</div>
 <h2 id="128">12.8 历史背景<a class="headerlink" href="#128" title="Permanent link">&para;</a></h2>
 <p><strong>序列化：</strong></p>
 <ul>
