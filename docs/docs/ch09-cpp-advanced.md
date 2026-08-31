@@ -360,7 +360,7 @@ void flexible() {
 | `unique_lock` | 高（可 unlock/lock） | 略大 | 配合 condition_variable |
 | `scoped_lock` | 低（多锁同时） | 小 | 避免死锁的多锁场景 |
 
-### 9.4.2 condition_variable：等待-通知
+### 9.3.2 condition_variable：等待-通知
 
 mutex 只能"互斥"，不能"等待某个条件成立"。`condition_variable` 解决这个问题。
 
@@ -418,7 +418,7 @@ void worker() {
 }
 ```
 
-### 9.4.3 atomic：无锁原子操作
+### 9.3.3 atomic：无锁原子操作
 
 有些简单操作不需要 mutex，用 `atomic` 更高效：
 
@@ -452,7 +452,7 @@ void increment_slow() {
 
 **minitorch 中的 atomic**：多线程 Engine 的依赖计数 `atomic<int> pending_deps`——每个线程原子递减，无需 mutex。
 
-### 9.4.4 死锁的条件与避免
+### 9.3.4 死锁的条件与避免
 
 **死锁的四个必要条件**（Coffman 条件）：
 
@@ -481,7 +481,7 @@ void f() {
 }
 ```
 
-### 9.4.5 false sharing 与 cache line
+### 9.3.5 false sharing 与 cache line
 
 **cache line** 是 CPU 缓存的基本单位（通常 64 字节）。两个线程写同一 cache line 的不同变量会导致**false sharing**——缓存频繁失效，性能暴跌。
 
@@ -502,7 +502,7 @@ struct Good {
 
 **影响**：false sharing 可能让多线程比单线程还慢。在性能敏感的多线程代码中，用 `alignas(64)` 对齐热点数据。
 
-### 9.4.6 lambda 表达式
+### 9.3.6 lambda 表达式
 
 C++11 引入 lambda（匿名函数），类似 Python 的 `lambda` 但更强大：
 
@@ -535,7 +535,7 @@ binary_op(a, b, [](double x, double y) { return x * y; });  // mul
 pool.submit([this, node, grad] { this->process_node(node, grad); });
 ```
 
-### 9.4.7 auto 与类型推导
+### 9.3.7 auto 与类型推导
 
 C++ 的 `auto` 类似 Python 的动态类型，但是**编译时推导**（类型确定后不可变）：
 
@@ -552,7 +552,7 @@ x = "hello"  # str（可以变类型）
 // C++ 的 auto 不能变类型
 ```
 
-### 9.4.8 std::move 与 std::forward
+### 9.3.8 std::move 与 std::forward
 
 `std::move` 是 move semantics 的显式触发（Ch8 讲过）。`std::forward` 用于**完美转发**——保持参数的左右值属性：
 
@@ -773,16 +773,380 @@ PyTorch 的 Engine 更复杂：多设备（CPU + 多 GPU）、CUDA stream 同步
 
 ---
 
-## 9.5 Double Backward：高阶导数
+## 9.5 深入 Autograd 实现细节
 
-### 9.5.1 什么是 double backward
+> 本节深入剖析 Autograd 引擎的实现细节，帮助你理解每一行 C++ 代码背后的设计决策。
+> 如果你只想用 minitorch，可以跳到 9.6。如果你想理解 PyTorch 内部，本节是关键。
+
+### 9.5.1 Node 虚函数表：动态多态的代价
+
+C++ 的虚函数通过**虚函数表**（vtable）实现动态多态。每个有虚函数的类，编译器会生成一个 vtable——一个函数指针数组。每个对象的首 8 字节（64 位系统）存储指向 vtable 的指针。
+
+```
+对象内存布局：
+┌─────────────────┐
+│ vtable ptr (8B) │  → vtable: [&Node::apply, &Node::release, ...]
+├─────────────────┤
+│ next_edges_     │
+│ input_metadata_ │
+│ ...             │
+└─────────────────┘
+```
+
+虚函数调用比普通函数多一次**间接跳转**：
+
+```cpp
+// 普通函数：编译时确定地址
+result = add(a, b);  // call 0x401234
+
+// 虚函数：运行时查 vtable
+result = node->apply(grads);  // call [node->vtable + 0x10]
+```
+
+这次间接跳转的开销：
+- **额外内存访问**：先读 vtable 指针，再读 vtable 中的函数指针
+- **分支预测失败**：CPU 难以预测跳转目标（多态场景）
+- **内联障碍**：编译器无法内联虚函数
+
+实测开销约 **2-5 ns** 每次调用。对于 backward 中数百个 Node，总开销 < 1μs，远小于实际计算时间。所以虚函数开销**不是瓶颈**。
+
+为什么 `apply()` 必须是虚函数？因为 `run_backward` 只持有 `Node*` 基类指针，不知道具体是 `AddNode` 还是 `MulNode`：
+
+```cpp
+// run_backward 中：
+for (auto& edge : node->next_edges()) {
+    auto grad_node = edge.function;  // Node* 基类指针
+    // 不知道是 AddNode 还是 MulNode，必须虚函数
+    auto grads = grad_node->apply(inputs);
+}
+```
+
+如果用 `std::variant` + `std::visit`（静态多态），可以避免虚函数开销，但代码复杂度大幅增加。PyTorch 选择了虚函数——简单且开销可接受。
+
+`final` 关键字可以告诉编译器"这是最终子类，不会有更下层的子类"，有时能帮助**去虚化**（devirtualization）：
+
+```cpp
+class AddNode final : public Node {
+    // final: 编译器知道没有子类，可能直接调用而非查 vtable
+};
+```
+
+### 9.5.2 Edge 设计：计算图的边
+
+计算图的**边**连接两个 Node，表示"一个 Node 的输出是另一个 Node 的输入"。但一条边需要存储更多信息：
+
+```cpp
+struct Edge {
+    std::shared_ptr<Node> function;  // 目标 Node
+    size_t input_slot;               // 这是目标 Node 的第几个输入
+};
+```
+
+为什么需要 `input_slot`？考虑 `z = add(x, y)`，反向传播时 `x` 和 `y` 都收到 `z` 的梯度。但 `add` 的 `apply` 返回一个 **tuple** `(grad_x, grad_y)`，需要知道梯度该放到哪个位置：
+
+```
+前向：z = add(x, y)
+反向：z.grad → AddNode.apply(z.grad) → (z.grad, z.grad)
+                                        ↑           ↑
+                                   input_slot=0  input_slot=1
+                                   给 x          给 y
+```
+
+对于 `mul` 更明显：`z = mul(x, y)`，`dz/dx = y`，`dz/dy = x`，两个梯度不同：
+
+```
+反向：z.grad → MulNode.apply(z.grad) → (z.grad * y, z.grad * x)
+                                        ↑              ↑
+                                   input_slot=0   input_slot=1
+```
+
+PyTorch 的 `Edge` 实现几乎一样：
+
+```cpp
+// PyTorch (torch/csrc/autograd/function.h)
+struct Edge {
+    std::shared_ptr<Node> function;
+    uint32_t input_nr;  // 等价于我们的 input_slot
+};
+```
+
+`next_edges()` 返回的是一个 `std::vector<Edge>`，长度等于 Node 的输入数量。在 `run_backward` 中，遍历 `next_edges()` 时，`input_slot` 告诉我们当前梯度应该放到 `pending_grads[input_slot]` 的位置。
+
+### 9.5.3 拓扑排序：反向传播的顺序
+
+反向传播必须按**拓扑序**处理 Node：一个 Node 的所有后继 Node 都处理完之后，才能处理它自己。否则它的梯度还不完整。
+
+```
+前向图：x → add → mul → z
+              ↑
+              y
+
+反向拓扑序：z → mul → add → (x, y)
+```
+
+两种经典拓扑排序算法：
+
+**Kahn 算法（BFS）**：
+```
+1. 计算每个 Node 的入度（有多少后继指向它）
+2. 入度为 0 的 Node 入队列
+3. 取出队首 Node，处理它
+4. 对它的所有前驱 Node，入度 -1
+5. 如果某前驱入度变为 0，入队列
+6. 重复直到队空
+```
+
+**DFS 后序**：
+```
+1. 从输出 Node 开始 DFS
+2. 递归访问所有 next_edges
+3. 后序访问（先访问子节点，再访问自己）
+4. 后序的逆序就是拓扑序
+```
+
+我们的 `run_backward` 用的是 DFS 后序（递归实现简单）。PyTorch 的多线程 Engine 用的是 Kahn 算法变体（依赖计数 = 入度，入度归零 = 可以执行）。
+
+**环检测**：如果计算图有环，拓扑排序无法完成。正常情况下 autograd 不会产生环（前向传播是 DAG），但如果用户手动构造循环引用（如 `a.next_edges = [Edge(a, 0)]`），会导致无限递归。PyTorch 用 `visited` 集合检测环，我们的简单实现没有检测——这是已知限制。
+
+### 9.5.4 依赖计数：多线程调度的核心
+
+多线程 Engine 的核心是**依赖计数**（ready_count）。每个 Node 有一个 `std::atomic<int> ready_count`，初始值 = 它有多少个后继 Node。
+
+```
+Node A (ready_count=2) ← 被 B 和 C 依赖
+  ↓ grad
+Node B (ready_count=1) ← 被 D 依赖
+  ↓ grad
+Node D (ready_count=0) ← 输出，无人依赖
+```
+
+当一个 Node 完成 backward：
+1. 对它的每个 `next_edge`，将目标 Node 的 `ready_count` **原子减 1**
+2. 如果 `ready_count` 变为 0，该 Node 可以执行——放入线程池队列
+
+```cpp
+// 核心调度逻辑
+for (auto& edge : node->next_edges()) {
+    auto target = edge.function;
+    if (--target->ready_count == 0) {  // 原子递减
+        thread_pool.enqueue([target]() {
+            run_backward_node(target);
+        });
+    }
+}
+```
+
+为什么用 `atomic<int>` 而不是 `mutex`？因为：
+- **原子操作更快**：一次原子递减 ~10ns，mutex lock/unlock ~25ns
+- **无死锁风险**：原子操作不会阻塞
+- **无上下文切换**：mutex 竞争失败会陷入内核
+
+**ABA 问题**：如果 `ready_count` 先 2→1→0→-1→0，第二次 0 会被误判为"可以执行"。但在 autograd 中不会发生——每个 Node 在一次 `run_backward` 中只被处理一次，`ready_count` 单调递减，不会回绕。
+
+PyTorch 的依赖计数更复杂，因为要处理：
+- **多输出 Node**：一个 Node 的梯度分多次到达
+- **CUDA stream 同步**：不同 stream 上的 Node 需要额外同步
+- **优先级**：CPU 和 GPU 任务可能有不同优先级
+
+### 9.5.5 任务调度策略
+
+当多个 Node 同时 ready，应该先执行哪个？这影响**并行度**和**缓存局部性**。
+
+**FIFO（先进先出）**：我们的实现用 `std::queue`，简单但可能不是最优。
+
+**LIFO（后进先出）**：先处理最近变 ready 的 Node。好处是它的数据可能还在 cache 中。
+
+**PyTorch 的策略**：
+- CPU 任务用 LIFO（提高缓存命中）
+- CUDA 任务按 stream 分组（减少 stream 切换）
+- 跨设备任务有额外同步屏障
+
+**我们的简单策略**对教学足够，但在大规模计算图中，调度策略可以显著影响性能（2-3 倍差异）。
+
+### 9.5.6 Allocator 内存池碎片化
+
+`PoolAllocator` 用空闲链表管理内存。频繁分配释放不同大小会导致**碎片化**：
+
+```
+初始：[||||||||||||||||]  16KB 连续
+分配/释放后：[|  |  |   |  |   |  |]  很多小空洞
+```
+
+**外碎片**：空闲块总和足够，但没有一块连续足够大。例如 8 个 1KB 空闲块，无法满足 4KB 请求。
+
+**内碎片**：请求 1KB，分配了 2KB（对齐到 2KB），浪费 1KB。
+
+我们的 `PoolAllocator` 用**首次适配**（first-fit）策略：遍历空闲链表，找到第一个足够大的块。简单但碎片化严重。
+
+改进策略：
+- **最佳适配**（best-fit）：找最小的足够大的块。减少外碎片，但搜索更慢。
+- **合并相邻空闲块**（coalescing）：释放时检查前后是否有空闲块，合并成更大的块。这是关键优化。
+- **伙伴系统**（buddy allocator）：分配大小向上取整到 2 的幂，释放时递归合并伙伴块。PyTorch 的 CUDACachingAllocator 用类似策略。
+
+PyTorch 的 `CUDACachingAllocator` 是工业级实现：
+- **按 size 分桶**：小分配（< 1MB）用固定大小池，大分配直接 cudaMalloc
+- **缓存不释放**：cudaFree 不真正释放，而是放入空闲池，下次同大小直接复用
+- **碎片化统计**：`torch.cuda.memory_stats()` 可以查看碎片化程度
+- **OOM 处理**：内存不足时触发碎片整理（compact）或释放缓存
+
+### 9.5.7 Profiler Chrome Trace 格式详解
+
+我们的 Profiler 记录事件，可以导出为 **Chrome Trace Format**（JSON），用 `chrome://tracing` 可视化：
+
+```json
+{
+  "traceEvents": [
+    {
+      "name": "AddNode::apply",
+      "cat": "backward",
+      "ph": "X",        // X = 完整事件（有开始和结束）
+      "ts": 12345,      // 开始时间（微秒）
+      "dur": 100,       // 持续时间（微秒）
+      "pid": 0,         // process id（这里用 0 表示 CPU）
+      "tid": 1          // thread id
+    },
+    {
+      "name": "MulNode::apply",
+      "cat": "backward",
+      "ph": "X",
+      "ts": 12400,
+      "dur": 80,
+      "pid": 0,
+      "tid": 2          // 另一个线程
+    }
+  ]
+}
+```
+
+关键字段：
+- **ph (phase)**：`B` = begin, `E` = end, `X` = complete (begin+end), `i` = instant
+- **pid**：进程 ID，可以用来区分 CPU (0) 和 GPU (1)
+- **tid**：线程 ID，多线程 backward 中不同线程的事件会显示在不同行
+- **cat**：类别，如 "forward"、"backward"、"cuda"
+
+**多线程 profiling 挑战**：
+- 线程 ID 在程序中是 OS 级别的（如 12345），需要映射到小的序号（0, 1, 2）方便显示
+- 线程池中的线程会被复用，同一个线程先执行 Node A 再执行 Node B，事件会连续显示
+- 如果用 `chrome://tracing` 打开，可以看到线程间的并行和依赖关系
+
+### 9.5.8 梯度钩子实战：调试与自定义梯度
+
+**用 hook 打印中间梯度**（调试）：
+
+```python
+x = minitorch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+y = x * x
+y.register_hook(lambda grad: print(f"y.grad = {grad}"))
+z = y.sum()
+z.backward()
+# 输出：y.grad = [1. 1. 1.]
+```
+
+**用 hook 做梯度裁剪**（防止梯度爆炸）：
+
+```python
+def clip_hook(grad):
+    norm = (grad * grad).sum().sqrt()
+    if norm > 1.0:
+        grad = grad * (1.0 / norm)
+    return grad
+
+for p in model.parameters():
+    p.register_hook(clip_hook)
+```
+
+**用 hook 实现自定义 backward**（当自动微分无法处理时）：
+
+```python
+# 例如：自定义稀疏梯度操作
+def sparse_backward(grad):
+    # 只保留 top-k 梯度
+    k = 10
+    threshold = grad.abs().topk(k).values[-1]
+    return grad * (grad.abs() >= threshold)
+
+y = custom_op(x)
+y.register_hook(sparse_backward)
+```
+
+PyTorch 的 `register_hook` 签名完全一致，但还提供 `register_full_backward_hook`（在 backward 完成后调用，能访问所有输入梯度）。
+
+### 9.5.9 Anomaly Detection 实战：定位 NaN
+
+NaN 有一个致命特性：**任何与 NaN 的运算结果都是 NaN**。所以一旦某处产生 NaN，它会像病毒一样传播到整个计算图。最终 `loss.grad` 全是 NaN，但你不知道**源头**在哪。
+
+```python
+with minitorch.anomaly_detection():
+    loss = model(x)
+    loss.backward()
+# 如果某处产生 NaN，立即报错并打印该 Node 的信息
+```
+
+**检查策略**：我们的实现在每个 Node 的 `apply` 之后检查输出是否含 NaN/Inf。开销是每次 backward 多一次遍历（O(n)），通常增加 10-20% 时间。
+
+**更高效的策略**：只在**叶子梯度**上检查（减少检查次数），但可能漏掉中间的 NaN（如果它被后续操作消除，如 `0 * NaN = 0`，虽然数学上未定义但 IEEE 754 规定为 NaN）。
+
+**实际调试流程**：
+1. 开启 anomaly detection
+2. 找到第一个产生 NaN 的 Node
+3. 检查该 Node 的输入——哪个输入有问题
+4. 逐步回溯到源头
+5. 通常原因：除以 0、log(0)、sqrt(负数)、指数溢出
+
+### 9.5.10 Checkpointing 实战：大模型训练
+
+Transformer 训练中，每层的前向激活值都要保存用于反向。12 层 Transformer、序列长度 512、隐藏维度 768，激活值约 **3GB**。
+
+```python
+class TransformerLayer(minitorch.Module):
+    def forward(self, x):
+        return self.attention(x) + self.ffn(x)
+
+class CheckpointedTransformer(minitorch.Module):
+    def __init__(self, n_layers):
+        self.layers = [TransformerLayer() for _ in range(n_layers)]
+
+    def forward(self, x):
+        for layer in self.layers:
+            # 不保存中间激活，反向时重计算
+            x = minitorch.checkpoint(layer, x)
+        return x
+```
+
+**内存节省**：12 层激活从 3GB 降到 0.25GB（只保存最后一层 + 输入），但反向时间增加约 30%（重计算 12 层前向）。
+
+**正确性保证**：checkpoint 在前向时用 `NoGrad` 执行（不建图），在反向时重新前向（建图）。只要前向是确定性的（无 dropout 等随机操作），两次前向结果相同，梯度正确。
+
+**随机性问题**：如果层内有 dropout，两次前向的随机 mask 不同，梯度错误。解决方法：保存随机种子，重计算时恢复。PyTorch 的 `checkpoint` 通过 `use_reentrant` 参数处理这个问题。
+
+**嵌套 checkpointing**：可以对不同层组做不同粒度的 checkpointing：
+
+```python
+# 外层：每 4 层一组 checkpoint
+for i in range(0, 12, 4):
+    x = minitorch.checkpoint(
+        lambda x: [layer(x) for layer in self.layers[i:i+4]],
+        x
+    )
+```
+
+PyTorch 的 `torch.utils.checkpoint` 还支持：
+- `use_reentrant=False`：非重入实现，更安全
+- `context_fn`：自定义上下文管理
+- `preserve_rng_state`：是否保存 RNG 状态
+
+---
+
+## 9.6 Double Backward：高阶导数
+
+### 9.6.1 什么是 double backward
 
 一阶导：`y = x^2` → `dy/dx = 2x`。
 二阶导：`d²y/dx² = 2`。
 
 在 autograd 中，二阶导 = 对一阶导再 backward 一次。但一阶导 `2x` 本身是一个**计算图**（`x → mul(2, x)`），要对它 backward，这个图必须存在——即 `create_graph=true`。
 
-### 9.5.2 create_graph 参数
+### 9.6.2 create_graph 参数
 
 ```cpp
 // c10/tensor.h
@@ -801,7 +1165,7 @@ void backward(TensorImplPtr gradient = nullptr,
 
 这样，反向传播本身产生的新计算（梯度计算）也被记录成图，可以再 backward。
 
-### 9.5.3 MulNode 用 autograd::mul
+### 9.6.3 MulNode 用 autograd::mul
 
 ```cpp
 class MulNode : public Node {
@@ -820,7 +1184,7 @@ class MulNode : public Node {
 
 当 `create_graph=false`：`NoGradGuard` 启用 → `is_grad_enabled()=false` → `autograd::mul` 不建图 → `grad_a` 无 `grad_fn` → 不能再 backward（但省内存）。
 
-### 9.5.4 broadcast_to 保留 grad_fn 的 bug
+### 9.6.4 broadcast_to 保留 grad_fn 的 bug
 
 **问题**：`y = x * w`（x 是 `[3]`，w 是 `[1]` 广播到 `[3]`）。backward 时 `grad_x = grad_y * w_broadcast`。但 `w_broadcast` 是广播张量，它的 `grad_fn` 为空、`is_leaf=false`。`collect_edges` 为它创建 `AccumulateGrad(w_broadcast)`，梯度累加到 `w_broadcast` 而非原始 `w`——**w 的梯度丢失**。
 
@@ -841,7 +1205,7 @@ TensorImplPtr broadcast_to(const TensorImplPtr& a,
 
 这样 `w_broadcast->grad_fn()` 返回 `w` 的 `grad_fn`（或空，表示叶子），`collect_edges` 正确找到原始 `w` 的 `AccumulateGrad`。
 
-### 9.5.5 端到端示例
+### 9.6.5 端到端示例
 
 ```python
 import minitorch as mt
@@ -866,9 +1230,9 @@ x.grad.backward(mt.Tensor([1.0, 1.0, 1.0]))  # 二阶：d(2x)/dx = 2
 
 ---
 
-## 9.6 自定义 Allocator
+## 9.7 自定义 Allocator
 
-### 9.6.1 为什么需要自定义 Allocator
+### 9.7.1 为什么需要自定义 Allocator
 
 默认 `new`/`delete` 的问题：
 
@@ -878,7 +1242,7 @@ x.grad.backward(mt.Tensor([1.0, 1.0, 1.0]))  # 二阶：d(2x)/dx = 2
 
 PyTorch 的 `c10::Allocator` 解决这些：`CPUAllocator`、`CUDAAllocator`、`PinnedMemoryAllocator`... Storage 通过 Allocator 分配内存。
 
-### 9.6.2 Allocator 接口
+### 9.7.2 Allocator 接口
 
 ```cpp
 // c10/allocator.h
@@ -898,7 +1262,7 @@ public:
 };
 ```
 
-### 9.6.3 DefaultAllocator：带统计的 malloc/free
+### 9.7.3 DefaultAllocator：带统计的 malloc/free
 
 ```cpp
 class DefaultAllocator : public Allocator {
@@ -932,7 +1296,7 @@ private:
 
 `std::atomic<size_t>` 保证多线程下统计正确。`peak_ = std::max(peak_.load(), current_.load())` 不是原子操作，但峰值统计允许偶尔不精确。
 
-### 9.6.4 PoolAllocator：内存池
+### 9.7.4 PoolAllocator：内存池
 
 ```cpp
 class PoolAllocator : public Allocator {
@@ -1000,7 +1364,7 @@ private:
 
 **效果**：训练循环中反复创建/释放相同大小的张量（如每步的梯度），`pool_hits_` 远大于 `pool_misses_`，省掉大部分 `new`/`delete` 调用。
 
-### 9.6.5 全局 Allocator 管理
+### 9.7.5 全局 Allocator 管理
 
 ```cpp
 // c10/allocator.cpp
@@ -1024,7 +1388,7 @@ _cpp_ext.set_global_allocator(_cpp_ext.PoolAllocator(1024 * 1024))
 # 之后所有 Storage 分配都走内存池
 ```
 
-### 9.6.6 Storage 改用 Allocator
+### 9.7.6 Storage 改用 Allocator
 
 ```cpp
 // c10/storage.cpp
@@ -1043,7 +1407,7 @@ Storage::~Storage() {
 
 Storage 不再直接 `new`/`delete`，全部通过 `get_global_allocator()`。切换 allocator 时，Storage 代码一行不改。
 
-### 9.6.7 与 c10::Allocator 对照
+### 9.7.7 与 c10::Allocator 对照
 
 | 我们的 `Allocator` | 真实 `c10::Allocator` |
 |--------------------|------------------------|
@@ -1058,9 +1422,9 @@ PyTorch 的 `c10::CUDAAllocator` 更复杂：caching allocator 维护按大小�
 
 ---
 
-## 9.7 Autograd Profiler
+## 9.8 Autograd Profiler
 
-### 9.7.1 为什么需要 Profiler
+### 9.8.1 为什么需要 Profiler
 
 训练大模型时，backward 耗时往往占 60-80%。我们需要知道：
 
@@ -1070,7 +1434,7 @@ PyTorch 的 `c10::CUDAAllocator` 更复杂：caching allocator 维护按大小�
 
 PyTorch 提供 `torch.autograd.profiler`，我们在 C++ 层实现一个轻量版。
 
-### 9.7.2 Profiler 设计
+### 9.8.2 Profiler 设计
 
 ```cpp
 // autograd/profiler.h
@@ -1098,7 +1462,7 @@ private:
 Profiler& get_global_profiler();
 ```
 
-### 9.7.3 集成到 run_backward
+### 9.8.3 集成到 run_backward
 
 在 `run_backward` 的每个 Node 执行前后记录：
 
@@ -1116,7 +1480,7 @@ if (profiler.enabled())
                     get_global_allocator().total_allocated(), 0);
 ```
 
-### 9.7.4 Python 端使用
+### 9.8.4 Python 端使用
 
 ```python
 from minitorch import _cpp_ext
@@ -1132,7 +1496,7 @@ for event in _cpp_ext.profiler_events():
           f"mem: {event[2]} → {event[3]} bytes")
 ```
 
-### 9.7.5 与 PyTorch 对照
+### 9.8.5 与 PyTorch 对照
 
 | 我们的实现 | 真实 PyTorch | 文件 |
 |-----------|-------------|------|
@@ -1142,9 +1506,9 @@ for event in _cpp_ext.profiler_events():
 
 ---
 
-## 9.8 梯度钩子（Backward Hooks）
+## 9.9 梯度钩子（Backward Hooks）
 
-### 9.8.1 什么是梯度钩子
+### 9.9.1 什么是梯度钩子
 
 `register_hook(fn)` 在叶子张量上注册一个回调，backward 时梯度到达该张量后、累加之前调用 `fn(grad)`。钩子可以：
 
@@ -1154,7 +1518,7 @@ for event in _cpp_ext.profiler_events():
 
 对应 PyTorch 的 `tensor.register_hook()`。
 
-### 9.8.2 实现
+### 9.9.2 实现
 
 在 `TensorImpl` 中添加钩子字段：
 
@@ -1182,7 +1546,7 @@ std::vector<TensorImplPtr> AccumulateGrad::apply(TensorImplPtr grad) {
 }
 ```
 
-### 9.8.3 Python 端使用
+### 9.9.3 Python 端使用
 
 ```python
 x = _cpp_ext.TensorImpl([1.0, 2.0, 3.0], [3], True)
@@ -1197,7 +1561,7 @@ y.backward(_cpp_ext.TensorImpl([1.0, 1.0, 1.0], [3], False))
 # x.grad = 2x * 2 = 4x = [4, 8, 12]
 ```
 
-### 9.8.4 pybind11 绑定
+### 9.9.4 pybind11 绑定
 
 钩子函数从 Python 传入，需用 `py::gil_scoped_acquire` 确保 GIL：
 
@@ -1214,9 +1578,9 @@ y.backward(_cpp_ext.TensorImpl([1.0, 1.0, 1.0], [3], False))
 
 ---
 
-## 9.9 Anomaly Detection
+## 9.10 Anomaly Detection
 
-### 9.9.1 什么是 Anomaly Detection
+### 9.10.1 什么是 Anomaly Detection
 
 训练中出现 NaN/Inf 梯度时，默认不会报错——NaN 会静默传播，最终模型权重全部变 NaN，难以定位根因。
 
@@ -1224,7 +1588,7 @@ y.backward(_cpp_ext.TensorImpl([1.0, 1.0, 1.0], [3], False))
 
 对应 PyTorch 的 `torch.autograd.detect_anomaly()`。
 
-### 9.9.2 实现
+### 9.10.2 实现
 
 在 `grad_mode.h` 中添加全局标志：
 
@@ -1264,7 +1628,7 @@ static void check_anomaly(const TensorImplPtr& grad) {
 
 在 `run_backward` 中，每个梯度生成后调用 `check_anomaly(grad)`。
 
-### 9.9.3 Python 端使用
+### 9.10.3 Python 端使用
 
 ```python
 _cpp_ext.set_anomaly_check_enabled(True)
@@ -1277,15 +1641,15 @@ except RuntimeError as e:
     print(e)  # "Anomaly detected: NaN or Inf in gradient"
 ```
 
-### 9.9.4 与 PyTorch 对照
+### 9.10.4 与 PyTorch 对照
 
 PyTorch 的 `detect_anomaly()` 上下文管理器更复杂：它还会记录前向执行栈，在异常消息中显示产生 NaN 的 Python 代码行。我们的实现只检测+抛异常，不含栈追踪。
 
 ---
 
-## 9.10 Gradient Checkpointing
+## 9.11 Gradient Checkpointing
 
-### 9.10.1 用重计算换内存
+### 9.11.1 用重计算换内存
 
 深层网络训练时，前向产生大量中间激活（每层输出），backward 需要这些激活来计算梯度。激活全部保存在内存中，显存成为瓶颈。
 
@@ -1293,7 +1657,7 @@ PyTorch 的 `detect_anomaly()` 上下文管理器更复杂：它还会记录前�
 
 对应 `torch.utils.checkpoint.checkpoint`。
 
-### 9.10.2 CheckpointNode 设计
+### 9.11.2 CheckpointNode 设计
 
 ```cpp
 // autograd/checkpoint.h
@@ -1309,7 +1673,7 @@ public:
 };
 ```
 
-### 9.10.3 前向：NoGrad 执行
+### 9.11.3 前向：NoGrad 执行
 
 ```cpp
 TensorImplPtr checkpoint(CheckpointFn fn, std::vector<TensorImplPtr> inputs) {
@@ -1336,7 +1700,7 @@ TensorImplPtr checkpoint(CheckpointFn fn, std::vector<TensorImplPtr> inputs) {
 }
 ```
 
-### 9.10.4 Backward：重计算
+### 9.11.4 Backward：重计算
 
 ```cpp
 std::vector<TensorImplPtr> CheckpointNode::apply(TensorImplPtr grad) {
@@ -1368,7 +1732,7 @@ std::vector<TensorImplPtr> CheckpointNode::apply(TensorImplPtr grad) {
 2. **EnableGradGuard**：重计算时需要 grad enabled 以建局部图；之后 `backward` 内部的 `NoGradGuard` 会关闭 grad。
 3. **局部 backward**：在重计算的局部图上反向传播，得到输入梯度，返回给主 Engine 继续传播。
 
-### 9.10.5 Python 端使用
+### 9.11.5 Python 端使用
 
 ```python
 x = _cpp_ext.TensorImpl([1.0, 2.0, 3.0], [3], True)
@@ -1382,7 +1746,7 @@ y.backward(_cpp_ext.TensorImpl([1.0], [1], False))
 # x.grad = 2x = [2, 4, 6]  ← 与不使用 checkpoint 结果一致
 ```
 
-### 9.10.6 内存 vs 计算的权衡
+### 9.11.6 内存 vs 计算的权衡
 
 | 方式 | 前向内存 | backward 内存 | backward 计算 |
 |------|---------|-------------|--------------|
@@ -1391,7 +1755,7 @@ y.backward(_cpp_ext.TensorImpl([1.0], [1], False))
 
 对 N 层网络，每 k 层设一个 checkpoint，内存从 O(N) 降到 O(N/k)，计算量增加约 k/(k+1) 倍。
 
-### 9.10.7 与 PyTorch 对照
+### 9.11.7 与 PyTorch 对照
 
 | 我们的实现 | 真实 PyTorch | 文件 |
 |-----------|-------------|------|
@@ -1403,9 +1767,9 @@ PyTorch 的实现还支持 `use_reentrant` 参数（两种模式）、多输出�
 
 ---
 
-## 9.11 与 PyTorch 对照
+## 9.12 与 PyTorch 对照
 
-### 9.11.1 Autograd 对照
+### 9.12.1 Autograd 对照
 
 | 我们的实现 | 真实 PyTorch | 文件 |
 |-----------|-------------|------|
@@ -1420,7 +1784,7 @@ PyTorch 的实现还支持 `use_reentrant` 参数（两种模式）、多输出�
 | `anomaly_check_enabled` | `detect_anomaly()` | `torch/autograd/anomaly_mode.py` |
 | `checkpoint()` | `torch.utils.checkpoint.checkpoint()` | `torch/utils/checkpoint.py` |
 
-### 9.11.2 Allocator 对照
+### 9.12.2 Allocator 对照
 
 | 我们的实现 | 真实 PyTorch | 文件 |
 |-----------|-------------|------|
@@ -1432,9 +1796,9 @@ PyTorch 的实现还支持 `use_reentrant` 参数（两种模式）、多输出�
 
 ---
 
-## 9.12 关键测试解读
+## 9.13 关键测试解读
 
-### 9.12.1 多线程 backward 正确性
+### 9.13.1 多线程 backward 正确性
 
 ```python
 def test_backward_mt_matches_single_thread():
@@ -1453,7 +1817,7 @@ def test_backward_mt_matches_single_thread():
 
 验证多线程结果与单线程一致。
 
-### 9.12.2 Double backward
+### 9.13.2 Double backward
 
 ```python
 def test_double_backward():
@@ -1468,7 +1832,7 @@ def test_double_backward():
     assert x.grad.data == [2.0, 2.0, 2.0]
 ```
 
-### 9.12.3 Allocator 统计
+### 9.13.3 Allocator 统计
 
 ```python
 def test_allocator_stats():
@@ -1479,7 +1843,7 @@ def test_allocator_stats():
     assert alloc.total_allocated() >= 3
 ```
 
-### 9.12.4 PoolAllocator 命中率
+### 9.13.4 PoolAllocator 命中率
 
 ```python
 def test_pool_allocator_reuse():
@@ -1491,7 +1855,7 @@ def test_pool_allocator_reuse():
     assert alloc.pool_hits() > 0   # 有重用
 ```
 
-### 9.12.5 Profiler 事件记录
+### 9.13.5 Profiler 事件记录
 
 ```python
 def test_profiler_events():
@@ -1506,7 +1870,7 @@ def test_profiler_events():
     assert all(e[1] >= 0 for e in events)  # duration >= 0
 ```
 
-### 9.12.6 梯度钩子
+### 9.13.6 梯度钩子
 
 ```python
 def test_hook_modify_grad():
@@ -1520,7 +1884,7 @@ def test_hook_modify_grad():
     assert x.grad.to_vector() == [4.0, 8.0, 12.0]  # 2x * 2 = 4x
 ```
 
-### 9.12.7 Anomaly Detection
+### 9.13.7 Anomaly Detection
 
 ```python
 def test_anomaly_detect_inf_grad():
@@ -1534,7 +1898,7 @@ def test_anomaly_detect_inf_grad():
         _cpp_ext.set_anomaly_check_enabled(False)
 ```
 
-### 9.12.8 Gradient Checkpointing
+### 9.13.8 Gradient Checkpointing
 
 ```python
 def test_checkpoint_vs_no_checkpoint():
@@ -1556,7 +1920,7 @@ def test_checkpoint_vs_no_checkpoint():
 
 ---
 
-## 9.13 下一章预告
+## 9.14 下一章预告
 
 本章的 C++ 核心只跑在 CPU 上。下一章（Ch10）我们给它接上 **CUDA**——让算子在 GPU 上跑，并引入 **dispatcher** 机制：同一个算子名（`"add"`）按张量的 device 自动路由到 CPU kernel 或 CUDA kernel。
 
