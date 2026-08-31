@@ -491,7 +491,7 @@ void run_backward_mt(NodePtr root, TensorImplPtr root_grad,
 - `NoGradGuard` 是 `thread_local`，每个 worker 线程独立。
 
 !!! warning "为什么用 vector<atomic> 而不是 unordered_map<atomic>？"
-`std::atomic` 不可拷贝/移动，不能直接放在 `unordered_map` 中。用 `vector<atomic<int>>` + `unordered_map<Node*, size_t>` 做索引，是 C++ 中的标准做法。
+    `std::atomic` 不可拷贝/移动，不能直接放在 `unordered_map` 中。用 `vector<atomic<int>>` + `unordered_map<Node*, size_t>` 做索引，是 C++ 中的标准做法。
 
 ### 9.3.4 与 PyTorch Engine 对照
 

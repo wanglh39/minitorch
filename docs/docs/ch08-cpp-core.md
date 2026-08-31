@@ -55,9 +55,9 @@
 ```
 
 !!! tip "三层各自的一句话职责"
-- **前端**：定义"用户怎么用"——API 长什么样、Module 怎么组织、autograd 怎么建图。
-- **核心**：定义"实际怎么算"——内存怎么布局、算子怎么遍历、CUDA 怎么 launch。
-- **绑定**：定义"两层怎么对话"——C++ 对象怎么变成 Python 句柄、异常怎么翻译、引用计数怎么对齐。
+    - **前端**：定义"用户怎么用"——API 长什么样、Module 怎么组织、autograd 怎么建图。
+    - **核心**：定义"实际怎么算"——内存怎么布局、算子怎么遍历、CUDA 怎么 launch。
+    - **绑定**：定义"两层怎么对话"——C++ 对象怎么变成 Python 句柄、异常怎么翻译、引用计数怎么对齐。
 
 ### 8.2.2 为什么用 C++ 而不是别的
 
@@ -88,9 +88,9 @@ minitorch 选 pybind11 + C++，不是因为它最快，而是因为它**和真�
 - 新增 `_C_ext` 扩展模块（`.pyd`/`.so`），`import minitorch._C_ext` 拿到 C++ 核心。
 
 !!! warning "别误解"重写""
-我们重写的是**核心计算**，不是整个 minitorch。autograd 引擎、计算图、nn.Module 这些"框架逻辑"仍在 Python——因为它们不在热路径上，且 Python 写起来更清晰。真实 PyTorch 的 autograd 也在 C++，但那是工程优化，不是教学必需。
+    我们重写的是**核心计算**，不是整个 minitorch。autograd 引擎、计算图、nn.Module 这些"框架逻辑"仍在 Python——因为它们不在热路径上，且 Python 写起来更清晰。真实 PyTorch 的 autograd 也在 C++，但那是工程优化，不是教学必需。
 
----
+    ---
 
 ## 8.3 设计决策与权衡
 
@@ -265,9 +265,9 @@ std::string Storage::repr() const {
 关键变化：所有构造/析构都走 `get_global_allocator()`。默认是 `DefaultAllocator`（直接 `new/delete` + 统计），可切换为 `PoolAllocator`（维护空闲块列表，deallocate 时不真正释放而是放入池中，下次 allocate 同尺寸时复用）。详见 Ch9 §9.4。
 
 !!! tip "为什么 `data()` 返回裸指针而不是 `vector&`"
-算子的内层循环要 `double* p = storage->data();` 然后裸指针遍历 `p[i]`。如果返回 `vector&`，每次访问多一次 `vector::operator[]`（虽然有内联，但语义上多一层）。真实 PyTorch 的 `c10::Storage::data()` 也返回裸指针。
+    算子的内层循环要 `double* p = storage->data();` 然后裸指针遍历 `p[i]`。如果返回 `vector&`，每次访问多一次 `vector::operator[]`（虽然有内联，但语义上多一层）。真实 PyTorch 的 `c10::Storage::data()` 也返回裸指针。
 
----
+    ---
 
 ## 8.5 代码逐行实现：TensorImpl C++ 类
 
@@ -448,7 +448,7 @@ TensorImplPtr TensorImpl::contiguous() const {
 `transpose` 后张量非连续（strides 不是 `[12,4,1]` 那种标准形）。`contiguous()` 按逻辑顺序读一遍数据，写到新 Storage，得到连续张量。这是 `view` 要求连续的原因——`view` 不拷贝，只能在连续 buffer 上重解 shape。
 
 !!! warning "索引递增的小技巧"
-内层 `for (int64_t d = ndim()-1; d >= 0; --d) { if (++indices[d] < shape_[d]) break; indices[d] = 0; }` 是"进位加法"——从最右维加 1，满了进位到左维。这等价于 `np.ndindex`，但不用乘法，每步 O(ndim) 最坏，常数极小。
+    内层 `for (int64_t d = ndim()-1; d >= 0; --d) { if (++indices[d] < shape_[d]) break; indices[d] = 0; }` 是"进位加法"——从最右维加 1，满了进位到左维。这等价于 `np.ndindex`，但不用乘法，每步 O(ndim) 最坏，常数极小。
 
 ### 8.5.6 `transpose`：零拷贝
 
@@ -562,7 +562,7 @@ TensorImplPtr div(const TensorImplPtr& a, const TensorImplPtr& b) {
 ```
 
 !!! tip "模板 vs 虚函数"
-这里用编译期模板（`template <typename Op>`），`op` 调用在编译期就内联进循环。如果用虚函数（`std::function` 或继承），每次循环多一次间接调用。教学版用模板，性能最佳；真实 PyTorch 用代码生成批量产生特化代码，思路相同。
+    这里用编译期模板（`template <typename Op>`），`op` 调用在编译期就内联进循环。如果用虚函数（`std::function` 或继承），每次循环多一次间接调用。教学版用模板，性能最佳；真实 PyTorch 用代码生成批量产生特化代码，思路相同。
 
 ### 8.6.3 一元算子（neg / relu）
 
@@ -738,9 +738,9 @@ m.def("matmul", [](const TensorImplPtr& a, const TensorImplPtr& b) { return matm
 ```
 
 !!! warning "为什么用 lambda 包一层"
-`m.def("sum", &sum)` 看似更简洁，但 `sum` 会和 `std::sum`（`<numeric>` 里）歧义，`div` 会和 `std::div`（`<cstdlib>` 里）歧义。用 lambda 显式指明 `minitorch::ops::sum`，既避开冲突，又能加 `py::arg` 默认值。这是 C++ 算子绑定的常见痛点。
+    `m.def("sum", &sum)` 看似更简洁，但 `sum` 会和 `std::sum`（`<numeric>` 里）歧义，`div` 会和 `std::div`（`<cstdlib>` 里）歧义。用 lambda 显式指明 `minitorch::ops::sum`，既避开冲突，又能加 `py::arg` 默认值。这是 C++ 算子绑定的常见痛点。
 
----
+    ---
 
 ## 8.8 C++ Autograd 及高级特性
 
@@ -972,9 +972,9 @@ dumpbin /dependents _C_ext.cp314-win_amd64.pyd
 PyTorch 早期（0.x）全用 CPython C-API，样板爆炸。后来部分迁到 pybind11（`torch::autograd` 的 C++ 前端），但核心 `torch/csrc/` 仍是 C-API（历史包袱 + 极致性能）。我们用 pybind11 是"如果今天重写会怎么做"的选择。
 
 !!! tip "为什么 PyTorch 不全换 pybind11"
-CPython C-API 比 pybind11 省一层间接调用，热路径上每个张量操作都过绑定层，省一点很重要。且 PyTorch 的绑定有大量定制（自定义 `__torch_function__`、autograd hooks、dispatcher 钩子），C-API 更灵活。这是"工程现实"和"教学清晰"的取舍。
+    CPython C-API 比 pybind11 省一层间接调用，热路径上每个张量操作都过绑定层，省一点很重要。且 PyTorch 的绑定有大量定制（自定义 `__torch_function__`、autograd hooks、dispatcher 钩子），C-API 更灵活。这是"工程现实"和"教学清晰"的取舍。
 
----
+    ---
 
 ## 8.12 历史背景
 

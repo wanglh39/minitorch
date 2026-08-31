@@ -87,10 +87,10 @@ Python 对象的属性都存在 `self.__dict__` 里。`nn.Module` 的核心 tric
 关键点：
 
 !!! tip "`__getattr__` vs `__getattribute__`"
-- `__getattribute__`：**每次**属性访问都调用，性能开销大，容易递归爆栈。
-- `__getattr__`：**只在正常查找失败时**才调用，安全且高效。
+    - `__getattribute__`：**每次**属性访问都调用，性能开销大，容易递归爆栈。
+    - `__getattr__`：**只在正常查找失败时**才调用，安全且高效。
 
-minitorch 用 `__getattr__`。所以 `self.training` 这种在 `__dict__` 里的属性，**不会**触发 `__getattr__`，直接走快速路径。只有 `self.weight`（不在 `__dict__`，在 `_parameters`）才会触发 `__getattr__`。
+    minitorch 用 `__getattr__`。所以 `self.training` 这种在 `__dict__` 里的属性，**不会**触发 `__getattr__`，直接走快速路径。只有 `self.weight`（不在 `__dict__`，在 `_parameters`）才会触发 `__getattr__`。
 
 ### 5.2.4 MRO（Method Resolution Order）与 `super()`
 
@@ -274,7 +274,7 @@ class Parameter(Tensor):
 - **最后一行 `self.requires_grad = requires_grad`**：允许 `Parameter(data, requires_grad=False)` 冻结参数（迁移学习常用）。
 
 !!! warning "为什么不直接用 Tensor？"
-如果直接 `self.weight = Tensor(...)`，`__setattr__` 不会把它放进 `_parameters`（因为不是 `Parameter` 实例），优化器就收集不到。`Parameter` 的**类型本身**就是信号。这是"类型即语义"的典型应用。
+    如果直接 `self.weight = Tensor(...)`，`__setattr__` 不会把它放进 `_parameters`（因为不是 `Parameter` 实例），优化器就收集不到。`Parameter` 的**类型本身**就是信号。这是"类型即语义"的典型应用。
 
 ### 5.4.2 `module.py`：`__init__`
 
@@ -316,7 +316,7 @@ def __setattr__(self, name: str, value: Any) -> None:
 - **`super().__setattr__`**：走 `object.__setattr__`，即 `self.__dict__[name] = value`。
 
 !!! tip "为什么不直接 `self.__dict__[name] = value`？"
-等价。但用 `super().__setattr__` 更"正统"，未来如果 MRO 中间插入了别的 `__setattr__`（如某个 mixin），能正确转发。这是防御性编程。
+    等价。但用 `super().__setattr__` 更"正统"，未来如果 MRO 中间插入了别的 `__setattr__`（如某个 mixin），能正确转发。这是防御性编程。
 
 ### 5.4.4 `module.py`：`__getattr__` 反查
 
@@ -343,7 +343,7 @@ def __getattr__(self, name: str) -> Any:
 - **抛 `AttributeError`**：必须抛，否则 Python 内部很多机制（如 `hasattr`、pickle）会失效。
 
 !!! warning "一个经典坑"
-在 `__getattr__` 里写 `self._parameters` 会**无限递归**：`self._parameters` 触发 `__getattr__("_parameters")`，里面又 `self._parameters`... 所以必须用 `self.__dict__.get("_parameters")`。这是写 `__getattr__` 的铁律。
+    在 `__getattr__` 里写 `self._parameters` 会**无限递归**：`self._parameters` 触发 `__getattr__("_parameters")`，里面又 `self._parameters`... 所以必须用 `self.__dict__.get("_parameters")`。这是写 `__getattr__` 的铁律。
 
 ### 5.4.5 `module.py`：`__call__` 与 hooks
 
@@ -495,7 +495,7 @@ class ModuleList(Module):
 - **`ModuleList.forward` 也顺序执行**：这是 minitorch 的简化。PyTorch 的 `ModuleList` **没有** `forward`，调用会报错——因为 ModuleList 的语义是"存储"而非"执行"。minitorch 加了默认 forward 是为了简化教学。
 
 !!! warning "与 PyTorch 的差异"
-PyTorch 的 `ModuleList` 没有 `forward`，调 `ml(x)` 会 `NotImplementedError`。minitorch 给了默认顺序执行，这是教学简化。生产代码里 `ModuleList` 通常用在 `Module` 子类的 `forward` 里手动控制执行顺序。
+    PyTorch 的 `ModuleList` 没有 `forward`，调 `ml(x)` 会 `NotImplementedError`。minitorch 给了默认顺序执行，这是教学简化。生产代码里 `ModuleList` 通常用在 `Module` 子类的 `forward` 里手动控制执行顺序。
 
 ### 5.4.11 `linear.py`：Linear 层
 
@@ -564,10 +564,10 @@ def register_buffer(self, name: str, tensor: Tensor) -> None:
 - **直接操作 `_buffers` 字典**：不走 `__setattr__`（因为 `__setattr__` 只识别 `Parameter`/`Module`，普通 `Tensor` 会进 `__dict__` 而非 `_buffers`）。所以**必须**用 `register_buffer` 才能注册 buffer。
 
 !!! tip "为什么 buffer 不直接 `self.running_mean = tensor`？"
-如果 `self.running_mean = some_tensor`，`__setattr__` 判断 `some_tensor` 不是 `Parameter` 也不是 `Module`，走默认分支进 `__dict__`。这样 `state_dict` 收集不到它（`state_dict` 只遍历 `_parameters`/`_buffers`/`_modules`），保存模型时会丢。所以 buffer 必须用 `register_buffer` 显式注册到 `_buffers` 字典。
+    如果 `self.running_mean = some_tensor`，`__setattr__` 判断 `some_tensor` 不是 `Parameter` 也不是 `Module`，走默认分支进 `__dict__`。这样 `state_dict` 收集不到它（`state_dict` 只遍历 `_parameters`/`_buffers`/`_modules`），保存模型时会丢。所以 buffer 必须用 `register_buffer` 显式注册到 `_buffers` 字典。
 
 !!! warning "minitorch 的 `state_dict` 漏了 buffer 的加载"
-看 `load_state_dict` 的实现：它只遍历 `_parameters`，**没**遍历 `_buffers`。所以即使 `state_dict` 里有 buffer 的键，`load_state_dict` 也不会灌回 buffer。这是 minitorch 的一个简化缺陷（PyTorch 的 `load_state_dict` 会处理 buffer）。如果要支持 BatchNorm 的完整保存加载，得在 `load_state_dict` 里加一段遍历 `_buffers` 的逻辑。
+    看 `load_state_dict` 的实现：它只遍历 `_parameters`，**没**遍历 `_buffers`。所以即使 `state_dict` 里有 buffer 的键，`load_state_dict` 也不会灌回 buffer。这是 minitorch 的一个简化缺陷（PyTorch 的 `load_state_dict` 会处理 buffer）。如果要支持 BatchNorm 的完整保存加载，得在 `load_state_dict` 里加一段遍历 `_buffers` 的逻辑。
 
 ### 5.4.14 三大注册表的对比总结
 

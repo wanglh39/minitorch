@@ -80,7 +80,7 @@ dispatch_table:
 新增 device（如 MPS）：只写 `mps_add` 并 `register_kernel("add", MPS, mps_add)`，**任何调用点不改**。这是 dispatcher 的核心价值。
 
 !!! tip "心智模型"
-dispatcher 就像餐厅的"菜单—厨房"映射：菜单上写"宫保鸡丁"（op name），后厨有川菜厨师（CPU kernel）和粤菜师傅（CUDA kernel）。服务员（调用点）只报菜名，餐厅经理（dispatcher）看今天哪个厨师在岗（device）派单。新来个鲁菜师傅（新 device），菜单不用改，只需登记"鲁菜师傅也会做宫保鸡丁"。
+    dispatcher 就像餐厅的"菜单—厨房"映射：菜单上写"宫保鸡丁"（op name），后厨有川菜厨师（CPU kernel）和粤菜师傅（CUDA kernel）。服务员（调用点）只报菜名，餐厅经理（dispatcher）看今天哪个厨师在岗（device）派单。新来个鲁菜师傅（新 device），菜单不用改，只需登记"鲁菜师傅也会做宫保鸡丁"。
 
 ### 10.2.3 真实 PyTorch 的 dispatch key
 
@@ -192,9 +192,9 @@ GPU 由若干 **SM**（Streaming Multiprocessor）组成，每个 SM 能同时�
 教学版 block=256、不用多少寄存器和 shared mem，占用率高。真实 PyTorch 的复杂 kernel（如 conv）会 profile 调 block size 最大化占用率。
 
 !!! tip "占用率不是越高越好"
-100% 占用率不一定最快。如果 kernel 是访存受限（memory-bound），多 warp 也喂不饱显存带宽，反而增加调度开销。要 profile 看是 compute-bound 还是 memory-bound，对症下药。
+    100% 占用率不一定最快。如果 kernel 是访存受限（memory-bound），多 warp 也喂不饱显存带宽，反而增加调度开销。要 profile 看是 compute-bound 还是 memory-bound，对症下药。
 
----
+    ---
 
 ## 10.4 设计决策与权衡
 
@@ -333,7 +333,7 @@ private:
 `call` 是 dispatcher 的入口：取第一个张量的 device，查表，调 kernel。**调用点只写 `Dispatcher::instance().call("add", {a, b})`，不关心 device**。
 
 !!! warning "约定：所有输入张量必须同 device"
-`call` 只看 `args[0]` 的 device。如果 `a` 在 CPU、`b` 在 CUDA，会按 CPU 路由但 `b` 的数据在 GPU——崩。真实 PyTorch 会自动跨 device 拷贝（把 `b` 拉到 `a` 的 device），我们简化为"逼用户显式 `.to()`"，错误更早暴露。
+    `call` 只看 `args[0]` 的 device。如果 `a` 在 CPU、`b` 在 CUDA，会按 CPU 路由但 `b` 的数据在 GPU——崩。真实 PyTorch 会自动跨 device 拷贝（把 `b` 拉到 `a` 的 device），我们简化为"逼用户显式 `.to()`"，错误更早暴露。
 
 ### 10.5.5 device_of 与适配 helper
 
@@ -489,10 +489,10 @@ __global__ void sum_kernel(const double* __restrict__ a,
 最后 host 上把 `partial[]` 加起来（或再 launch 一个 kernel 归约）。
 
 !!! tip "为什么用 shared memory"
-如果直接在 global memory 里归约（`a[tid] += a[tid+s]`），每步都访问慢速显存。把数据先搬到 shared（快几十倍），在 shared 里归约，只最后写一次 global，性能高一个数量级。这是 CUDA reduction 的标准优化。
+    如果直接在 global memory 里归约（`a[tid] += a[tid+s]`），每步都访问慢速显存。把数据先搬到 shared（快几十倍），在 shared 里归约，只最后写一次 global，性能高一个数量级。这是 CUDA reduction 的标准优化。
 
 !!! warning "__syncthreads 的规则"
-`__syncthreads()` 必须在**所有 thread 都会执行到**的位置调用。如果写在 `if (tid < s)` 里面，没进 if 的 thread 永远不到同步点，整个 block 死锁。所以上面的代码把 `__syncthreads()` 放在 if 外面——所有 thread 都同步，只有部分 thread 干活。
+    `__syncthreads()` 必须在**所有 thread 都会执行到**的位置调用。如果写在 `if (tid < s)` 里面，没进 if 的 thread 永远不到同步点，整个 block 死锁。所以上面的代码把 `__syncthreads()` 放在 if 外面——所有 thread 都同步，只有部分 thread 干活。
 
 ### 10.7.4 host 端 wrapper：内存拷贝 + launch + 同步
 
@@ -537,7 +537,7 @@ TensorImplPtr cuda_add(const TensorImplPtr& a, const TensorImplPtr& b) {
 7. 包成新 `TensorImpl` 返回。
 
 !!! warning "教学版的低效"
-每次调用都 `cudaMalloc`/`cudaFree`——真实场景这是性能灾难（分配显存很慢）。真实 PyTorch 用 **caching allocator**：分配过的显存块缓存起来复用，不真释放。教学版为了简单每次真分配，文档里反复强调这是简化。
+    每次调用都 `cudaMalloc`/`cudaFree`——真实场景这是性能灾难（分配显存很慢）。真实 PyTorch 用 **caching allocator**：分配过的显存块缓存起来复用，不真释放。教学版为了简单每次真分配，文档里反复强调这是简化。
 
 ### 10.7.5 注册 CUDA 算子
 
@@ -603,7 +603,7 @@ CUDA_CHECK(cudaDeviceSynchronize()); // 查 kernel 执行错误（如越界访�
 - `compute-sanitizer`（原 `cuda-memcheck`）：查越界、未初始化、race。教学版遇到莫名结果先跑一遍它。
 
 !!! warning "教学版省略了所有 CUDA_CHECK"
-为了代码简洁，教学版的 `cuda_add` 等没检查返回值。**生产代码绝不能这样**——显存不足、driver 崩了、kernel 越界都会被吞掉，调试地狱。文档这里补上正确做法。
+    为了代码简洁，教学版的 `cuda_add` 等没检查返回值。**生产代码绝不能这样**——显存不足、driver 崩了、kernel 越界都会被吞掉，调试地狱。文档这里补上正确做法。
 
 ### 10.7.7 编译守卫与无 GPU 构建
 
@@ -1138,6 +1138,6 @@ def test_cuda_availability_detection():
 6. **对照真实 PyTorch**：我们的 dispatch table 是 `c10::DispatchTable` 的"只 device key"投影；我们的 `ops_cuda.cu` 是 `aten/native/cuda/BinaryOps.cu` 的极简版。结构和思想一致，差异在工程优化（caching allocator、warp shuffle、vectorized load、kernel fusion）。
 
 !!! tip "核心带走"
-dispatcher 的价值不是"快"，而是"解耦"。它让你能加新 device、新 dtype、新 autograd 模式而不动任何已有代码。这种"开放扩展、封闭修改"的工程能力，是 PyTorch 能支持十几种 backend、几百种算子组合还能维护的根本。minitorch 的两张表（CPU/CUDA）是这套机制的最小可工作示例。
+    dispatcher 的价值不是"快"，而是"解耦"。它让你能加新 device、新 dtype、新 autograd 模式而不动任何已有代码。这种"开放扩展、封闭修改"的工程能力，是 PyTorch 能支持十几种 backend、几百种算子组合还能维护的根本。minitorch 的两张表（CPU/CUDA）是这套机制的最小可工作示例。
 
-下一章（Ch11）我们离开计算核心，转向数据流水线——`DataLoader` 与采样器，讲清怎么把数据集喂进训练循环，处理 batch、shuffle、多进程加载。
+    下一章（Ch11）我们离开计算核心，转向数据流水线——`DataLoader` 与采样器，讲清怎么把数据集喂进训练循环，处理 batch、shuffle、多进程加载。

@@ -79,7 +79,7 @@ lr < 2 / L''(p)
 `L''(p)` 是曲率。曲率越大，能容许的 `lr` 越小。如果 `lr` 超过 `2/L''`，每步"跨过"最优解越来越远，**震荡发散**。
 
 !!! tip "直觉"
-把损失函数想象成一个碗。曲率大=碗窄陡。学习率太大=步子太大，在碗壁之间来回撞，越撞越远。学习率太小=步子太小，半天走不到碗底。
+    把损失函数想象成一个碗。曲率大=碗窄陡。学习率太大=步子太大，在碗壁之间来回撞，越撞越远。学习率太小=步子太小，半天走不到碗底。
 
 ### 6.2.3 随机梯度下降（SGD）
 
@@ -209,10 +209,10 @@ p ← p - lr * g
 这就是 `weight_decay` 的实现。它让参数趋向小值，防止过拟合。
 
 !!! warning "Adam vs AdamW"
-对 SGD，L2 正则等价于在更新里加 `wd * p`。但对 Adam，因为 `v` 累积了 `(g + wd*p)²`，L2 正则和"权重衰减"（直接 `p ← (1 - lr*wd) * p`）不再等价。**AdamW**（Loshchilov & Hutter 2017）把权重衰减解耦出来：
+    对 SGD，L2 正则等价于在更新里加 `wd * p`。但对 Adam，因为 `v` 累积了 `(g + wd*p)²`，L2 正则和"权重衰减"（直接 `p ← (1 - lr*wd) * p`）不再等价。**AdamW**（Loshchilov & Hutter 2017）把权重衰减解耦出来：
 
-```
-g ← g + wd * p    # Adam 的 L2 正则（耦合）
+    ```
+    g ← g + wd * p    # Adam 的 L2 正则（耦合）
 # vs
 p ← (1 - lr * wd) * p    # AdamW 的解耦权重衰减
 ```
@@ -408,7 +408,7 @@ def step(self) -> None:
 - **⑪ `param -= lr * grad`**：in-place 减。`param` 是 numpy 视图，改它就是改 `p` 的底层 storage。**不经过 autograd**。
 
 !!! tip "为什么 `grad = grad + weight_decay * param` 不用 in-place？"
-如果写 `grad += weight_decay * param`，会**污染 `p.grad` 的底层 storage**。下次 backward 累加梯度时，基础值变成了被 weight_decay 修正过的，错误。所以用 `grad = grad + ...` 重新绑定到新数组，原 `p.grad` 不动。
+    如果写 `grad += weight_decay * param`，会**污染 `p.grad` 的底层 storage**。下次 backward 累加梯度时，基础值变成了被 weight_decay 修正过的，错误。所以用 `grad = grad + ...` 重新绑定到新数组，原 `p.grad` 不动。
 
 ### 6.4.5 `adam.py`：Adam 构造
 
@@ -490,7 +490,7 @@ def step(self) -> None:
 - **⑫ 更新**：`p -= step_size * m / denom`。`step_size * exp_avg / denom` 就是 `lr * m̂ / (√v̂ + eps)`。
 
 !!! warning "为什么 `exp_avg *= beta1` 用 in-place？"
-`exp_avg` 是 `state["exp_avg"]` 引用的 numpy 数组。in-place 修改它，state 里的也跟着变（同一对象）。如果写 `exp_avg = beta1 * exp_avg`，`exp_avg` 重新绑定到新数组，state 里的还是旧的，下次 step 拿到的还是初始 0——bug。所以矩更新必须 in-place。
+    `exp_avg` 是 `state["exp_avg"]` 引用的 numpy 数组。in-place 修改它，state 里的也跟着变（同一对象）。如果写 `exp_avg = beta1 * exp_avg`，`exp_avg` 重新绑定到新数组，state 里的还是旧的，下次 step 拿到的还是初始 0——bug。所以矩更新必须 in-place。
 
 ### 6.4.7 `lr_scheduler.py`：基类
 

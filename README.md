@@ -9,10 +9,13 @@
 
 ## 教程文档
 
-在线文档托管于 GitHub Pages（MkDocs Material）：
+**在线文档**：https://wanglh39.github.io/minitorch/
 
-```
-mkdocs serve   # 本地预览
+本地预览：
+
+```bash
+uv sync --extra docs
+mkdocs serve
 ```
 
 ## 快速开始

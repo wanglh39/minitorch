@@ -795,9 +795,9 @@ Python 3.10 存的 pickle 在 3.9 读可能 `AttributeError` 或 `ModuleNotFound
 | 无                                      | `torch.amp.bf16` / `torch.compile(amp=...)` | 真实版 bf16 不需要 GradScaler（范围够大），compile 自动 AMP         |
 
 !!! tip "bf16 是什么"
-bf16（bfloat16）：1 + 8 + 7 位。指数位和 fp32 一样多，所以**范围和 fp32 一样**（±3.4e38），只是精度差（~1%）。这意味着 bf16 **几乎不会溢出**，也不需要 GradScaler。Google TPU 最早用，现在 NVIDIA A100/H100 也支持。是 fp16 的有力替代。
+    bf16（bfloat16）：1 + 8 + 7 位。指数位和 fp32 一样多，所以**范围和 fp32 一样**（±3.4e38），只是精度差（~1%）。这意味着 bf16 **几乎不会溢出**，也不需要 GradScaler。Google TPU 最早用，现在 NVIDIA A100/H100 也支持。是 fp16 的有力替代。
 
----
+    ---
 
 ## 12.8 历史背景
 

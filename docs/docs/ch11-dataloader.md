@@ -70,13 +70,13 @@ class IterableDataset:
 它假设数据是**流**，没有长度概念，也不能跳着读。就像一根水管：你只能接住流出来的水，不能问"第 3 滴是什么"。
 
 !!! tip "什么时候用 IterableDataset？"
-- 数据太大放不下内存（TB 级日志、数千万行数据库）。
-- 数据来自网络流、Kafka、生成器。
-- 数据是"无限"的（强化学习的 episode 流）。
-- 数据本身就有顺序依赖（时序预测，打乱会破坏时间结构）。
+    - 数据太大放不下内存（TB 级日志、数千万行数据库）。
+    - 数据来自网络流、Kafka、生成器。
+    - 数据是"无限"的（强化学习的 episode 流）。
+    - 数据本身就有顺序依赖（时序预测，打乱会破坏时间结构）。
 
 !!! warning "map-style 的代价"
-map-style 要求你能 O(1) 跳到任意位置。如果你的数据存在云端对象存储、每条都要单独 HTTP 请求，那 `__getitem__(10000)` 会非常慢——这时候反而 IterableDataset 顺序读更高效。
+    map-style 要求你能 O(1) 跳到任意位置。如果你的数据存在云端对象存储、每条都要单独 HTTP 请求，那 `__getitem__(10000)` 会非常慢——这时候反而 IterableDataset 顺序读更高效。
 
 ### 11.2.3 Sampler：把"顺序"这件事独立出来
 
@@ -779,16 +779,16 @@ for b1 in loader:
 | 无                                      | `DistributedSampler`                     | 多卡训练切分数据，每张卡只取一部分；教学版未实现                                |
 
 !!! tip "真实 PyTorch 多了什么"
-最关键的是 **`num_workers > 0` 的多进程预取**。它涉及：
-- 子进程用 `multiprocessing` 启动，各自独立 GIL。
-- 数据通过 `multiprocessing.Queue` 传递，Tensor 走共享内存避免拷贝。
-- 每个 worker 有独立随机种子（`worker_init_fn`），保证增强多样且可复现。
-- `prefetch_factor` 控制每个 worker 预先准备几个 batch。
-- `persistent_workers=True` 避免每个 epoch 重启子进程。
+    最关键的是 **`num_workers > 0` 的多进程预取**。它涉及：
+    - 子进程用 `multiprocessing` 启动，各自独立 GIL。
+    - 数据通过 `multiprocessing.Queue` 传递，Tensor 走共享内存避免拷贝。
+    - 每个 worker 有独立随机种子（`worker_init_fn`），保证增强多样且可复现。
+    - `prefetch_factor` 控制每个 worker 预先准备几个 batch。
+    - `persistent_workers=True` 避免每个 epoch 重启子进程。
 
-这些都是工程细节，不影响理解数据管线的"骨架"，所以教学版省略。
+    这些都是工程细节，不影响理解数据管线的"骨架"，所以教学版省略。
 
----
+    ---
 
 ## 11.8 历史背景
 
@@ -1059,8 +1059,8 @@ def test_tensor_dataset():
 这些是真正"上 GPU 训练"前必须搞懂的事。
 
 !!! tip "阶段小结"
-至此，minitorch 的数据管线已经完整：Dataset 定义数据、Sampler 定顺序、DataLoader 切批并 collate。下一章我们离开数据，进入"训练产物怎么存"和"怎么用低精度加速训练"这两个工程必修课。掌握本章后，你应当能独立设计一套数据加载方案，并理解每个设计选择背后的权衡。
+    至此，minitorch 的数据管线已经完整：Dataset 定义数据、Sampler 定顺序、DataLoader 切批并 collate。下一章我们离开数据，进入"训练产物怎么存"和"怎么用低精度加速训练"这两个工程必修课。掌握本章后，你应当能独立设计一套数据加载方案，并理解每个设计选择背后的权衡。
 
----
+    ---
 
-> 本章代码：`src/minitorch/data/dataset.py`、`src/minitorch/data/sampler.py`、`src/minitorch/data/dataloader.py`。测试：`tests/test_data.py`。
+    > 本章代码：`src/minitorch/data/dataset.py`、`src/minitorch/data/sampler.py`、`src/minitorch/data/dataloader.py`。测试：`tests/test_data.py`。

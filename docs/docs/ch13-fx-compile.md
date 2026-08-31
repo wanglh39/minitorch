@@ -868,9 +868,9 @@ symbolic_trace(model)   # ← 教学版不支持，因为 Linear.forward 没被 
 | 无                                      | `torch.compile` (Dynamo + Inductor)      | 字节码追踪、guard 切分、Triton codegen、动态 shape           |
 
 !!! tip "torch.compile 为什么更强"
-Dynamo 不靠 Proxy，而是**改写 Python 字节码**：在执行时拦截每个 `CALL` 指令，把算子记录进图。遇到 `if x > 0` 时，它记录当前 x 的值作为 **guard**，生成一个"当 x>0 时用这个图"的特化版本。下次 x 又 >0 就复用，否则重新追踪。这样既保留了图优化，又支持了 control flow 和动态 shape。代价是实现极其复杂（要理解 CPython 字节码、帧栈、guard 逻辑）。
+    Dynamo 不靠 Proxy，而是**改写 Python 字节码**：在执行时拦截每个 `CALL` 指令，把算子记录进图。遇到 `if x > 0` 时，它记录当前 x 的值作为 **guard**，生成一个"当 x>0 时用这个图"的特化版本。下次 x 又 >0 就复用，否则重新追踪。这样既保留了图优化，又支持了 control flow 和动态 shape。代价是实现极其复杂（要理解 CPython 字节码、帧栈、guard 逻辑）。
 
----
+    ---
 
 ## 13.8 历史背景
 

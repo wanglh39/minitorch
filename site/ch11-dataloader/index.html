@@ -1,0 +1,3411 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="从零实现迷你版 PyTorch，学习底层原理与设计原则">
+      
+      
+        <meta name="author" content="minitorch contributor">
+      
+      
+      
+        <link rel="prev" href="../ch07-loss-training/">
+      
+      
+        <link rel="next" href="../ch12-serialization-amp/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Ch11 数据加载与采样 - minitorch</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#11" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="minitorch" class="md-header__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            minitorch
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ch11 数据加载与采样
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../ch01-tensor-storage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段一·纯 Python
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ch08-cpp-core/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段二·C++ 核心
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../appendix/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  附录
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../differences/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  与真实 PyTorch 的差异
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="minitorch" class="md-nav__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    minitorch
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段一·纯 Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段一·纯 Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch01-tensor-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch1 张量与存储
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch02-ops-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch2 算子与分发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch03-autograd-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch3 自动微分引擎
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch04-computation-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch4 计算图机制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch05-nn-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch5 nn.Module 体系
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch06-optimizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch6 优化器系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch07-loss-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch7 损失与训练循环
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch11 数据加载与采样
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch11 数据加载与采样
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 原理铺垫
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.2 原理铺垫">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1121" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.1 训练循环里的数据流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1122-map-style-vs-iterable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.2 map-style vs iterable：两种数据集协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1123-sampler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.3 Sampler：把"顺序"这件事独立出来
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1124-collate-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.4 collate：把一捆样本缝成一个 batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1125-drop_last" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.5 drop_last：为什么有时候必须丢掉尾巴
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1126-gil" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.6 多进程预取：绕过 GIL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1127-concatdataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.7 ConcatDataset：累积大小索引
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.8 整体数据流图示
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1129-__getitem__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.9 为什么不用迭代器协议而用 __getitem__
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#113" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 设计决策与权衡
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#114" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 代码逐行实现
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.4 代码逐行实现">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1141-datasetpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4.1 dataset.py：数据集协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1142-samplerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4.2 sampler.py：采样器
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1143-dataloaderpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4.3 dataloader.py：加载器
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#115" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 完整示例
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.5 完整示例">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1151" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5.1 接进训练循环
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#116" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.6 常见陷阱
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.6 常见陷阱">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-nprandomseed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 1：忘了 np.random.seed，测试随机失败
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-shuffletrue-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 2：以为 shuffle=True 会原地打乱 Dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3drop_lastfalse-batchnorm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 3：drop_last=False 配 BatchNorm 训练崩
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-collate_fn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 4：自定义 collate_fn 忘了处理变长样本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5iterabledataset-shuffletrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 5：IterableDataset 用 shuffle=True
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-lenloader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 6：以为 len(loader) 是样本数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7concatdataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 7：ConcatDataset 子集顺序变了
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8__getitem__-tensor-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 8：__getitem__ 返回的 Tensor 离开 Dataset 后被修改
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9batch_size1-collate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 9：batch_size=1 时 collate 多余一层维度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-__getitem__-io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 10：在 __getitem__ 里做重 I/O
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-dataloader-reentrant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 11：以为 DataLoader 是 reentrant 的
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#117-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.7 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#118" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.8 历史背景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.8 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1181-tensorflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.8.1 为什么 TensorFlow 走了不同的路
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1182-epoch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.8.2 一个常被忽略的点：epoch 边界
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#119" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.9 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.9 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-weightedrandomsampler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 1：实现 WeightedRandomSampler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-dataloader-sampler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 2：让 DataLoader 支持直接传 sampler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-random_split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 3：实现 random_split
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-default_collate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 4：解释为什么 default_collate 要递归
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 5：估算多进程预取的加速
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1110" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.10 关键测试解读
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.11 优劣势总结
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.12 下一章预告
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch12-serialization-amp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch12 持久化与混合精度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch13-fx-compile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch13 图与编译导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段二·C++ 核心
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段二·C++ 核心
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch08-cpp-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch8 C++ 核心重写
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch09-cpp-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch9 C++ 高级特性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch10-cuda-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch10 CUDA 与 dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../appendix/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    附录
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a1-distributed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A1 分布式训练
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a2-quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A2 量化导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a3-torchscript-onnx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A3 TorchScript 与 ONNX
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a4-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A4 profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a5-dispatch-key/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A5 dispatch key 链
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a6-c-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A6 CPython C-API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../differences/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    与真实 PyTorch 的差异
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 原理铺垫
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.2 原理铺垫">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1121" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.1 训练循环里的数据流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1122-map-style-vs-iterable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.2 map-style vs iterable：两种数据集协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1123-sampler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.3 Sampler：把"顺序"这件事独立出来
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1124-collate-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.4 collate：把一捆样本缝成一个 batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1125-drop_last" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.5 drop_last：为什么有时候必须丢掉尾巴
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1126-gil" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.6 多进程预取：绕过 GIL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1127-concatdataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.7 ConcatDataset：累积大小索引
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.8 整体数据流图示
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1129-__getitem__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2.9 为什么不用迭代器协议而用 __getitem__
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#113" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 设计决策与权衡
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#114" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 代码逐行实现
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.4 代码逐行实现">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1141-datasetpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4.1 dataset.py：数据集协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1142-samplerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4.2 sampler.py：采样器
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1143-dataloaderpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4.3 dataloader.py：加载器
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#115" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 完整示例
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.5 完整示例">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1151" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5.1 接进训练循环
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#116" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.6 常见陷阱
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.6 常见陷阱">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-nprandomseed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 1：忘了 np.random.seed，测试随机失败
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-shuffletrue-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 2：以为 shuffle=True 会原地打乱 Dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3drop_lastfalse-batchnorm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 3：drop_last=False 配 BatchNorm 训练崩
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-collate_fn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 4：自定义 collate_fn 忘了处理变长样本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5iterabledataset-shuffletrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 5：IterableDataset 用 shuffle=True
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-lenloader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 6：以为 len(loader) 是样本数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7concatdataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 7：ConcatDataset 子集顺序变了
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8__getitem__-tensor-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 8：__getitem__ 返回的 Tensor 离开 Dataset 后被修改
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9batch_size1-collate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 9：batch_size=1 时 collate 多余一层维度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-__getitem__-io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 10：在 __getitem__ 里做重 I/O
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-dataloader-reentrant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 11：以为 DataLoader 是 reentrant 的
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#117-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.7 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#118" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.8 历史背景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.8 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1181-tensorflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.8.1 为什么 TensorFlow 走了不同的路
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1182-epoch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.8.2 一个常被忽略的点：epoch 边界
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#119" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.9 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.9 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-weightedrandomsampler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 1：实现 WeightedRandomSampler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-dataloader-sampler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 2：让 DataLoader 支持直接传 sampler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-random_split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 3：实现 random_split
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-default_collate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 4：解释为什么 default_collate 要递归
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 5：估算多进程预取的加速
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1110" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.10 关键测试解读
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.11 优劣势总结
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.12 下一章预告
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="11">第 11 章：数据加载与采样<a class="headerlink" href="#11" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>本章我们离开"张量与算子"的纯净世界，踏入真实训练里最繁杂、也最容易被忽视的一块——<strong>数据管线</strong>。
+一个深度学习训练循环里，前向、反向、优化器加起来可能只占代码的 30%，剩下 70% 都在折腾"怎么把数据整整齐齐地喂进模型"。
+PyTorch 把这件事拆成了三个角色：<code>Dataset</code>、<code>Sampler</code>、<code>DataLoader</code>，三者各司其职、组合使用。
+本章我们就从零实现这套机制，并讲清楚为什么是这样切分的。</p>
+</blockquote>
+<hr />
+<h2 id="111">11.1 本章目标<a class="headerlink" href="#111" title="Permanent link">&para;</a></h2>
+<p>读完这一章，你应当能够：</p>
+<ol>
+<li>说出 <code>Dataset</code>、<code>Sampler</code>、<code>DataLoader</code> 三者各自的职责，并能解释"为什么要把它们分开"。</li>
+<li>区分 <strong>map-style</strong> 与 <strong>iterable</strong> 两种数据集协议，知道什么场景该用哪一种。</li>
+<li>实现 <code>SequentialSampler</code>、<code>RandomSampler</code>、<code>BatchSampler</code>，并理解它们如何层层组合。</li>
+<li>写出 <code>default_collate</code> 的"转置 + stack"逻辑，解释它为什么对 <code>(x, y)</code> 形式的样本有效。</li>
+<li>说清 <code>drop_last</code> 的含义，以及它为何对 <code>BatchNorm</code> 这类对 batch size 敏感的层至关重要。</li>
+<li>理解多进程预取（<code>num_workers &gt; 0</code>）绕过 GIL 的原理，以及教学版为什么省略它。</li>
+<li>用 <code>ConcatDataset</code> 把多个数据集拼成一个，并解释"累积大小索引"如何把全局下标映射回子集。</li>
+<li>把以上零件组装成一个端到端的小型训练数据管线，并跑通它。</li>
+</ol>
+<hr />
+<h2 id="112">11.2 原理铺垫<a class="headerlink" href="#112" title="Permanent link">&para;</a></h2>
+<h3 id="1121">11.2.1 训练循环里的数据流<a class="headerlink" href="#1121" title="Permanent link">&para;</a></h3>
+<p>一个最朴素的训练循环长这样：</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">somehow_get_batches</span><span class="p">(</span><span class="n">train_data</span><span class="p">):</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</code></pre></div>
+<p>那个 <code>somehow_get_batches</code> 就是本章要实现的东西。把它拆开，里面其实有四个子问题：</p>
+<table>
+<thead>
+<tr>
+<th>子问题</th>
+<th>通俗说法</th>
+<th>谁来管</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据从哪儿来？怎么取一条？</td>
+<td>"我有一堆样本，给我第 i 个"</td>
+<td><code>Dataset</code></td>
+</tr>
+<tr>
+<td>按什么顺序取？</td>
+<td>"先打乱再取，还是顺序取？要不要放回？"</td>
+<td><code>Sampler</code></td>
+</tr>
+<tr>
+<td>一次取几条？怎么打包成批？</td>
+<td>"一次 32 条，最后不够 32 条怎么办？"</td>
+<td><code>BatchSampler</code> + <code>collate_fn</code></td>
+</tr>
+<tr>
+<td>怎么把这一批喂给模型？</td>
+<td>"把 32 个 <code>(x, y)</code> 拼成两个大张量"</td>
+<td><code>DataLoader</code></td>
+</tr>
+</tbody>
+</table>
+<p>这种切分不是 PyTorch 拍脑袋想出来的，而是从实践中长出来的——下一节的"历史背景"会讲它的演化。</p>
+<h3 id="1122-map-style-vs-iterable">11.2.2 map-style vs iterable：两种数据集协议<a class="headerlink" href="#1122-map-style-vs-iterable" title="Permanent link">&para;</a></h3>
+<p><strong>map-style Dataset</strong> 长这样：</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Dataset</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span> <span class="o">...</span>   <span class="c1"># 给我第 index 个</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>              <span class="c1"># 一共多少个</span>
+</code></pre></div>
+<p>它假设数据集是一个<strong>有长度、可随机访问</strong>的容器。就像一本字典：你问"第 3 条是什么"，它直接给你。</p>
+<p><strong>IterableDataset</strong> 长这样：</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">IterableDataset</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>             <span class="c1"># 我只能一条一条吐给你</span>
+</code></pre></div>
+<p>它假设数据是<strong>流</strong>，没有长度概念，也不能跳着读。就像一根水管：你只能接住流出来的水，不能问"第 3 滴是什么"。</p>
+<div class="admonition tip">
+<p class="admonition-title">什么时候用 IterableDataset？</p>
+<ul>
+<li>数据太大放不下内存（TB 级日志、数千万行数据库）。</li>
+<li>数据来自网络流、Kafka、生成器。</li>
+<li>数据是"无限"的（强化学习的 episode 流）。</li>
+<li>数据本身就有顺序依赖（时序预测，打乱会破坏时间结构）。</li>
+</ul>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">map-style 的代价</p>
+<p>map-style 要求你能 O(1) 跳到任意位置。如果你的数据存在云端对象存储、每条都要单独 HTTP 请求，那 <code>__getitem__(10000)</code> 会非常慢——这时候反而 IterableDataset 顺序读更高效。</p>
+</div>
+<h3 id="1123-sampler">11.2.3 Sampler：把"顺序"这件事独立出来<a class="headerlink" href="#1123-sampler" title="Permanent link">&para;</a></h3>
+<p>为什么不直接在 <code>Dataset</code> 里加个 <code>shuffle=True</code>？因为<strong>顺序和数据是两件事</strong>：</p>
+<ul>
+<li>同一份数据，训练时要打乱，验证时要顺序，做 k-fold 时要按特定子集取。</li>
+<li>如果把 shuffle 写死在 Dataset 里，每次想换顺序都得改 Dataset，没法复用。</li>
+</ul>
+<p>所以 PyTorch 把"取哪些下标、按什么顺序"单独抽出来叫 <code>Sampler</code>。它只产出一串<strong>整数下标</strong>：</p>
+<div class="highlight"><pre><span></span><code>SequentialSampler  → 0, 1, 2, 3, ..., n-1
+RandomSampler      → 7, 2, 9, 0, 5, ...  (一个随机排列)
+RandomSampler(replacement=True, num_samples=10000) → 任意 10000 个（可重复）
+</code></pre></div>
+<p>然后 <code>BatchSampler</code> 包一层，把这一串下标<strong>切成 batch</strong>：</p>
+<div class="highlight"><pre><span></span><code>BatchSampler(SequentialSampler, batch_size=3, drop_last=False)
+  → [0,1,2], [3,4,5], [6,7,8], [9]
+</code></pre></div>
+<p>注意这里产出的是<strong>下标的 batch</strong>，不是样本的 batch。这样 DataLoader 拿到 <code>[0,1,2]</code> 后再去 <code>dataset[0], dataset[1], dataset[2]</code> 取真实样本。这种"先定顺序、再取数据"的两步走，让顺序逻辑和数据读取彻底解耦。</p>
+<h3 id="1124-collate-batch">11.2.4 collate：把一捆样本缝成一个 batch<a class="headerlink" href="#1124-collate-batch" title="Permanent link">&para;</a></h3>
+<p>假设 <code>dataset[i]</code> 返回一个 tuple <code>(x_i, y_i)</code>，其中 <code>x_i</code> 是形状 <code>[3]</code> 的特征，<code>y_i</code> 是标量标签。
+DataLoader 拿到一个 batch 的下标 <code>[0, 1, 2]</code> 后，先取出来：</p>
+<div class="highlight"><pre><span></span><code><span class="n">samples</span> <span class="o">=</span> <span class="p">[</span><span class="n">dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dataset</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="o">=</span> <span class="p">[(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">),</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">),</span> <span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)]</span>
+</code></pre></div>
+<p>现在要把这 3 个 tuple 缝成两个大张量：</p>
+<div class="highlight"><pre><span></span><code><span class="n">batch_x</span> <span class="o">=</span> <span class="n">stack</span><span class="p">([</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">])</span>   <span class="c1"># shape [3, 3]</span>
+<span class="n">batch_y</span> <span class="o">=</span> <span class="n">stack</span><span class="p">([</span><span class="n">y0</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">])</span>   <span class="c1"># shape [3]</span>
+</code></pre></div>
+<p>这个"<strong>先转置、再逐列 stack</strong>"的操作就是 <code>default_collate</code>。图示：</p>
+<div class="highlight"><pre><span></span><code>样本列表（按样本分组）:        转置（按字段分组）:        stack:
+[(x0, y0),                  →  [(x0, x1, x2),         →  (stack(x0,x1,x2),
+ (x1, y1),                       (y0, y1, y2)]            stack(y0,y1,y2))
+ (x2, y2)]
+</code></pre></div>
+<p>为什么是"转置"？因为样本是"行优先"（一个样本里所有字段挨着），但 batch 要"列优先"（同字段的样本挨着）。<code>zip(*batch)</code> 正好做这个转置。</p>
+<h3 id="1125-drop_last">11.2.5 drop_last：为什么有时候必须丢掉尾巴<a class="headerlink" href="#1125-drop_last" title="Permanent link">&para;</a></h3>
+<p>假设 10 个样本，batch_size=3，最后会剩一个 <code>[9]</code> 的孤儿 batch。
+大多数情况无所谓，但有两种情况必须丢：</p>
+<ol>
+<li><strong>BatchNorm</strong>：<code>running_mean / running_var</code> 在训练时按 batch 统计。如果最后一个 batch 只有 1 个样本，方差是 0 或未定义，会污染统计量。</li>
+<li><strong>形状固定的算子</strong>：某些自定义层在编译时假设了 batch 维度，变长 batch 会触发重编译或报错。</li>
+</ol>
+<p><code>drop_last=True</code> 就是把那个不完整的尾批直接扔掉。代价是浪费不到一个 batch 的数据——在大数据集上可以忽略。</p>
+<h3 id="1126-gil">11.2.6 多进程预取：绕过 GIL<a class="headerlink" href="#1126-gil" title="Permanent link">&para;</a></h3>
+<p>Python 有 GIL（全局解释器锁），同一时刻只有一个线程执行 Python 字节码。数据加载是 I/O + 解码密集型，单线程下 CPU 和 GPU 都得等它。</p>
+<p>PyTorch 的解法是 <code>num_workers &gt; 0</code>：开多个<strong>子进程</strong>（不是线程），每个子进程独立解析数据，通过队列把 batch 送给主进程。子进程各有自己的 GIL，互不阻塞，主进程一边训练一边从队列取下一批——这就是"预取"。</p>
+<p>教学版为什么省略？因为多进程要处理：子进程间 Tensor 的共享内存（避免拷贝）、worker 的生命周期管理、<code>IterableDataset</code> 的分片、随机种子的正确传播、<code>pin_memory</code>、异常传播……这些工程细节会淹没教学主线。所以我们只实现 <code>num_workers=0</code> 的单进程版，把"组合"这件事讲透，多进程留作练习。</p>
+<h3 id="1127-concatdataset">11.2.7 ConcatDataset：累积大小索引<a class="headerlink" href="#1127-concatdataset" title="Permanent link">&para;</a></h3>
+<p>把两个数据集 <code>ds1</code>（3 条）和 <code>ds2</code>（4 条）拼成一个 7 条的大数据集。问题：用户问 <code>cds[5]</code>，怎么知道该去 <code>ds2</code> 取？</p>
+<p>解法是预先算一个<strong>累积大小数组</strong>：</p>
+<div class="highlight"><pre><span></span><code>ds1: 3 条 → cum_sizes = [3]
+ds2: 4 条 → cum_sizes = [3, 7]
+</code></pre></div>
+<p>来一个全局下标 <code>i=5</code>，从左往右扫 <code>cum_sizes</code>：</p>
+<ul>
+<li><code>i=5 &lt; 3</code>? 否。</li>
+<li><code>i=5 &lt; 7</code>? 是。→ 落在 <code>ds2</code>，子集内下标 = <code>5 - 3 = 2</code>，返回 <code>ds2[2]</code>。</li>
+</ul>
+<p>这是经典的"前缀和 + 二分查找"模式。数据集很多时可以二分加速，但教学版线性扫就够。</p>
+<h3 id="1128">11.2.8 整体数据流图示<a class="headerlink" href="#1128" title="Permanent link">&para;</a></h3>
+<p>把前面所有零件串起来，一次 <code>for batch in loader</code> 的完整数据流长这样：</p>
+<div class="highlight"><pre><span></span><code>用户代码: for batch in DataLoader(ds, batch_size=4, shuffle=True):
+              │
+              ▼
+DataLoader.__iter__
+              │
+              ▼
+BatchSampler.__iter__          ← 切下标 batch
+              │
+              ▼
+RandomSampler.__iter__         ← 产出打乱的下标
+              │  (7, 2, 9, 0, 5, 8, 1, 6, 3, 4)
+              ▼
+切成长度 4 的列表: [7,2,9,0], [5,8,1,6], [3,4]
+              │
+              ▼
+DataLoader: indices = [7,2,9,0]
+              │
+              ▼
+samples = [ds[7], ds[2], ds[9], ds[0]]   ← 真正访问数据
+              │
+              ▼
+default_collate(samples)                  ← 转置 + stack
+              │
+              ▼
+batch = (stack(x7,x2,x9,x0), stack(y7,y2,y9,y0))
+              │
+              ▼
+yield batch 给用户
+</code></pre></div>
+<p>这张图里最值得品味的是：<strong>下标先于数据流动</strong>。Sampler 完全不碰真实样本，只产出整数。这让"顺序策略"和"数据读取"可以独立测试、独立替换。比如你想做"按难度排序的 curriculum learning"，只要写一个 <code>CurriculumSampler</code>，DataLoader 和 Dataset 都不用改。</p>
+<h3 id="1129-__getitem__">11.2.9 为什么不用迭代器协议而用 <code>__getitem__</code><a class="headerlink" href="#1129-__getitem__" title="Permanent link">&para;</a></h3>
+<p>初学者常问：既然 DataLoader 最终是个迭代器，为什么 Dataset 不直接定义 <code>__iter__</code>？</p>
+<p>答案是：<strong>map-style 的核心价值是支持随机访问</strong>。shuffle 要跳着取（<code>ds[7]</code>、<code>ds[2]</code>...），迭代器只能顺序取，没法跳。如果 Dataset 用 <code>__iter__</code>，每次 shuffle 都得先把所有样本 materialize 进内存再打乱——大数据集直接 OOM。</p>
+<p><code>__getitem__</code> + <code>__len__</code> 这个协议让 Sampler 可以<strong>只产出下标</strong>，DataLoader 再按需取——下标是整数，几乎不占内存，打乱下标几乎零成本。这是整个设计的关键洞察。</p>
+<p>代价是：数据源必须支持 O(1) 随机访问。对于流式数据（网络、生成器）做不到，所以才需要单独的 <code>IterableDataset</code> 协议——它放弃 shuffle，换得流式能力。</p>
+<hr />
+<h2 id="113">11.3 设计决策与权衡<a class="headerlink" href="#113" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>决策</th>
+<th>我们的选择</th>
+<th>理由</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dataset 协议</td>
+<td><code>__getitem__</code> + <code>__len__</code>（map-style 优先）</td>
+<td>随机访问是大多数训练场景的需求，shuffle 必须能跳着取</td>
+<td>流式数据用不了，需要单独的 IterableDataset</td>
+</tr>
+<tr>
+<td>Sampler 产出</td>
+<td>整数下标的迭代器</td>
+<td>把"顺序"从"数据"里剥离，复用性强</td>
+<td>多了一层抽象，初学者要绕一下</td>
+</tr>
+<tr>
+<td>BatchSampler 是不是 Sampler</td>
+<td>是，产出"下标列表"的迭代器</td>
+<td>递归组合：BatchSampler 包任意 Sampler</td>
+<td><code>__len__</code> 语义变了（返回 batch 数而不是样本数）</td>
+</tr>
+<tr>
+<td>shuffle 怎么实现</td>
+<td>DataLoader 内部根据 <code>shuffle</code> 选 Sampler</td>
+<td>用户只要传 <code>shuffle=True</code>，不用手写 RandomSampler</td>
+<td>想要更细控制（如 weighted）必须自己传 sampler</td>
+</tr>
+<tr>
+<td>collate 默认行为</td>
+<td>tuple/list 转置后递归 stack</td>
+<td>覆盖 90% 的 <code>(x, y)</code> 场景</td>
+<td>不规则结构（dict、字符串）要用户自己写 collate_fn</td>
+</tr>
+<tr>
+<td>drop_last 默认</td>
+<td><code>False</code></td>
+<td>不浪费数据，符合直觉</td>
+<td>BatchNorm 用户必须记得开</td>
+</tr>
+<tr>
+<td>num_workers</td>
+<td>只支持 0（单进程）</td>
+<td>教学主线清晰，避免 IPC/共享内存/种子传播的工程细节</td>
+<td>大数据集慢，不能演示真实预取</td>
+</tr>
+<tr>
+<td>随机数源</td>
+<td><code>numpy.random</code></td>
+<td>与项目其他模块一致，方便 <code>np.random.seed</code> 复现</td>
+<td>真实 PyTorch 用独立 <code>Generator</code>，多 worker 时更可控</td>
+</tr>
+<tr>
+<td>ConcatDataset 索引</td>
+<td>线性扫 cum_sizes</td>
+<td>实现简单，数据集数通常很少</td>
+<td>子集很多时 O(n)，可改二分到 O(log n)</td>
+</tr>
+<tr>
+<td>ArrayDataset vs TensorDataset</td>
+<td>都提供</td>
+<td>有的用户数据是 numpy array，有的是 Tensor，避免来回转换</td>
+<td>两个类代码几乎重复，可统一但会牺牲类型清晰</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="114">11.4 代码逐行实现<a class="headerlink" href="#114" title="Permanent link">&para;</a></h2>
+<h3 id="1141-datasetpy">11.4.1 <code>dataset.py</code>：数据集协议<a class="headerlink" href="#1141-datasetpy" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;Dataset：数据集协议（Ch11）。</span>
+
+<span class="sd">设计要点：</span>
+<span class="sd">  - Dataset: __getitem__/__len__ 协议（map-style）。</span>
+<span class="sd">  - IterableDataset: __iter__ 协议（streaming）。</span>
+<span class="sd">  - TensorDataset: 多个 Tensor 沿第一维对齐，__getitem__ 返回各 Tensor 同索引切片。</span>
+<span class="sd">  - 与真实 PyTorch 的 utils/data/dataset.py 对应。</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..tensor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Dataset</span><span class="p">:</span>
+    <span class="c1"># 之所以只定义两个 dunder 而不提供默认实现，是要把它当&quot;协议&quot;（interface）用。</span>
+    <span class="c1"># 子类必须重写，否则直接 NotImplementedError —— 强制用户明确表态。</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">IterableDataset</span><span class="p">:</span>
+    <span class="c1"># 注意它没有 __getitem__/__len__：流式数据根本没有&quot;第 i 个&quot;和&quot;总长&quot;的概念。</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TensorDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">tensors</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">):</span>
+        <span class="c1"># 取第一个 tensor 的第一维作为基准长度</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">tensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;所有 Tensor 第一维必须相同&quot;</span><span class="p">)</span>
+        <span class="c1"># 不拷贝，只持有引用 —— Dataset 是&quot;视图&quot;，不拥有数据</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tensors</span> <span class="o">=</span> <span class="n">tensors</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="c1"># 关键：对每个 tensor 取同一下标，返回 tuple</span>
+        <span class="c1"># 这样 (x, y) 配对永远对齐，不会因为各自索引乱掉</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensors</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ArrayDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="c1"># 与 TensorDataset 完全对称，只是底层是 numpy array</span>
+    <span class="c1"># 提供这个类是因为很多用户的原始数据就是 ndarray，省一次转换</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">arrays</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;所有数组长度必须相同&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span> <span class="o">=</span> <span class="n">arrays</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcatDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+        <span class="c1"># 预算累积大小：cum_sizes[i] = 前 (i+1) 个子集的总长</span>
+        <span class="c1"># 之后 __getitem__ 用它做&quot;全局下标 → (子集, 子集内下标)&quot;的映射</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cum_sizes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cum</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+            <span class="n">cum</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cum_sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cum</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 总长就是最后一个累积值</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cum_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cum_sizes</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="c1"># 支持负下标，与 Python list 习惯一致</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># 线性扫 cum_sizes 找第一个&quot;门槛&quot;高于 index 的子集</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cum_size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cum_sizes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">cum_size</span><span class="p">:</span>
+                <span class="c1"># prev 是该子集的起始全局下标</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cum_sizes</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">index</span> <span class="o">-</span> <span class="n">prev</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>几个值得注意的细节：</strong></p>
+<ul>
+<li><code>TensorDataset.__getitem__</code> 返回 <code>tuple</code>，不是 <code>list</code>。tuple 不可变，语义上更符合"一个样本"这种不会被修改的东西。</li>
+<li><code>ConcatDataset</code> 没有校验子集之间的类型一致性——这是有意的，允许你拼异构数据集（虽然不常见）。</li>
+<li><code>_cum_sizes</code> 用下划线开头表示"私有"，但 Python 没有真正的私有，用户实在想读也能读到。这是 PyTorch 也用的约定。</li>
+</ul>
+<h3 id="1142-samplerpy">11.4.2 <code>sampler.py</code>：采样器<a class="headerlink" href="#1142-samplerpy" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;Sampler：采样器（Ch11）。</span>
+
+<span class="sd">Sampler 产出索引序列，DataLoader 据此从 Dataset 取样本。</span>
+<span class="sd">  - SequentialSampler: 0, 1, 2, ..., n-1</span>
+<span class="sd">  - RandomSampler: 随机排列（可 replacement / num_samples）</span>
+<span class="sd">  - BatchSampler: 把索引列表切成 batch</span>
+
+<span class="sd">对应真实 PyTorch 的 utils/data/sampler.py。</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Sampler</span><span class="p">:</span>
+    <span class="c1"># 同 Dataset，纯协议。子类必须实现 __iter__。</span>
+    <span class="c1"># __len__ 可选但推荐：DataLoader 要靠它算 len(loader)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SequentialSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_source</span><span class="p">):</span>
+        <span class="c1"># 只持有引用，不拷贝数据。Sampler 永远不碰数据本身，只看它的长度。</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_source</span> <span class="o">=</span> <span class="n">data_source</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># range 是惰性的，省内存</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_source</span><span class="p">)))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_source</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RandomSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_source</span><span class="p">,</span> <span class="n">replacement</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_source</span> <span class="o">=</span> <span class="n">data_source</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replacement</span> <span class="o">=</span> <span class="n">replacement</span>
+        <span class="c1"># num_samples 默认等于数据集大小；允许 &gt; n（配合 replacement=True 做过采样）</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_samples</span> <span class="o">=</span> <span class="n">num_samples</span> <span class="k">if</span> <span class="n">num_samples</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_source</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_samples</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_source</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">replacement</span><span class="p">:</span>
+            <span class="c1"># 有放回：每个样本独立从 [0, n) 抽</span>
+            <span class="c1"># randint 高效生成 num_samples 个独立下标</span>
+            <span class="k">yield from</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_samples</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 无放回：生成一个排列，取前 num_samples 个</span>
+            <span class="c1"># 如果 num_samples &lt; n，permutation 后切片比 sample 快</span>
+            <span class="k">yield from</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">n</span><span class="p">)[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_samples</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_samples</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BatchSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sampler</span><span class="p">:</span> <span class="n">Sampler</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">drop_last</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># 包一个底层 sampler，自己负责&quot;切 batch&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_last</span> <span class="o">=</span> <span class="n">drop_last</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">:</span>
+            <span class="n">batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">batch</span>        <span class="c1"># yield 一个满 batch</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># 循环结束后处理尾巴</span>
+        <span class="k">if</span> <span class="n">batch</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_last</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">batch</span>            <span class="c1"># 不丢就 yield 不完整 batch</span>
+        <span class="c1"># 如果 drop_last=True，这里什么都不做，孤儿 batch 被丢弃</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># batch 总数。drop_last 时整除；否则向上取整</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_last</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span>
+</code></pre></div>
+<p><strong>关键设计点：</strong></p>
+<ul>
+<li><code>BatchSampler</code> 也是一个 <code>Sampler</code>，只不过它产出的元素是 <code>list[int]</code> 而不是 <code>int</code>。这种"递归语义"是 PyTorch 数据管线最巧妙的地方——你可以继续包一层（比如加权重采样）。</li>
+<li><code>__len__</code> 的两个公式分别对应"整除"和"向上取整"。<code>(n + b - 1) // b</code> 是整数向上取整的常用写法，避免引入 <code>math.ceil</code>。</li>
+<li><code>RandomSampler</code> 用 <code>yield from</code> 把生成器委托出去，避免在内存里一次性存 <code>num_samples</code> 个下标（虽然 numpy 已经存了，但语义上保持惰性）。</li>
+</ul>
+<h3 id="1143-dataloaderpy">11.4.3 <code>dataloader.py</code>：加载器<a class="headerlink" href="#1143-dataloaderpy" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;DataLoader：数据加载器（Ch11）。</span>
+
+<span class="sd">组合 Dataset + Sampler + collate_fn。</span>
+<span class="sd">  - batch_size: 每批样本数</span>
+<span class="sd">  - shuffle: 是否随机打乱</span>
+<span class="sd">  - drop_last: 丢弃不完整尾批</span>
+<span class="sd">  - collate_fn: 把 list of samples 拼成 batch tensor</span>
+
+<span class="sd">教学版 num_workers=0 单进程。真实 PyTorch 多进程预取绕 GIL。</span>
+<span class="sd">对应真实 PyTorch 的 utils/data/dataloader.py。</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sampler</span><span class="w"> </span><span class="kn">import</span> <span class="n">BatchSampler</span><span class="p">,</span> <span class="n">RandomSampler</span><span class="p">,</span> <span class="n">SequentialSampler</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">default_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;把 list of samples 拼成 batch。</span>
+
+<span class="sd">    sample 是 tuple/list → 转置后逐元素 stack。</span>
+<span class="sd">    sample 是 ndarray → stack 成 batch array。</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 第一类：样本是 tuple 或 list（如 (x, y)）</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="c1"># zip(*batch) 做转置：[(x0,y0),(x1,y1)] → [(x0,x1),(y0,y1)]</span>
+        <span class="c1"># strict=True 保证所有样本字段数相同，否则报错（防止数据脏）</span>
+        <span class="n">transposed</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">batch</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># 对每一列递归 collate：x 列 stack 成 batch_x，y 列 stack 成 batch_y</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">col</span><span class="p">))</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">transposed</span><span class="p">]</span>
+    <span class="c1"># 第二类：样本直接是 ndarray（只有 x 没有 y）</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>   <span class="c1"># 沿新第一维拼起来</span>
+    <span class="c1"># 第三类：标量或数字列表，fallback 用 np.array</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DataLoader</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">drop_last</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="c1"># 没传 collate_fn 就用默认的；用户可注入自定义的</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="n">collate_fn</span> <span class="ow">or</span> <span class="n">default_collate</span>
+
+        <span class="c1"># 这里是&quot;便利接口&quot;：用户只说 shuffle=True/False，</span>
+        <span class="c1"># 我们替他选好 Sampler。想精细控制可以自己传 sampler（教学版省略了这个参数）</span>
+        <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="n">RandomSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="n">SequentialSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+        <span class="c1"># 再包一层 BatchSampler 切 batch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_sampler</span> <span class="o">=</span> <span class="n">BatchSampler</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">drop_last</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 核心循环：拿一批下标 → 取样本 → collate 成 batch → yield</span>
+        <span class="k">for</span> <span class="n">indices</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_sampler</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 让 `len(loader)` 返回 batch 数，方便 tqdm 进度条</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_sampler</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>逐行要点：</strong></p>
+<ul>
+<li><code>default_collate</code> 是<strong>递归</strong>的。如果样本是嵌套 tuple <code>((a, b), c)</code>，它会一层层转置到底。这个设计让 collate 对任意嵌套结构都有效。</li>
+<li><code>zip(*batch, strict=True)</code> 的 <code>strict</code> 是 Python 3.10+ 才有的参数，保证所有样本字段数一致。教学版用上了，更安全。</li>
+<li><code>DataLoader.__init__</code> 里把 <code>shuffle</code> 翻译成 <code>Sampler</code>，这是"便利接口"模式：底层只认 Sampler，但给用户一个更简单的开关。</li>
+<li><code>__iter__</code> 是生成器，每次 yield 一个 batch。这意味着 <code>for batch in loader</code> 会<strong>惰性</strong>地一个一个产出，不会一次性把所有 batch 都装进内存。</li>
+</ul>
+<hr />
+<h2 id="115">11.5 完整示例<a class="headerlink" href="#115" title="Permanent link">&para;</a></h2>
+<p>下面是一个端到端的小例子，覆盖所有零件：</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.data</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ArrayDataset</span><span class="p">,</span> <span class="n">TensorDataset</span><span class="p">,</span> <span class="n">ConcatDataset</span><span class="p">,</span>
+    <span class="n">SequentialSampler</span><span class="p">,</span> <span class="n">RandomSampler</span><span class="p">,</span> <span class="n">BatchSampler</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># ── 1. 准备数据 ──────────────────────────────────────────</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>   <span class="c1"># 10 个样本，每个 2 维特征</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>                                      <span class="c1"># 10 个标签</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;X shape:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;Y shape:&quot;</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="c1"># ── 2. 用 ArrayDataset 包装 ─────────────────────────────</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;len(ds):&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ds[3]:&quot;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>          <span class="c1"># (array([6, 7]), 3)</span>
+
+<span class="c1"># ── 3. 直接用 Sampler 看顺序 ────────────────────────────</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sequential:&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">SequentialSampler</span><span class="p">(</span><span class="n">ds</span><span class="p">)))</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Random:&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">RandomSampler</span><span class="p">(</span><span class="n">ds</span><span class="p">)))</span>
+
+<span class="c1"># ── 4. BatchSampler 切批 ────────────────────────────────</span>
+<span class="n">bs</span> <span class="o">=</span> <span class="n">BatchSampler</span><span class="p">(</span><span class="n">SequentialSampler</span><span class="p">(</span><span class="n">ds</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Batches:&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">bs</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;len(bs):&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bs</span><span class="p">))</span>
+
+<span class="c1"># ── 5. DataLoader 端到端 ────────────────────────────────</span>
+<span class="n">loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;len(loader):&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">loader</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">loader</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;batch </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+
+<span class="c1"># ── 6. shuffle=True 看打乱 ──────────────────────────────</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">loader_sh</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">loader_sh</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;shuffled batch </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+
+<span class="c1"># ── 7. drop_last=True ───────────────────────────────────</span>
+<span class="n">loader_dl</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ArrayDataset</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;drop_last batches:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">loader_dl</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">loader_dl</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  batch shape:&quot;</span><span class="p">,</span> <span class="n">batch</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="c1"># ── 8. ConcatDataset 拼接 ───────────────────────────────</span>
+<span class="n">ds1</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">ds2</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="n">cds</span> <span class="o">=</span> <span class="n">ConcatDataset</span><span class="p">([</span><span class="n">ds1</span><span class="p">,</span> <span class="n">ds2</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;len(cds):&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cds</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cds[0], cds[3], cds[6]:&quot;</span><span class="p">,</span> <span class="n">cds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cds</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">cds</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span>
+
+<span class="c1"># ── 9. TensorDataset + 自定义 collate ───────────────────</span>
+<span class="n">tx</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="n">ty</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+<span class="n">tds</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span><span class="n">tx</span><span class="p">,</span> <span class="n">ty</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span>
+
+<span class="n">loader_t</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">tds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="n">my_collate</span><span class="p">)</span>
+<span class="n">bx</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">loader_t</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;custom collate batch_x:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">bx</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;custom collate batch_y:&quot;</span><span class="p">,</span> <span class="n">by</span><span class="p">)</span>
+</code></pre></div>
+<p>预期输出（节选）：</p>
+<div class="highlight"><pre><span></span><code>X shape: (10, 2) Y shape: (10,)
+len(ds): 10
+ds[3]: (array([6., 7.]), 3)
+Sequential: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Random: [3, 7, 8, 5, 9, 0, 1, 6, 2, 4]
+Batches: [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]
+len(bs): 4
+len(loader): 3
+batch 0: [array([[0., 1.], [2., 3.], [4., 5.], [6., 7.]]), array([0, 1, 2, 3])]
+...
+len(cds): 7
+cds[0], cds[3], cds[6]: (array([0]),) (array([3]),) (array([6]),)
+</code></pre></div>
+<h3 id="1151">11.5.1 接进训练循环<a class="headerlink" href="#1151" title="Permanent link">&para;</a></h3>
+<p>把 DataLoader 接进一个最小训练循环，看完整数据流：</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linear</span><span class="p">,</span> <span class="n">Sequential</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">SGD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayDataset</span><span class="p">,</span> <span class="n">DataLoader</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1"># 假数据：y = x0 + x1 + 噪声</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">collate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
+
+<span class="n">loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="n">collate</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">bx</span><span class="p">,</span> <span class="n">by</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">bx</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="p">((</span><span class="n">pred</span> <span class="o">-</span> <span class="n">by</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">  avg_loss=</span><span class="si">{</span><span class="n">total</span><span class="o">/</span><span class="n">n</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>这个例子里 DataLoader 干的事：每 epoch 把 64 个样本打乱、切成 4 个 batch、每个 batch 把 <code>(x, y)</code> 配对 stack 成两个大 Tensor。模型只管吃 batch Tensor、吐 loss。<strong>数据管线和训练逻辑彻底解耦</strong>——换数据集只改 <code>ds</code>，换 batch 策略只改 loader 参数，模型和优化器代码一行不动。</p>
+<hr />
+<h2 id="116">11.6 常见陷阱<a class="headerlink" href="#116" title="Permanent link">&para;</a></h2>
+<h3 id="1-nprandomseed">陷阱 1：忘了 <code>np.random.seed</code>，测试随机失败<a class="headerlink" href="#1-nprandomseed" title="Permanent link">&para;</a></h3>
+<p><code>RandomSampler</code> 用全局 <code>np.random</code>。如果测试里不 seed，每次跑结果不同，断言会随机挂。</p>
+<p><strong>解决</strong>：测试或复现实验前永远 <code>np.random.seed(...)</code>。生产代码应该用独立的 <code>Generator</code>（教学版省略）。</p>
+<h3 id="2-shuffletrue-dataset">陷阱 2：以为 <code>shuffle=True</code> 会原地打乱 Dataset<a class="headerlink" href="#2-shuffletrue-dataset" title="Permanent link">&para;</a></h3>
+<p>不会。<code>shuffle</code> 只影响 Sampler 产出的下标顺序，Dataset 内部数据顺序永远不变。这是好事——同一份 Dataset 可以同时给训练 loader（shuffle=True）和验证 loader（shuffle=False）用。</p>
+<h3 id="3drop_lastfalse-batchnorm">陷阱 3：<code>drop_last=False</code> 配 BatchNorm 训练崩<a class="headerlink" href="#3drop_lastfalse-batchnorm" title="Permanent link">&para;</a></h3>
+<p>最后一个 batch 只有 1 个样本时，<code>BatchNorm</code> 算方差会出 NaN/0。</p>
+<p><strong>解决</strong>：训练 loader <code>drop_last=True</code>，或者用 <code>BatchNorm</code> 的 <code>track_running_stats=False</code>，或者干脆换 <code>LayerNorm</code>。</p>
+<h3 id="4-collate_fn">陷阱 4：自定义 <code>collate_fn</code> 忘了处理变长样本<a class="headerlink" href="#4-collate_fn" title="Permanent link">&para;</a></h3>
+<p>NLP 里句子长度不一，直接 <code>np.stack</code> 会报错。</p>
+<p><strong>解决</strong>：写一个 pad_collate：</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">pad_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">]</span>
+    <span class="n">maxlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">)</span>
+    <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="n">maxlen</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xs</span><span class="p">):</span>
+        <span class="n">padded</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="k">return</span> <span class="n">padded</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+</code></pre></div>
+<h3 id="5iterabledataset-shuffletrue">陷阱 5：<code>IterableDataset</code> 用 <code>shuffle=True</code><a class="headerlink" href="#5iterabledataset-shuffletrue" title="Permanent link">&para;</a></h3>
+<p>DataLoader 的 <code>shuffle</code> 依赖 <code>__len__</code> 和随机下标访问，IterableDataset 都没有。传 <code>shuffle=True</code> 会报错或静默无效。</p>
+<p><strong>解决</strong>：IterableDataset 要自己实现打乱（通常用一个 buffer 重排，如 <code>torch.utils.data.IterableDataset</code> 的 shuffling 技巧）。</p>
+<h3 id="6-lenloader">陷阱 6：以为 <code>len(loader)</code> 是样本数<a class="headerlink" href="#6-lenloader" title="Permanent link">&para;</a></h3>
+<p>不是。<code>len(loader)</code> 是 <strong>batch 数</strong>。样本数是 <code>len(loader.dataset)</code>。这个混淆会让 tqdm 总步数算错。</p>
+<h3 id="7concatdataset">陷阱 7：<code>ConcatDataset</code> 子集顺序变了<a class="headerlink" href="#7concatdataset" title="Permanent link">&para;</a></h3>
+<p><code>ConcatDataset</code> 按你传入的 <code>datasets</code> 列表顺序拼接。如果两次运行传的顺序不同，全局下标含义就变了——已保存的"第 5 个样本"可能对应到不同数据。</p>
+<p><strong>解决</strong>：固定 <code>datasets</code> 顺序，或用字典按 key 排序后再传。</p>
+<h3 id="8__getitem__-tensor-dataset">陷阱 8：<code>__getitem__</code> 返回的 Tensor 离开 Dataset 后被修改<a class="headerlink" href="#8__getitem__-tensor-dataset" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BadDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>   <span class="c1"># ← 返回的是视图，共享底层 storage</span>
+</code></pre></div>
+<p>用户拿到 <code>ds[0]</code> 后做 <code>ds[0][0] = 999</code>，会改到 Dataset 内部缓存——下一个 epoch 数据就脏了。</p>
+<p><strong>解决</strong>：<code>__getitem__</code> 里返回前 <code>.clone()</code>，或者文档明确说"返回值不可修改"。教学版 <code>TensorDataset</code> 没克隆，因为 <code>t[index]</code> 走 <code>__getitem__</code> 已经返回新 Tensor（看 <code>Tensor.__getitem__</code> 实现是 <code>from_numpy(np.asarray(arr))</code>，会拷贝）。</p>
+<h3 id="9batch_size1-collate">陷阱 9：<code>batch_size=1</code> 时 collate 多余一层维度<a class="headerlink" href="#9batch_size1-collate" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">loader</span><span class="p">))</span>   <span class="c1"># shape [1, ...] 而不是 [...]</span>
+</code></pre></div>
+<p><code>np.stack</code> 永远加一维。batch_size=1 时这层维度多余，但符合"batch 维"语义。嫌麻烦可以在 collate 里 <code>if len(batch) == 1: return batch[0]</code>，但不推荐——破坏了"batch 永远有 batch 维"的不变量。</p>
+<h3 id="10-__getitem__-io">陷阱 10：在 <code>__getitem__</code> 里做重 I/O<a class="headerlink" href="#10-__getitem__-io" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ImageDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">imread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paths</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>   <span class="c1"># ← 每次磁盘 I/O</span>
+</code></pre></div>
+<p>单进程下每个 batch 都要同步等 I/O，GPU 闲置。真实 PyTorch 用 <code>num_workers &gt; 0</code> 把 I/O 扔到子进程。教学版没多进程，只能建议：数据小就预加载进内存，数据大就用真实 PyTorch。</p>
+<h3 id="11-dataloader-reentrant">陷阱 11：以为 <code>DataLoader</code> 是 reentrant 的<a class="headerlink" href="#11-dataloader-reentrant" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">b1</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">b2</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>     <span class="c1"># ← 嵌套迭代同一个 loader</span>
+        <span class="o">...</span>
+</code></pre></div>
+<p>教学版 <code>__iter__</code> 是生成器，每次 <code>iter(loader)</code> 新建一个生成器，嵌套迭代<strong>看似</strong>能跑。但 <code>RandomSampler</code> 用全局 <code>np.random</code>，两层会互相消耗随机数，结果不可预期。真实 PyTorch 的 DataLoader 也是一次性的（<code>_BaseDataLoaderIter</code> 有状态），嵌套要新建独立 loader。</p>
+<p><strong>解决</strong>：嵌套循环用两个独立 DataLoader 实例。</p>
+<hr />
+<h2 id="117-pytorch">11.7 与真实 PyTorch 对照<a class="headerlink" href="#117-pytorch" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>minitorch</th>
+<th>torch</th>
+<th>关键差异</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Dataset</code>（协议）</td>
+<td><code>torch.utils.data.Dataset</code></td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>IterableDataset</code></td>
+<td><code>torch.utils.data.IterableDataset</code></td>
+<td>一致；真实版还提供 <code>get_state_dict</code> / <code>set_state_dict</code> 用于断点续训</td>
+</tr>
+<tr>
+<td><code>TensorDataset</code></td>
+<td><code>torch.utils.data.TensorDataset</code></td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>ArrayDataset</code></td>
+<td>（无直接对应，类似 <code>TensorDataset</code> 包 ndarray）</td>
+<td>minitorch 额外提供，方便 numpy 用户</td>
+</tr>
+<tr>
+<td><code>ConcatDataset</code></td>
+<td><code>torch.utils.data.ConcatDataset</code></td>
+<td>真实版用二分查找（<code>bisect</code>），O(log n)；教学版线性扫 O(n)</td>
+</tr>
+<tr>
+<td><code>SequentialSampler</code> / <code>RandomSampler</code></td>
+<td>同名</td>
+<td>真实版接受 <code>generator</code> 参数，多 worker 时种子隔离；教学版用全局 np.random</td>
+</tr>
+<tr>
+<td><code>BatchSampler</code></td>
+<td>同名</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>default_collate</code></td>
+<td><code>torch.utils.data._utils.collate.default_collate</code></td>
+<td>真实版支持 Tensor / Mapping / 命名元组 / 自定义 <code>__collate_fn__</code>；教学版只处理 tuple/list/ndarray</td>
+</tr>
+<tr>
+<td><code>DataLoader(num_workers=0)</code></td>
+<td><code>torch.utils.data.DataLoader</code></td>
+<td>真实版支持 <code>num_workers&gt;0</code>、<code>pin_memory</code>、<code>prefetch_factor</code>、<code>persistent_workers</code>、<code>worker_init_fn</code></td>
+</tr>
+<tr>
+<td><code>DataLoader(sampler=...)</code></td>
+<td>同名</td>
+<td>真实版允许直接传 <code>sampler</code> 或 <code>batch_sampler</code>，互斥检查；教学版只暴露 <code>shuffle</code></td>
+</tr>
+<tr>
+<td>无</td>
+<td><code>WeightedRandomSampler</code></td>
+<td>按样本权重采样，类别不平衡时用；教学版未实现</td>
+</tr>
+<tr>
+<td>无</td>
+<td><code>DistributedSampler</code></td>
+<td>多卡训练切分数据，每张卡只取一部分；教学版未实现</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">真实 PyTorch 多了什么</p>
+<p>最关键的是 <strong><code>num_workers &gt; 0</code> 的多进程预取</strong>。它涉及：
+- 子进程用 <code>multiprocessing</code> 启动，各自独立 GIL。
+- 数据通过 <code>multiprocessing.Queue</code> 传递，Tensor 走共享内存避免拷贝。
+- 每个 worker 有独立随机种子（<code>worker_init_fn</code>），保证增强多样且可复现。
+- <code>prefetch_factor</code> 控制每个 worker 预先准备几个 batch。
+- <code>persistent_workers=True</code> 避免每个 epoch 重启子进程。</p>
+<p>这些都是工程细节，不影响理解数据管线的"骨架"，所以教学版省略。</p>
+<hr />
+</div>
+<h2 id="118">11.8 历史背景<a class="headerlink" href="#118" title="Permanent link">&para;</a></h2>
+<p>PyTorch 的数据管线并非一开始就长这样。</p>
+<ul>
+<li><strong>0.1 ~ 0.3（2017 前）</strong>：只有简单的 <code>DataLoader</code>，shuffle 写死在内部，没有 Sampler 抽象。用户要做加权采样得自己 monkey patch。</li>
+<li><strong>0.4（2017 末）</strong>：引入 <code>Sampler</code> 体系，<code>Dataset</code>/<code>Sampler</code>/<code>DataLoader</code> 三层分离定型。这是受当时 TensorFlow 的 <code>tf.data</code> API 竞争压力推动——后者强调"数据集 + 变换"的函数式风格，PyTorch 选择走更显式的面向对象路线。</li>
+<li><strong>1.0（2018 末）</strong>：<code>IterableDataset</code> 加入，应对流式数据和大规模训练。</li>
+<li><strong>1.2（2019）</strong>：<code>ConcatDataset</code> 等工具类完善，<code>random_split</code> 出现。</li>
+<li><strong>1.8 ~ 1.12</strong>：多进程稳定性大幅改进，<code>persistent_workers</code>、<code>prefetch_factor</code> 加入，解决长 epoch 下反复 fork 子进程的开销。</li>
+<li><strong>2.0+</strong>：<code>torch.compile</code> 开始介入数据管线（如 <code>DataLoader2</code> 实验），试图把数据预处理也编译进图。但经典 <code>DataLoader</code> 仍是主流。</li>
+</ul>
+<p>minitorch 这套实现对应的是 PyTorch 1.0 前后的"经典三层"模型，去掉了多进程和分布式，保留核心抽象。</p>
+<h3 id="1181-tensorflow">11.8.1 为什么 TensorFlow 走了不同的路<a class="headerlink" href="#1181-tensorflow" title="Permanent link">&para;</a></h3>
+<p>对比一下 TF1.x 的 <code>tf.data</code>：它用函数式 API（<code>dataset.map(...).shuffle(...).batch(...)</code>），强调"数据集是一串变换"。好处是可编译、可并行规划；坏处是抽象层次高、调试难（一个 pipeline 报错难定位到哪一步）。</p>
+<p>PyTorch 选了更显式的 OO 路线：Dataset 是个类、Sampler 是个类、DataLoader 是个类，用户能 print、能断点、能继承改一个方法。代价是没法像 TF 那样整体编译优化数据管线。</p>
+<p>2.0 后两边在靠拢：TF2 默认 eager，PyTorch 加 <code>DataLoader2</code> 试图编译。但经典 API 仍是各自的主流。</p>
+<h3 id="1182-epoch">11.8.2 一个常被忽略的点：epoch 边界<a class="headerlink" href="#1182-epoch" title="Permanent link">&para;</a></h3>
+<p>注意 <code>DataLoader</code> 是<strong>一次性的迭代器</strong>——<code>for batch in loader</code> 跑完后，要再跑一个 epoch 必须<strong>重新 <code>iter(loader)</code></strong>（即再写一次 <code>for batch in loader</code>）。这是因为 <code>RandomSampler</code> 每次迭代重新生成排列，保证每个 epoch 打乱不同。</p>
+<p>如果错误地缓存 <code>it = iter(loader)</code> 然后反复 <code>next(it)</code>，会在某个点 <code>StopIteration</code>，且永远用同一个排列。这是初学者常踩的坑。</p>
+<hr />
+<h2 id="119">11.9 练习题<a class="headerlink" href="#119" title="Permanent link">&para;</a></h2>
+<h3 id="1-weightedrandomsampler">练习 1：实现 <code>WeightedRandomSampler</code><a class="headerlink" href="#1-weightedrandomsampler" title="Permanent link">&para;</a></h3>
+<p>写一个 <code>WeightedRandomSampler(data_source, weights, num_samples, replacement=True)</code>，按 <code>weights[i]</code> 的概率抽下标。</p>
+<details class="解答">
+<summary>解答</summary>
+<p><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">WeightedRandomSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">=</span> <span class="n">num_samples</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replacement</span> <span class="o">=</span> <span class="n">replacement</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># numpy 的 choice 支持按权重抽样</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span><span class="p">,</span>
+            <span class="n">replace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">replacement</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="k">yield from</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span>
+</code></pre></div>
+关键点：权重归一化（<code>p</code> 必须和为 1）；<code>replacement=False</code> 时 <code>num_samples</code> 不能超过类别数。</p>
+</details>
+<p>???</p>
+<h3 id="2-dataloader-sampler">练习 2：让 <code>DataLoader</code> 支持直接传 <code>sampler</code><a class="headerlink" href="#2-dataloader-sampler" title="Permanent link">&para;</a></h3>
+<p>修改 <code>DataLoader.__init__</code>，让它接受可选的 <code>sampler</code> 参数，传了就用它，没传就按 <code>shuffle</code> 生成。注意 <code>sampler</code> 和 <code>shuffle</code> 互斥。</p>
+<details class="解答">
+<summary>解答</summary>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+             <span class="n">sampler</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">sampler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shuffle</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;sampler 和 shuffle 互斥&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="n">collate_fn</span> <span class="ow">or</span> <span class="n">default_collate</span>
+    <span class="k">if</span> <span class="n">sampler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">sampler</span>
+    <span class="k">elif</span> <span class="n">shuffle</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">RandomSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">SequentialSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">batch_sampler</span> <span class="o">=</span> <span class="n">BatchSampler</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">drop_last</span><span class="p">)</span>
+</code></pre></div>
+</details>
+<p>???</p>
+<h3 id="3-random_split">练习 3：实现 <code>random_split</code><a class="headerlink" href="#3-random_split" title="Permanent link">&para;</a></h3>
+<p>写 <code>random_split(dataset, lengths, generator)</code>，把一个 map-style Dataset 随机切成若干子集（返回 <code>Subset</code> 列表）。提示：<code>Subset(dataset, indices)</code> 的 <code>__getitem__</code> 是 <code>dataset[indices[i]]</code>。</p>
+<details class="解答">
+<summary>解答</summary>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Subset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">random_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">lengths</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">sum</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="n">perm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">))</span>
+    <span class="n">subsets</span><span class="p">,</span> <span class="n">off</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">lengths</span><span class="p">:</span>
+        <span class="n">subsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Subset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">perm</span><span class="p">[</span><span class="n">off</span><span class="p">:</span><span class="n">off</span><span class="o">+</span><span class="n">n</span><span class="p">]))</span>
+        <span class="n">off</span> <span class="o">+=</span> <span class="n">n</span>
+    <span class="k">return</span> <span class="n">subsets</span>
+</code></pre></div>
+</details>
+<p>???</p>
+<h3 id="4-default_collate">练习 4：解释为什么 <code>default_collate</code> 要递归<a class="headerlink" href="#4-default_collate" title="Permanent link">&para;</a></h3>
+<p>用具体例子 <code>(x, (a, b))</code> 说明递归的必要性，并写出每步发生了什么。</p>
+<details class="解答">
+<summary>解答</summary>
+<p>样本是嵌套 tuple <code>(x_i, (a_i, b_i))</code>。<code>batch = [(x0,(a0,b0)), (x1,(a1,b1))]</code>。
+第一次 <code>zip(*batch)</code> 转置成 <code>[(x0,x1), ((a0,b0),(a1,b1))]</code>。
+- 第一列 <code>[x0, x1]</code> 是 ndarray，直接 stack 成 batch_x。
+- 第二列 <code>[(a0,b0),(a1,b1)]</code> 又是 tuple 列表，<strong>递归</strong>调用 collate：
+  <code>zip(*[(a0,b0),(a1,b1)])</code> = <code>[(a0,a1), (b0,b1)]</code>，分别 stack。
+最终得到 <code>[batch_x, [batch_a, batch_b]]</code>，结构与单个样本对齐。如果不递归，第二层 tuple 就没法处理。</p>
+</details>
+<p>???</p>
+<h3 id="5">练习 5：估算多进程预取的加速<a class="headerlink" href="#5" title="Permanent link">&para;</a></h3>
+<p>假设单进程下每个 batch 取数+解码耗时 50ms，前向+反向+优化器耗时 50ms。开 4 worker 后取数并行进行，理想情况下一个 step 多少 ms？加速比多少？</p>
+<details class="解答">
+<summary>解答</summary>
+<p>单进程：50 + 50 = 100 ms/step。
+4 worker 预取：取数完全隐藏在前向反向里，瓶颈变成 max(50, 50) = 50 ms/step。
+加速比 2x。注意不是 4x——因为预取只能把 I/O 隐藏到计算时间之后，不能让计算本身变快。worker 数超过"取数时间/计算时间"后继续加 worker 没收益。</p>
+</details>
+<p>???</p>
+<hr />
+<h2 id="1110">11.10 关键测试解读<a class="headerlink" href="#1110" title="Permanent link">&para;</a></h2>
+<p><code>tests/test_data.py</code> 里的测试覆盖了所有零件，挑几个重要的讲：</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_random_sampler_covers_all</span><span class="p">():</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">))</span>
+    <span class="n">sampler</span> <span class="o">=</span> <span class="n">RandomSampler</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>解读</strong>：不直接断言 <code>indices == 某个固定序列</code>（那样太脆），而是断言<strong>排序后等于 0..19</strong>——即"打乱但全覆盖"。这是无放回采样的核心不变量：每个样本恰好出现一次。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_batch_sampler_drop_last</span><span class="p">():</span>
+    <span class="n">sampler</span> <span class="o">=</span> <span class="n">SequentialSampler</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)))</span>
+    <span class="n">bs</span> <span class="o">=</span> <span class="n">BatchSampler</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">batches</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">batches</span> <span class="o">==</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">]]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+</code></pre></div>
+<p><strong>解读</strong>：10 个样本 batch_size=3，drop_last=True 应该只剩 3 个完整 batch，孤儿 <code>[9]</code> 被丢。<code>len(bs) == 3</code> 验证 <code>__len__</code> 公式正确。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_concat_dataset</span><span class="p">():</span>
+    <span class="n">ds1</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">ds2</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+    <span class="n">cds</span> <span class="o">=</span> <span class="n">ConcatDataset</span><span class="p">([</span><span class="n">ds1</span><span class="p">,</span> <span class="n">ds2</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">7</span>
+    <span class="k">assert</span> <span class="n">cds</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">cds</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span>      <span class="c1"># 跨越子集边界</span>
+    <span class="k">assert</span> <span class="n">cds</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">6</span>
+</code></pre></div>
+<p><strong>解读</strong>：<code>cds[3]</code> 是跨边界的关键测试——全局下标 3 应该映射到 <code>ds2[0]</code>（值 3）。如果累积大小算错或 <code>prev</code> 算错，这里会挂。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dataloader_custom_collate</span><span class="p">():</span>
+    <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">my_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="n">my_collate</span><span class="p">)</span>
+    <span class="n">bx</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">loader</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">bx</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]])</span>
+</code></pre></div>
+<p><strong>解读</strong>：验证 <code>collate_fn</code> 注入机制工作。用户传了自定义函数，DataLoader 不再用 <code>default_collate</code>。这是"开放-封闭"原则的体现——对扩展开放（注入新 collate），对修改封闭（不用改 DataLoader 源码）。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dataloader_shuffle_covers_all</span><span class="p">():</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">batches</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
+    <span class="n">all_rows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batches</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_rows</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>解读</strong>：shuffle 测试不固定具体顺序，而是验证"所有样本都出现且只出现一次"。<code>x</code> 的第一列是 <code>0, 2, 4, ..., 18</code>，shuffle 后把这些行打乱重排，排序后应该恢复原序。这是无放回采样的不变量测试——比断言"等于某个固定排列"健壮得多，不会因为 numpy 版本变化而挂。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dataloader_len</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+</code></pre></div>
+<p><strong>解读</strong>：5 个样本 batch_size=2，向上取整得 3 个 batch（<code>[2,2,1]</code>）。验证 <code>__len__</code> 公式 <code>(n + b - 1) // b</code> 正确。如果公式写错成 <code>n // b</code>，这里会返回 2 而挂。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_random_sampler_with_replacement</span><span class="p">():</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">sampler</span> <span class="o">=</span> <span class="n">RandomSampler</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">15</span>
+</code></pre></div>
+<p><strong>解读</strong>：有放回采样 15 个，从 10 个样本里抽。<code>len(indices) == 15</code> 验证 <code>num_samples</code> 参数生效。注意这里<strong>不</strong>断言"覆盖所有样本"——有放回时可能某些样本没被抽到，断言覆盖会随机挂。只断言数量，是正确的测试姿势。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_tensor_dataset</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span>
+    <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">sx</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">sy</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
+</code></pre></div>
+<p><strong>解读</strong>：<code>ds[1]</code> 应该返回 <code>(x[1], y[1])</code>，即第 1 行特征和第 1 个标签。<code>x[1]</code> 是 <code>[3,4,5]</code>（因为 <code>arange(12).reshape(4,3)</code> 第 1 行是 3,4,5），<code>y[1]</code> 是 1。这个测试验证<strong>多 Tensor 对齐取索引</strong>——如果 <code>__getitem__</code> 里两个 tensor 取了不同索引，这里会挂。</p>
+<hr />
+<h2 id="1111">11.11 优劣势总结<a class="headerlink" href="#1111" title="Permanent link">&para;</a></h2>
+<p><strong>优势：</strong></p>
+<ul>
+<li><strong>三层分离清晰</strong>：Dataset/Sampler/DataLoader 各管一摊，单元测试好写，复用性强。</li>
+<li><strong>组合性强</strong>：BatchSampler 包任意 Sampler，ConcatDataset 拼任意 Dataset，像积木。</li>
+<li><strong>map-style 优先</strong>契合大多数训练场景，API 简单。</li>
+<li><code>collate_fn</code> 可注入，对不规则数据留了逃生口。</li>
+</ul>
+<p><strong>劣势：</strong></p>
+<ul>
+<li><strong>单进程</strong>：大数据集慢，无法演示真实预取。</li>
+<li><strong>随机性靠全局 np.random</strong>：多实例间会互相污染，复现性差。</li>
+<li><strong>没有分布式支持</strong>：多卡训练要自己切数据。</li>
+<li><strong>collate 覆盖窄</strong>：dict、命名元组、字符串都不支持。</li>
+<li><strong>没有 <code>pin_memory</code></strong>：真实 GPU 训练里这能省一次拷贝。</li>
+</ul>
+<p><strong>教学价值</strong>：这套实现把"数据管线的骨架"讲透了——所有工程复杂度（多进程、分布式、pin_memory）都是在这个骨架上加肉。理解了这个骨架，去看真实 PyTorch 的 <code>dataloader.py</code> 几千行代码就不会迷路。</p>
+<p><strong>何时该跳出教学版</strong>：当你的数据集 &gt; 内存、训练 &gt; 1 小时、或多卡训练时，教学版就不够了——这时直接用真实 PyTorch 的 <code>DataLoader(num_workers=8, pin_memory=True)</code> + <code>DistributedSampler</code>。但理解了本章，你会知道每个参数在干什么，而不是当黑盒调参。</p>
+<hr />
+<h2 id="1112">11.12 下一章预告<a class="headerlink" href="#1112" title="Permanent link">&para;</a></h2>
+<p>数据喂进模型后，训练出来的参数怎么<strong>存下来</strong>？下一章我们讲<strong>持久化与混合精度</strong>：</p>
+<ul>
+<li><code>state_dict</code> 为什么用扁平的"点号路径"键，而不是嵌套字典？</li>
+<li><code>save/load</code> 怎么把 Tensor 序列化进 pickle，又怎么无损读回来？</li>
+<li>fp16 训练为什么会下溢，<code>GradScaler</code> 怎么用"放大 loss"绕过去？</li>
+<li><code>Autocast</code> 怎么按算子分类决定该用 fp16 还是 fp32？</li>
+<li>一个完整的 AMP 训练循环长什么样？</li>
+</ul>
+<p>这些是真正"上 GPU 训练"前必须搞懂的事。</p>
+<div class="admonition tip">
+<p class="admonition-title">阶段小结</p>
+<p>至此，minitorch 的数据管线已经完整：Dataset 定义数据、Sampler 定顺序、DataLoader 切批并 collate。下一章我们离开数据，进入"训练产物怎么存"和"怎么用低精度加速训练"这两个工程必修课。掌握本章后，你应当能独立设计一套数据加载方案，并理解每个设计选择背后的权衡。</p>
+<hr />
+<blockquote>
+<p>本章代码：<code>src/minitorch/data/dataset.py</code>、<code>src/minitorch/data/sampler.py</code>、<code>src/minitorch/data/dataloader.py</code>。测试：<code>tests/test_data.py</code>。</p>
+</blockquote>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.code.tabs", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

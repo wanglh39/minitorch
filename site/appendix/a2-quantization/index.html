@@ -1,0 +1,3617 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="从零实现迷你版 PyTorch，学习底层原理与设计原则">
+      
+      
+        <meta name="author" content="minitorch contributor">
+      
+      
+      
+        <link rel="prev" href="../a1-distributed/">
+      
+      
+        <link rel="next" href="../a3-torchscript-onnx/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>A2 量化导论 - minitorch</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#a2" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="minitorch" class="md-header__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            minitorch
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              A2 量化导论
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ch01-tensor-storage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段一·纯 Python
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ch08-cpp-core/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段二·C++ 核心
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  附录
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../differences/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  与真实 PyTorch 的差异
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="minitorch" class="md-nav__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    minitorch
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段一·纯 Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段一·纯 Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch01-tensor-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch1 张量与存储
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch02-ops-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch2 算子与分发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch03-autograd-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch3 自动微分引擎
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch04-computation-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch4 计算图机制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch05-nn-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch5 nn.Module 体系
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch06-optimizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch6 优化器系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch07-loss-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch7 损失与训练循环
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch11-dataloader/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch11 数据加载与采样
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch12-serialization-amp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch12 持久化与混合精度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch13-fx-compile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch13 图与编译导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段二·C++ 核心
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段二·C++ 核心
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch08-cpp-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch8 C++ 核心重写
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch09-cpp-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch9 C++ 高级特性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch10-cuda-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch10 CUDA 与 dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    附录
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a1-distributed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A1 分布式训练
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A2 量化导论
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A2 量化导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.1 为什么量化
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.1 为什么量化">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a211-vs-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.1.1 精度 vs 速度 vs 显存的三方权衡
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a212" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.1.2 量化的适用场景
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2 量化映射：浮点 ↔ 整数
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.2 量化映射：浮点 ↔ 整数">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a221-affine-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.1 仿射量化（Affine Quantization）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a222-symmetric-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.2 对称量化（Symmetric Quantization）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a223" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.3 量化误差
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a224" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.4 完整数值示例
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a225" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.5 非对称量化的优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a23-ptq-vs-qat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3 两条路线：PTQ vs QAT
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.3 两条路线：PTQ vs QAT">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a231-ptqpost-training-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3.1 PTQ（Post-Training Quantization，训练后量化）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a232-qatquantization-aware-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3.2 QAT（Quantization-Aware Training，量化感知训练）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a233" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3.3 选择建议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a234-ptq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3.4 PTQ 的精度崩塌现象
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a24-observer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4 Observer：观测数据范围
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.4 Observer：观测数据范围">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a241-minmaxobserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.1 MinMaxObserver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a242-movingaverageminmaxobserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.2 MovingAverageMinMaxObserver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a243-histogramobserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.3 HistogramObserver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a244-observer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.4 Observer 对比实验
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a245" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.5 校准数据的选择
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a25-fakequantize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5 FakeQuantize：训练中模拟量化
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.5 FakeQuantize：训练中模拟量化">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a251" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.1 前向：量化 + 反量化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a252-straight-through-estimator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.2 反向：直通估计器（Straight-Through Estimator）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a253-ste" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.3 STE 的数学推导
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a254-fakequantize-autograd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.4 FakeQuantize 完整实现（带 autograd）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a255-qat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.5 QAT 的学习率调整
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6 量化的粒度
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.6 量化的粒度">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a261-per-tensor-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6.1 Per-Tensor Quantization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a262-per-channel-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6.2 Per-Channel Quantization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a263" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6.3 选择
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a264-per-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6.4 Per-Channel 的数值对比
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7 量化算子的数学
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.7 量化算子的数学">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a271" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7.1 量化矩阵乘法
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a272-relu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7.2 量化 ReLU
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a273-conv2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7.3 量化 Conv2d 的完整公式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a274-batchnorm-bn-fold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7.4 BatchNorm 融合（BN Fold）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a28-pytorch-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8 PyTorch 量化 API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.8 PyTorch 量化 API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a281-ptq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8.1 PTQ 示例
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a282-qat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8.2 QAT 示例
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a283" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8.3 模块融合详解
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a284" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8.4 量化调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.9 硬件指令支持
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.9 硬件指令支持">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a291-cpu-avx-vnni" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.9.1 CPU: AVX-VNNI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a292-gpu-tensor-core-int8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.9.2 GPU: Tensor Core int8
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a293" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.9.3 其他硬件
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a210-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.10 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a211" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.11 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.11 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a2111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.11.1 更激进的量化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a2112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.11.2 混合精度量化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a212-minitorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.12 minitorch 量化草图
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a213" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.13 小结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a3-torchscript-onnx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A3 TorchScript 与 ONNX
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a4-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A4 profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a5-dispatch-key/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A5 dispatch key 链
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a6-c-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A6 CPython C-API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../differences/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    与真实 PyTorch 的差异
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.1 为什么量化
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.1 为什么量化">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a211-vs-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.1.1 精度 vs 速度 vs 显存的三方权衡
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a212" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.1.2 量化的适用场景
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2 量化映射：浮点 ↔ 整数
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.2 量化映射：浮点 ↔ 整数">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a221-affine-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.1 仿射量化（Affine Quantization）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a222-symmetric-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.2 对称量化（Symmetric Quantization）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a223" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.3 量化误差
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a224" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.4 完整数值示例
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a225" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.2.5 非对称量化的优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a23-ptq-vs-qat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3 两条路线：PTQ vs QAT
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.3 两条路线：PTQ vs QAT">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a231-ptqpost-training-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3.1 PTQ（Post-Training Quantization，训练后量化）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a232-qatquantization-aware-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3.2 QAT（Quantization-Aware Training，量化感知训练）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a233" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3.3 选择建议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a234-ptq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.3.4 PTQ 的精度崩塌现象
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a24-observer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4 Observer：观测数据范围
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.4 Observer：观测数据范围">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a241-minmaxobserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.1 MinMaxObserver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a242-movingaverageminmaxobserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.2 MovingAverageMinMaxObserver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a243-histogramobserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.3 HistogramObserver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a244-observer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.4 Observer 对比实验
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a245" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.4.5 校准数据的选择
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a25-fakequantize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5 FakeQuantize：训练中模拟量化
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.5 FakeQuantize：训练中模拟量化">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a251" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.1 前向：量化 + 反量化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a252-straight-through-estimator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.2 反向：直通估计器（Straight-Through Estimator）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a253-ste" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.3 STE 的数学推导
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a254-fakequantize-autograd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.4 FakeQuantize 完整实现（带 autograd）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a255-qat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.5.5 QAT 的学习率调整
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6 量化的粒度
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.6 量化的粒度">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a261-per-tensor-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6.1 Per-Tensor Quantization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a262-per-channel-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6.2 Per-Channel Quantization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a263" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6.3 选择
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a264-per-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.6.4 Per-Channel 的数值对比
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7 量化算子的数学
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.7 量化算子的数学">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a271" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7.1 量化矩阵乘法
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a272-relu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7.2 量化 ReLU
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a273-conv2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7.3 量化 Conv2d 的完整公式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a274-batchnorm-bn-fold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.7.4 BatchNorm 融合（BN Fold）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a28-pytorch-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8 PyTorch 量化 API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.8 PyTorch 量化 API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a281-ptq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8.1 PTQ 示例
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a282-qat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8.2 QAT 示例
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a283" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8.3 模块融合详解
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a284" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.8.4 量化调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.9 硬件指令支持
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.9 硬件指令支持">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a291-cpu-avx-vnni" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.9.1 CPU: AVX-VNNI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a292-gpu-tensor-core-int8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.9.2 GPU: Tensor Core int8
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a293" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.9.3 其他硬件
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a210-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.10 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a211" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.11 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A2.11 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a2111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.11.1 更激进的量化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a2112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.11.2 混合精度量化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a212-minitorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.12 minitorch 量化草图
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a213" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2.13 小结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="a2">A2 量化导论<a class="headerlink" href="#a2" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>本附录对应主线 Ch6/Ch7。量化是把 fp32 模型压缩到 int8，减少显存、加速推理。
+本附录以原理讲解为主，重点讲清量化映射、Observer、FakeQuantize 三个核心概念。</p>
+</blockquote>
+<hr />
+<h2 id="a21">A2.1 为什么量化<a class="headerlink" href="#a21" title="Permanent link">&para;</a></h2>
+<p>fp32 模型推理的瓶颈：</p>
+<table>
+<thead>
+<tr>
+<th>瓶颈</th>
+<th>fp32</th>
+<th>int8</th>
+<th>提升</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>显存占用</td>
+<td>4 bytes/参数</td>
+<td>1 byte/参数</td>
+<td>4× 压缩</td>
+</tr>
+<tr>
+<td>内存带宽</td>
+<td>32 bit/load</td>
+<td>8 bit/load</td>
+<td>4× 带宽</td>
+</tr>
+<tr>
+<td>计算速度</td>
+<td>FP32 FLOPS</td>
+<td>INT8 FLOPS</td>
+<td>2-4× 加速</td>
+</tr>
+</tbody>
+</table>
+<p>int8 是"甜点"：精度损失可控，硬件支持广泛（CPU AVX-VNNI、GPU Tensor Core）。</p>
+<h3 id="a211-vs-vs">A2.1.1 精度 vs 速度 vs 显存的三方权衡<a class="headerlink" href="#a211-vs-vs" title="Permanent link">&para;</a></h3>
+<p>量化不是"免费午餐"，而是在三个维度上权衡：</p>
+<div class="highlight"><pre><span></span><code>        精度
+         ▲
+         │
+    fp32 ●
+         │
+    fp16 ●
+         │      ╲
+    int8 ●──────●  ← 工程甜点
+         │      ╲
+    int4 ●       ╲
+         │        ╲
+     int1 ●────────● 速度/显存 →
+</code></pre></div>
+<ul>
+<li><strong>fp32 → fp16</strong>：精度几乎无损，2× 加速，硬件原生支持（Tensor Core）</li>
+<li><strong>fp32 → int8</strong>：精度损 0.5-3%，4× 压缩，需量化流程</li>
+<li><strong>int8 → int4</strong>：精度损 3-10%，8× 压缩，需 QAT + 特殊硬件</li>
+<li><strong>int4 → int1 (BNN)</strong>：精度大幅下降，32× 压缩，仅学术</li>
+</ul>
+<p><strong>工程选择</strong>：大多数推理场景选 int8；极致显存约束（手机 NPU）选 int4；训练用 fp16/bf16 混合精度（见 Ch12）。</p>
+<h3 id="a212">A2.1.2 量化的适用场景<a class="headerlink" href="#a212" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>量化收益</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>服务器 CPU 推理</td>
+<td>大（内存带宽是瓶颈）</td>
+<td>FBGEMM 后端</td>
+</tr>
+<tr>
+<td>服务器 GPU 推理</td>
+<td>中（计算已很快）</td>
+<td>CUDA Tensor Core int8</td>
+</tr>
+<tr>
+<td>边缘设备（手机/嵌入式）</td>
+<td>极大（显存+算力都紧）</td>
+<td>TFLite / CoreML</td>
+</tr>
+<tr>
+<td>训练</td>
+<td><strong>不适用</strong></td>
+<td>量化仅用于推理，训练仍需 fp32/fp16</td>
+</tr>
+<tr>
+<td>检测/分割等敏感任务</td>
+<td>需 QAT 保精度</td>
+<td>PTQ 可能掉 3-5%</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a22">A2.2 量化映射：浮点 ↔ 整数<a class="headerlink" href="#a22" title="Permanent link">&para;</a></h2>
+<h3 id="a221-affine-quantization">A2.2.1 仿射量化（Affine Quantization）<a class="headerlink" href="#a221-affine-quantization" title="Permanent link">&para;</a></h3>
+<p>最常用的量化方案：把 fp32 范围 <code>[r_min, r_max]</code> 线性映射到 int8 范围 <code>[q_min, q_max]</code>。</p>
+<div class="highlight"><pre><span></span><code>量化:   q = round(r / scale + zero_point)
+反量化: r = scale * (q - zero_point)
+
+其中:
+  scale = (r_max - r_min) / (q_max - q_min)
+  zero_point = round(q_min - r_min / scale)
+
+  q_min = -128, q_max = 127  (signed int8)
+  r_min, r_max = 观测到的最小/最大浮点值
+</code></pre></div>
+<p><strong>图示</strong>：</p>
+<div class="highlight"><pre><span></span><code>浮点轴  r_min -------- 0 -------- r_max
+           ↕ scale
+整数轴  q_min --- zero_point --- q_max
+
+scale = (r_max - r_min) / (q_max - q_min)
+</code></pre></div>
+<h3 id="a222-symmetric-quantization">A2.2.2 对称量化（Symmetric Quantization）<a class="headerlink" href="#a222-symmetric-quantization" title="Permanent link">&para;</a></h3>
+<p>简化版：令 <code>zero_point = 0</code>，浮点范围对称 <code>[-r_max, r_max]</code>。</p>
+<div class="highlight"><pre><span></span><code>scale = r_max / 127        # signed int8
+q = round(r / scale)
+r = scale * q
+</code></pre></div>
+<p><strong>优点</strong>：<code>zero_point = 0</code>，计算时省一次减法，推理更快。
+<strong>缺点</strong>：如果浮点范围不对称（如 ReLU 输出全正），浪费一半整数范围。</p>
+<h3 id="a223">A2.2.3 量化误差<a class="headerlink" href="#a223" title="Permanent link">&para;</a></h3>
+<p>量化是<strong>有损压缩</strong>，误差来自 round 取整：</p>
+<div class="highlight"><pre><span></span><code>r = 0.123, scale = 0.01
+q = round(0.123 / 0.01) = round(12.3) = 12
+r&#39; = 12 * 0.01 = 0.120    # 误差 0.003
+</code></pre></div>
+<p>误差上界 = <code>scale / 2</code>（半步长）。scale 越小（范围越窄），精度越高。</p>
+<h3 id="a224">A2.2.4 完整数值示例<a class="headerlink" href="#a224" title="Permanent link">&para;</a></h3>
+<p>用一个具体例子走完整个量化流程，加深直觉。</p>
+<p><strong>场景</strong>：量化一个 ReLU 的输出张量 <code>x = [0.1, 1.2, 3.4, 0.5, 2.7]</code>，用对称 int8 量化。</p>
+<div class="highlight"><pre><span></span><code>步骤 1: 观测范围
+  r_max = max(|x|) = 3.4
+  r_min = -3.4  (对称量化)
+
+步骤 2: 计算 scale
+  scale = r_max / 127 = 3.4 / 127 = 0.02677
+
+步骤 3: 量化（fp32 → int8）
+  q[0] = round(0.1 / 0.02677) = round(3.74) = 4
+  q[1] = round(1.2 / 0.02677) = round(44.8) = 45
+  q[2] = round(3.4 / 0.02677) = round(127.0) = 127
+  q[3] = round(0.5 / 0.02677) = round(18.7) = 19
+  q[4] = round(2.7 / 0.02677) = round(100.9) = 101
+
+  q = [4, 45, 127, 19, 101]   ← 存储这 5 个 int8（5 bytes）
+
+步骤 4: 反量化（int8 → fp32，推理时）
+  r&#39;[0] = 4   * 0.02677 = 0.107   (原 0.1, 误差 0.007)
+  r&#39;[1] = 45  * 0.02677 = 1.205   (原 1.2, 误差 0.005)
+  r&#39;[2] = 127 * 0.02677 = 3.400   (原 3.4, 误差 0.000)
+  r&#39;[3] = 19  * 0.02677 = 0.509   (原 0.5, 误差 0.009)
+  r&#39;[4] = 101 * 0.02677 = 2.704   (原 2.7, 误差 0.004)
+
+  r&#39; = [0.107, 1.205, 3.400, 0.509, 2.704]
+</code></pre></div>
+<p><strong>观察</strong>：
+- 最大值 <code>3.4</code> 量化误差为 0（刚好对齐到 127）
+- 小值 <code>0.1</code> 误差 7%（相对误差大——这是量化的固有缺陷：小值精度差）
+- 误差上界 = <code>scale/2 = 0.0134</code>，所有误差都在上界内</p>
+<h3 id="a225">A2.2.5 非对称量化的优势<a class="headerlink" href="#a225" title="Permanent link">&para;</a></h3>
+<p>ReLU 输出全非负，用对称量化浪费一半范围。非对称量化更好：</p>
+<div class="highlight"><pre><span></span><code>x = [0.1, 1.2, 3.4, 0.5, 2.7]  (ReLU 输出，全正)
+
+非对称量化:
+  r_min = 0.1, r_max = 3.4
+  scale = (3.4 - 0.1) / 255 = 0.01294
+  zero_point = round(-128 - 0.1 / 0.01294) = round(-135.7) = -136
+  → clamp 到 [-128, 127]，zero_point = -128
+
+  q[0] = round(0.1 / 0.01294 + (-128)) = round(-120.3) = -120
+  q[2] = round(3.4 / 0.01294 + (-128)) = round(134.7) = 127
+
+  → 用了 [-120, 127] 范围（247 个级别），比对称的 [4, 127]（123 级别）精细 2×
+</code></pre></div>
+<p><strong>结论</strong>：激活值（ReLU 后全正）用非对称量化，权重（有正有负）用对称量化，是工程最佳实践。</p>
+<hr />
+<h2 id="a23-ptq-vs-qat">A2.3 两条路线：PTQ vs QAT<a class="headerlink" href="#a23-ptq-vs-qat" title="Permanent link">&para;</a></h2>
+<h3 id="a231-ptqpost-training-quantization">A2.3.1 PTQ（Post-Training Quantization，训练后量化）<a class="headerlink" href="#a231-ptqpost-training-quantization" title="Permanent link">&para;</a></h3>
+<p>训练完 fp32 模型后，用少量校准数据"观测"各层激活的范围，直接量化。</p>
+<div class="highlight"><pre><span></span><code>1. 训练 fp32 模型 → model_fp32
+2. 用校准数据跑前向 → Observer 记录每层激活的 min/max
+3. 用观测到的 min/max 计算 scale → 量化为 int8
+4. 推理用 int8 模型
+</code></pre></div>
+<p><strong>优点</strong>：快，不需要重新训练。
+<strong>缺点</strong>：精度损失可能较大（尤其是低 bit 量化如 int4）。</p>
+<h3 id="a232-qatquantization-aware-training">A2.3.2 QAT（Quantization-Aware Training，量化感知训练）<a class="headerlink" href="#a232-qatquantization-aware-training" title="Permanent link">&para;</a></h3>
+<p>在训练中<strong>模拟量化误差</strong>，让模型适应量化后的精度损失。</p>
+<div class="highlight"><pre><span></span><code>1. 在模型中插入 FakeQuantize 算子（前向量化、反向用直通估计器）
+2. 继续训练几个 epoch → 模型学会在量化噪声下工作
+3. 导出真正的 int8 模型
+</code></pre></div>
+<p><strong>优点</strong>：精度损失最小。
+<strong>缺点</strong>：需要训练数据和训练时间。</p>
+<h3 id="a233">A2.3.3 选择建议<a class="headerlink" href="#a233" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>快速部署、可接受 1-2% 精度降</td>
+<td>PTQ</td>
+<td>省时间</td>
+</tr>
+<tr>
+<td>精度敏感（如检测、分割）</td>
+<td>QAT</td>
+<td>保精度</td>
+</tr>
+<tr>
+<td>int4 / 二进制等超低 bit</td>
+<td>QAT</td>
+<td>PTQ 精度崩塌</td>
+</tr>
+<tr>
+<td>没有训练数据</td>
+<td>PTQ</td>
+<td>唯一选择</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a234-ptq">A2.3.4 PTQ 的精度崩塌现象<a class="headerlink" href="#a234-ptq" title="Permanent link">&para;</a></h3>
+<p>为什么 PTQ 在低 bit 下会崩塌？用一个例子说明：</p>
+<div class="highlight"><pre><span></span><code>fp32 模型的某一层权重分布:
+  大部分权重在 [-0.1, 0.1]（重要）
+  少数 outlier 在 [-3.0, 3.0]（不重要但拉大范围）
+
+PTQ int8 对称量化:
+  scale = 3.0 / 127 = 0.0236
+  → 0.1 量化为 round(0.1/0.0236) = 4，反量化 = 0.094（误差 6%）
+  → 大部分重要权重的相对误差 6%，累积后精度崩塌
+
+QAT int8:
+  训练时 FakeQuantize 引入同样误差
+  → 模型学会把 outlier 权重缩小（正则化效应）
+  → 最终权重分布更集中，scale 更小，精度更好
+</code></pre></div>
+<p><strong>QAT 的本质</strong>：让模型主动调整权重分布，使其"量化友好"——范围集中、outlier 少。</p>
+<hr />
+<h2 id="a24-observer">A2.4 Observer：观测数据范围<a class="headerlink" href="#a24-observer" title="Permanent link">&para;</a></h2>
+<p>Observer 的职责：在前向传播中收集激活值的统计量（min/max 或直方图），用于计算 scale。</p>
+<h3 id="a241-minmaxobserver">A2.4.1 MinMaxObserver<a class="headerlink" href="#a241-minmaxobserver" title="Permanent link">&para;</a></h3>
+<p>最简单：记录所有观测值的全局 min 和 max。</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MinMaxObserver</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;-inf&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_val</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">)</span> <span class="o">/</span> <span class="mi">255</span>
+        <span class="n">zero_point</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="o">-</span><span class="mi">128</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scale</span><span class="p">,</span> <span class="n">zero_point</span>
+</code></pre></div>
+<p><strong>问题</strong>：极端 outlier 会拉大范围，导致大部分正常值量化精度差。</p>
+<h3 id="a242-movingaverageminmaxobserver">A2.4.2 MovingAverageMinMaxObserver<a class="headerlink" href="#a242-movingaverageminmaxobserver" title="Permanent link">&para;</a></h3>
+<p>用 EMA 平滑 min/max，避免 outlier 主导：</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MovingAverageMinMaxObserver</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">cur_min</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">cur_max</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">=</span> <span class="n">cur_min</span><span class="p">,</span> <span class="n">cur_max</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">cur_min</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">cur_max</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span>
+</code></pre></div>
+<h3 id="a243-histogramobserver">A2.4.3 HistogramObserver<a class="headerlink" href="#a243-histogramobserver" title="Permanent link">&para;</a></h3>
+<p>更精细：记录激活值的<strong>直方图</strong>分布，然后搜索最优裁剪点（去掉 outlier 的尾部，使量化误差最小）。</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">HistogramObserver</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">histogram</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bins</span> <span class="o">=</span> <span class="n">bins</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">hist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">histc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="nb">max</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">histogram</span> <span class="o">+=</span> <span class="n">hist</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 搜索最优裁剪阈值：去掉直方图尾部 x%，使 L2 量化误差最小</span>
+        <span class="n">best_loss</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">threshold_percent</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">):</span>  <span class="c1"># 尝试裁掉 0%-20%</span>
+            <span class="n">threshold</span> <span class="o">=</span> <span class="n">percentile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">histogram</span><span class="p">,</span> <span class="mi">100</span> <span class="o">-</span> <span class="n">threshold_percent</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">compute_quant_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">histogram</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">loss</span> <span class="o">&lt;</span> <span class="n">best_loss</span><span class="p">:</span>
+                <span class="n">best_loss</span> <span class="o">=</span> <span class="n">loss</span>
+                <span class="n">best_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="k">return</span> <span class="n">best_threshold</span> <span class="o">/</span> <span class="mi">127</span>  <span class="c1"># scale</span>
+</code></pre></div>
+<h3 id="a244-observer">A2.4.4 Observer 对比实验<a class="headerlink" href="#a244-observer" title="Permanent link">&para;</a></h3>
+<p>三种 Observer 在不同数据分布下的表现：</p>
+<div class="highlight"><pre><span></span><code>数据分布 A: 均匀分布 [-1, 1]
+  MinMax:        scale = 1/127 = 0.00787,  误差 = 0.0039
+  MovingAverage: scale = 1/127 = 0.00787,  误差 = 0.0039  (无 outlier，三者相同)
+  Histogram:     scale = 1/127 = 0.00787,  误差 = 0.0039
+
+数据分布 B: 均匀 [-1, 1] + 1% outlier 在 [5, 6]
+  MinMax:        scale = 6/127 = 0.0472,   误差 = 0.0236  ← outlier 拉大范围！
+  MovingAverage: scale = 1.5/127 = 0.0118, 误差 = 0.0059  ← EMA 平滑了 outlier
+  Histogram:     scale = 1.2/127 = 0.0094, 误差 = 0.0047  ← 裁掉 outlier 尾部
+
+数据分布 C: 长尾分布（如 softmax 输出，大部分接近 0，少数接近 1）
+  MinMax:        scale = 1/127,  大部分值量化为 0 ← 灾难性精度损失
+  MovingAverage: 类似 MinMax，EMA 对长尾无效
+  Histogram:     裁掉长尾，scale = 0.3/127,  小值精度好 ← 推荐
+</code></pre></div>
+<p><strong>选择建议</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>数据分布</th>
+<th>推荐 Observer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>均匀、无 outlier</td>
+<td>MinMax（最简单）</td>
+</tr>
+<tr>
+<td>偶尔有 outlier</td>
+<td>MovingAverageMinMax</td>
+</tr>
+<tr>
+<td>长尾分布（常见于激活）</td>
+<td>Histogram</td>
+</tr>
+<tr>
+<td>权重（静态，只观测一次）</td>
+<td>MinMax（权重不变，无 outlier 问题）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a245">A2.4.5 校准数据的选择<a class="headerlink" href="#a245" title="Permanent link">&para;</a></h3>
+<p>PTQ 的精度高度依赖校准数据的质量：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 好的校准数据</span>
+<span class="n">calibration_data</span> <span class="o">=</span> <span class="n">load_representative_subset</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="n">test_set</span><span class="p">,</span>
+    <span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>          <span class="c1"># 100-500 样本通常够</span>
+    <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;diverse&quot;</span><span class="p">,</span>     <span class="c1"># 覆盖各种输入分布</span>
+<span class="p">)</span>
+
+<span class="c1"># 坏的校准数据</span>
+<span class="n">calibration_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="mi">100</span>  <span class="c1"># 同一张图重复 100 次 → 激活范围不全面</span>
+</code></pre></div>
+<p><strong>校准数据要求</strong>：
+1. <strong>代表性</strong>：覆盖推理时的真实输入分布
+2. <strong>多样性</strong>：不同类别、不同难度、不同光照/角度
+3. <strong>数量</strong>：100-500 样本通常足够，再多收益递减
+4. <strong>与训练数据同分布</strong>：不要用训练集外的数据校准</p>
+<p><strong>常见错误</strong>：用全零输入校准 → 所有激活都是 0 → scale = 0 → 量化崩塌。</p>
+<hr />
+<h2 id="a25-fakequantize">A2.5 FakeQuantize：训练中模拟量化<a class="headerlink" href="#a25-fakequantize" title="Permanent link">&para;</a></h2>
+<p>QAT 的核心：在训练前向时<strong>真的量化再反量化</strong>，引入量化误差；反向时用<strong>直通估计器（STE）</strong> 让梯度穿过量化算子。</p>
+<h3 id="a251">A2.5.1 前向：量化 + 反量化<a class="headerlink" href="#a251" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FakeQuantize</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observer</span> <span class="o">=</span> <span class="n">observer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zero_point</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># 1. 观测当前激活范围</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observer</span><span class="o">.</span><span class="n">calculate_scale</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zero_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observer</span><span class="o">.</span><span class="n">calculate_zero_point</span><span class="p">()</span>
+
+        <span class="c1"># 2. 量化：fp32 → int8</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">zero_point</span><span class="p">),</span>
+            <span class="o">-</span><span class="mi">128</span><span class="p">,</span> <span class="mi">127</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 3. 反量化：int8 → fp32（带量化误差）</span>
+        <span class="n">x_fake</span> <span class="o">=</span> <span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">zero_point</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+        <span class="k">return</span> <span class="n">x_fake</span>
+</code></pre></div>
+<p>前向输出 <code>x_fake</code> 与 <code>x</code> 形状相同、类型相同（fp32），但值有量化误差。模型在这个误差下训练，学会适应。</p>
+<h3 id="a252-straight-through-estimator">A2.5.2 反向：直通估计器（Straight-Through Estimator）<a class="headerlink" href="#a252-straight-through-estimator" title="Permanent link">&para;</a></h3>
+<p>量化函数 <code>q = round(r)</code> 不可导（round 的梯度处处为 0）。STE 的 trick：<strong>假装量化函数的梯度为 1</strong>。</p>
+<div class="highlight"><pre><span></span><code>∂L/∂x ≈ ∂L/∂x_fake * 1    # 直接把下游梯度传给上游
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grad_output</span><span class="p">):</span>
+        <span class="c1"># STE: 梯度直通，但 clip 范围外梯度为 0</span>
+        <span class="n">grad_input</span> <span class="o">=</span> <span class="n">grad_output</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="c1"># 超出量化范围的输入梯度为 0（因为 clamp 截断了）</span>
+        <span class="n">grad_input</span><span class="p">[</span><span class="n">x</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_clamp</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">grad_input</span><span class="p">[</span><span class="n">x</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_clamp</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">grad_input</span>
+</code></pre></div>
+<p><strong>为什么 STE 有效</strong>：量化本质是"加一个小噪声"，STE 假设这个噪声对梯度的扰动可忽略。实验证明对 int8 量化有效，对 int4 需要更精细的梯度估计。</p>
+<h3 id="a253-ste">A2.5.3 STE 的数学推导<a class="headerlink" href="#a253-ste" title="Permanent link">&para;</a></h3>
+<p>更严谨地理解 STE 为什么有效。</p>
+<p><strong>量化函数</strong>：<code>q(r) = round(r / s) * s</code>（对称量化简化版）</p>
+<p><strong>真实梯度</strong>：<code>dq/dr = 0</code>（round 函数几乎处处导数为 0）→ 反向传播梯度永远为 0，无法训练。</p>
+<p><strong>STE 近似</strong>：<code>dq/dr ≈ 1</code></p>
+<p><strong>为什么合理</strong>？把量化看作"加噪声"：</p>
+<div class="highlight"><pre><span></span><code>q(r) = r + ε(r)    其中 ε(r) = round(r/s)*s - r 是量化误差
+
+dq/dr = 1 + dε/dr
+
+|ε(r)| ≤ s/2  （量化误差上界）
+|dε/dr| ≤ 1   （误差变化率有界）
+
+→ dq/dr ∈ [0, 2]，STE 取 dq/dr = 1 是合理近似
+</code></pre></div>
+<p><strong>更精细的替代</strong>：
+- <strong>LSQ（Learned Step Size Quantization）</strong>：把 scale 也当作可学习参数，用真实梯度更新 scale
+- <strong>DSQ（Differentiable Soft Quantization）</strong>：用 soft round 替代 hard round，梯度可导</p>
+<h3 id="a254-fakequantize-autograd">A2.5.4 FakeQuantize 完整实现（带 autograd）<a class="headerlink" href="#a254-fakequantize-autograd" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FakeQuantizeFunction</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">zero_point</span><span class="p">,</span> <span class="n">q_min</span><span class="o">=-</span><span class="mi">128</span><span class="p">,</span> <span class="n">q_max</span><span class="o">=</span><span class="mi">127</span><span class="p">):</span>
+        <span class="c1"># 量化 + 反量化</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">scale</span> <span class="o">+</span> <span class="n">zero_point</span><span class="p">),</span>
+            <span class="n">q_min</span><span class="p">,</span> <span class="n">q_max</span>
+        <span class="p">)</span>
+        <span class="n">x_fake</span> <span class="o">=</span> <span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">zero_point</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span>
+
+        <span class="c1"># 保存反向传播需要的信息</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">save_for_backward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">scale</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">q_min</span> <span class="o">=</span> <span class="n">q_min</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">q_max</span> <span class="o">=</span> <span class="n">q_max</span>
+        <span class="k">return</span> <span class="n">x_fake</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">grad_output</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">x</span><span class="p">,)</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">saved_tensors</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scale</span>
+
+        <span class="c1"># STE: 梯度直通，超出范围的梯度为 0</span>
+        <span class="c1"># 范围: [q_min * scale, q_max * scale]</span>
+        <span class="n">within_range</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">q_min</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">q_max</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">grad_input</span> <span class="o">=</span> <span class="n">grad_output</span> <span class="o">*</span> <span class="n">within_range</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+        <span class="c1"># scale 的梯度（LSQ 风格，可选）</span>
+        <span class="c1"># 对 scale 求导，让 scale 也可学习</span>
+        <span class="n">grad_scale</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 简化版不更新 scale</span>
+
+        <span class="k">return</span> <span class="n">grad_input</span><span class="p">,</span> <span class="n">grad_scale</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FakeQuantize</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer_class</span><span class="o">=</span><span class="n">MovingAverageMinMaxObserver</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observer</span> <span class="o">=</span> <span class="n">observer_class</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bits</span> <span class="o">=</span> <span class="n">bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;zero_point&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;initialized&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># 观测</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zero_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observer</span><span class="o">.</span><span class="n">calculate_scale</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># FakeQuant</span>
+        <span class="n">q_min</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">q_max</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">FakeQuantizeFunction</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zero_point</span><span class="p">,</span> <span class="n">q_min</span><span class="p">,</span> <span class="n">q_max</span>
+        <span class="p">)</span>
+</code></pre></div>
+<h3 id="a255-qat">A2.5.5 QAT 的学习率调整<a class="headerlink" href="#a255-qat" title="Permanent link">&para;</a></h3>
+<p>QAT 初期模型需要适应量化噪声，学习率策略与普通训练不同：</p>
+<div class="highlight"><pre><span></span><code>QAT 典型训练曲线:
+  Epoch 1-3:  从 fp32 模型开始，lr = 0.1 × 原始lr（小 lr 适应量化噪声）
+  Epoch 4-10: lr = 原始lr（正常训练）
+  Epoch 11+:  lr 衰减（收敛）
+
+  → QAT 通常只需 5-10% 的原始训练 epoch 数
+  → 从 fp32 checkpoint 恢复，不是从头训
+</code></pre></div>
+<hr />
+<h2 id="a26">A2.6 量化的粒度<a class="headerlink" href="#a26" title="Permanent link">&para;</a></h2>
+<h3 id="a261-per-tensor-quantization">A2.6.1 Per-Tensor Quantization<a class="headerlink" href="#a261-per-tensor-quantization" title="Permanent link">&para;</a></h3>
+<p>整个张量共用一个 scale：</p>
+<div class="highlight"><pre><span></span><code>scale = max(abs(tensor)) / 127
+</code></pre></div>
+<p><strong>优点</strong>：一个 scale，开销最小。
+<strong>缺点</strong>：不同通道的值域差异大时，精度差。</p>
+<h3 id="a262-per-channel-quantization">A2.6.2 Per-Channel Quantization<a class="headerlink" href="#a262-per-channel-quantization" title="Permanent link">&para;</a></h3>
+<p>每个通道（如 weight 的每个输出通道）各有一个 scale：</p>
+<div class="highlight"><pre><span></span><code>scale[c] = max(abs(tensor[c, :, :])) / 127  # 每个通道独立
+</code></pre></div>
+<p><strong>优点</strong>：精度好，权重量化标准做法。
+<strong>缺点</strong>：scale 数组占用额外空间（但通常可忽略）。</p>
+<h3 id="a263">A2.6.3 选择<a class="headerlink" href="#a263" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>量化对象</th>
+<th>推荐粒度</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>权重</td>
+<td>Per-Channel</td>
+<td>不同通道值域差异大</td>
+</tr>
+<tr>
+<td>激活</td>
+<td>Per-Tensor</td>
+<td>激活值域较均匀，且 Per-Channel 推理开销大</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a264-per-channel">A2.6.4 Per-Channel 的数值对比<a class="headerlink" href="#a264-per-channel" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Conv 权重 shape = [3, 3, 3, 3]  (3 个输出通道)
+
+Per-Tensor:
+  全局 max = 2.0 (在 channel 0)
+  scale = 2.0 / 127 = 0.0157
+  channel 1 的 max = 0.3 → 量化到 [0, 19]，只用了 15% 范围 ← 精度差
+
+Per-Channel:
+  scale[0] = 2.0 / 127 = 0.0157  (channel 0 范围大)
+  scale[1] = 0.3 / 127 = 0.00236 (channel 1 范围小，精度好)
+  scale[2] = 1.1 / 127 = 0.00866
+
+  → 每个通道都用满 [-127, 127] 范围，整体精度更好
+</code></pre></div>
+<hr />
+<h2 id="a27">A2.7 量化算子的数学<a class="headerlink" href="#a27" title="Permanent link">&para;</a></h2>
+<h3 id="a271">A2.7.1 量化矩阵乘法<a class="headerlink" href="#a271" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>fp32:  Y = X * W
+int8:  Y_q = X_q * W_q
+
+反量化关系:
+  X ≈ scale_x * X_q
+  W ≈ scale_w * W_q
+  Y ≈ scale_x * scale_w * (X_q * W_q)
+
+因此:
+  1. int8 矩阵乘法: Y_q = X_q * W_q  (硬件加速)
+  2. 乘以 scale: Y = Y_q * scale_x * scale_w  (标量乘法，便宜)
+</code></pre></div>
+<h3 id="a272-relu">A2.7.2 量化 ReLU<a class="headerlink" href="#a272-relu" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>fp32:  y = relu(x) = max(0, x)
+int8:  y_q = max(zero_point, x_q)  # zero_point 对应 0
+</code></pre></div>
+<p>ReLU 不改变 scale，只需 clip 到 <code>zero_point</code> 以上。</p>
+<h3 id="a273-conv2d">A2.7.3 量化 Conv2d 的完整公式<a class="headerlink" href="#a273-conv2d" title="Permanent link">&para;</a></h3>
+<p>Conv2d 比矩阵乘法复杂，涉及 bias 和多通道：</p>
+<div class="highlight"><pre><span></span><code>fp32 Conv2d:
+  Y[n, oc, i, j] = bias[oc] + Σ_{ic, kh, kw} X[n, ic, i+kh, j+kw] * W[oc, ic, kh, kw]
+
+量化 (Per-Channel 权重, Per-Tensor 激活):
+  X ≈ scale_x * (X_q - zp_x)
+  W[oc] ≈ scale_w[oc] * W_q[oc]      # 每通道独立 scale
+  bias ≈ scale_x * scale_w[oc] * bias_q  # bias 用 int32
+
+  Y_q = scale_x * scale_w[oc] * (
+    Σ (X_q - zp_x) * W_q[oc] + bias_q / (scale_x * scale_w[oc])
+  )
+
+硬件执行:
+  1. int8 × int8 → int32 累加 (VNNI 指令)
+  2. 加 int32 bias
+  3. 乘 scale_x * scale_w[oc] (fp32 标量)
+  4. requantize 到 int8 (round + clamp)
+</code></pre></div>
+<p><strong>关键</strong>：int8×int8 的累加用 int32 防止溢出，最后再 requantize 回 int8。</p>
+<h3 id="a274-batchnorm-bn-fold">A2.7.4 BatchNorm 融合（BN Fold）<a class="headerlink" href="#a274-batchnorm-bn-fold" title="Permanent link">&para;</a></h3>
+<p>推理时 BatchNorm 可以融合进前面的 Conv，省一次计算：</p>
+<div class="highlight"><pre><span></span><code>fp32 Conv + BN:
+  y = BN(conv(x)) = γ * (conv(x) - μ) / √(σ² + ε) + β
+    = (γ / √(σ² + ε)) * conv(x) + (β - γ * μ / √(σ² + ε))
+    = γ&#39; * conv(x) + β&#39;
+
+  其中:
+    γ&#39; = γ / √(σ² + ε)
+    β&#39; = β - γ * μ / √(σ² + ε)
+
+融合后:
+  W_fused = W * γ&#39;     # 缩放权重
+  b_fused = b * γ&#39; + β&#39;  # 调整 bias
+
+  → 只需一次 Conv，BN 消失
+</code></pre></div>
+<p><strong>为什么量化必须先做 BN Fold</strong>：
+- 量化 Conv 后再量化 BN 会引入<strong>两次量化误差</strong>
+- 融合后只量化一次，精度更好
+- PyTorch 的 <code>quant.fuse_modules([['conv', 'bn', 'relu']])</code> 自动做这件事</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 融合前: Conv → BN → ReLU (3 个算子, 3 次量化误差)</span>
+<span class="c1"># 融合后: ConvReLU (1 个算子, 1 次量化误差)</span>
+<span class="n">model_fused</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ao</span><span class="o">.</span><span class="n">quantization</span><span class="o">.</span><span class="n">fuse_modules</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span> <span class="p">[[</span><span class="s1">&#39;conv1&#39;</span><span class="p">,</span> <span class="s1">&#39;bn1&#39;</span><span class="p">,</span> <span class="s1">&#39;relu1&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;conv2&#39;</span><span class="p">,</span> <span class="s1">&#39;bn2&#39;</span><span class="p">,</span> <span class="s1">&#39;relu2&#39;</span><span class="p">]]</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="a28-pytorch-api">A2.8 PyTorch 量化 API<a class="headerlink" href="#a28-pytorch-api" title="Permanent link">&para;</a></h2>
+<h3 id="a281-ptq">A2.8.1 PTQ 示例<a class="headerlink" href="#a281-ptq" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch.ao.quantization</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">quant</span>
+
+<span class="c1"># 1. 准备模型</span>
+<span class="n">model_fp32</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+<span class="c1"># 2. 插入量化桩（QuantStub / DeQuantStub）</span>
+<span class="n">model_fp32</span> <span class="o">=</span> <span class="n">quant</span><span class="o">.</span><span class="n">fuse_modules</span><span class="p">(</span><span class="n">model_fp32</span><span class="p">,</span> <span class="p">[[</span><span class="s1">&#39;conv&#39;</span><span class="p">,</span> <span class="s1">&#39;bn&#39;</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">]])</span>
+<span class="n">model_fp32</span><span class="o">.</span><span class="n">qconfig</span> <span class="o">=</span> <span class="n">quant</span><span class="o">.</span><span class="n">get_default_qconfig</span><span class="p">(</span><span class="s1">&#39;fbgemm&#39;</span><span class="p">)</span>
+
+<span class="c1"># 3. 校准：用校准数据观测激活范围</span>
+<span class="n">model_calibrated</span> <span class="o">=</span> <span class="n">quant</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">model_fp32</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">calibration_data</span><span class="p">:</span>
+        <span class="n">model_calibrated</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># 4. 转换为真正的 int8 模型</span>
+<span class="n">model_int8</span> <span class="o">=</span> <span class="n">quant</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">model_calibrated</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="a282-qat">A2.8.2 QAT 示例<a class="headerlink" href="#a282-qat" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. 插入 FakeQuantize</span>
+<span class="n">model_qat</span> <span class="o">=</span> <span class="n">quant</span><span class="o">.</span><span class="n">prepare_qat</span><span class="p">(</span><span class="n">model_fp32</span><span class="p">)</span>
+<span class="n">model_qat</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+<span class="c1"># 2. 训练（FakeQuantize 在前向模拟量化）</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">model_qat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+<span class="c1"># 3. 转换为 int8</span>
+<span class="n">model_int8</span> <span class="o">=</span> <span class="n">quant</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">model_qat</span><span class="o">.</span><span class="n">eval</span><span class="p">())</span>
+</code></pre></div>
+<h3 id="a283">A2.8.3 模块融合详解<a class="headerlink" href="#a283" title="Permanent link">&para;</a></h3>
+<p><code>fuse_modules</code> 是量化的关键预处理步骤：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 常见融合模式</span>
+<span class="n">fuse_patterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;conv&#39;</span><span class="p">,</span> <span class="s1">&#39;bn&#39;</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">],</span>      <span class="c1"># Conv-BN-ReLU → 1 个算子</span>
+    <span class="p">[</span><span class="s1">&#39;conv&#39;</span><span class="p">,</span> <span class="s1">&#39;bn&#39;</span><span class="p">],</span>               <span class="c1"># Conv-BN → 1 个算子</span>
+    <span class="p">[</span><span class="s1">&#39;conv&#39;</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">],</span>             <span class="c1"># Conv-ReLU → 1 个算子</span>
+    <span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">],</span>           <span class="c1"># Linear-ReLU → 1 个算子</span>
+<span class="p">]</span>
+
+<span class="c1"># 融合的数学 (Conv-BN-ReLU):</span>
+<span class="c1">#   y = relu(bn(conv(x)))</span>
+<span class="c1">#   = relu(γ * (conv(x) - μ) / √(σ²+ε) + β)</span>
+<span class="c1">#   = relu(γ&#39; * conv(x) + β&#39;)           ← BN 融进 Conv</span>
+<span class="c1">#   = relu(conv_fused(x))               ← 一个融合算子</span>
+
+<span class="c1"># 代码</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>  <span class="c1"># 顺序: conv → bn → relu</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="c1"># 融合: 把 conv/bn/relu 三个 Module 合并成 conv 一个 Module</span>
+<span class="n">model_fused</span> <span class="o">=</span> <span class="n">quant</span><span class="o">.</span><span class="n">fuse_modules</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">[[</span><span class="s1">&#39;conv&#39;</span><span class="p">,</span> <span class="s1">&#39;bn&#39;</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">]])</span>
+<span class="c1"># 现在 model_fused.forward 只调一次 conv（内部已含 BN+ReLU）</span>
+</code></pre></div>
+<p><strong>融合的收益</strong>：
+1. <strong>减少算子数</strong>：3→1，减少 kernel launch 开销
+2. <strong>减少量化误差</strong>：只量化 1 次而非 3 次
+3. <strong>减少中间激活</strong>：不存 BN/ReLU 的中间结果，省显存</p>
+<h3 id="a284">A2.8.4 量化调试<a class="headerlink" href="#a284" title="Permanent link">&para;</a></h3>
+<p>量化后精度下降，如何定位是哪一层的问题：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 方法 1: 逐层对比 fp32 vs int8 输出</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QuantDebugLogger</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_fp32</span><span class="p">,</span> <span class="n">model_int8</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_fp32</span> <span class="o">=</span> <span class="n">model_fp32</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_int8</span> <span class="o">=</span> <span class="n">model_int8</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># 注册 hook 记录每层输出</span>
+        <span class="n">fp32_outputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">int8_outputs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_fp32</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
+            <span class="n">module</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">m</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">name</span><span class="p">:</span> <span class="n">fp32_outputs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">n</span><span class="p">:</span> <span class="n">out</span><span class="p">})</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_int8</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
+            <span class="n">module</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">m</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">name</span><span class="p">:</span> <span class="n">int8_outputs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">n</span><span class="p">:</span> <span class="n">out</span><span class="p">})</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_fp32</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_int8</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># 对比每层</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">fp32_outputs</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">fp32_outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">-</span> <span class="n">int8_outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">dequantize</span><span class="p">())</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: MSE = </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># 方法 2: 逐层量化敏感度分析</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sensitivity_analysis</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">calibration_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;逐层量化，看每层对精度的影响&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
+        <span class="c1"># 只量化这一层，其他保持 fp32</span>
+        <span class="n">model_partial</span> <span class="o">=</span> <span class="n">quantize_only_one_layer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">)</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">model_partial</span><span class="p">,</span> <span class="n">calibration_data</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2">: accuracy = </span><span class="si">{</span><span class="n">accuracy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># 找出精度下降最大的层 → 对该层用更高精度或 QAT</span>
+</code></pre></div>
+<p><strong>常见问题与解决</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>某层激活 outlier 多</td>
+<td>该层 Observer 范围过大</td>
+<td>换 HistogramObserver</td>
+</tr>
+<tr>
+<td>第一层精度差</td>
+<td>输入数据未归一化</td>
+<td>预处理归一化输入</td>
+</tr>
+<tr>
+<td>最后一层精度差</td>
+<td>输出范围大</td>
+<td>最后一层不量化（keep fp32）</td>
+</tr>
+<tr>
+<td>整体精度差 5%+</td>
+<td>模型对量化不友好</td>
+<td>用 QAT 重新训练</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a29">A2.9 硬件指令支持<a class="headerlink" href="#a29" title="Permanent link">&para;</a></h2>
+<h3 id="a291-cpu-avx-vnni">A2.9.1 CPU: AVX-VNNI<a class="headerlink" href="#a291-cpu-avx-vnni" title="Permanent link">&para;</a></h3>
+<p>x86 CPU 的 int8 矩阵乘法指令：</p>
+<div class="highlight"><pre><span></span><code>AVX-VNNI (AVX512-VNNI):
+  VPDPBUSD z, x, y:  z += Σ x[i] * y[i]  (int8 × int8 → int32 累加)
+
+  一次指令处理 16 个 int8 × int8 乘加
+  → 比 fp32 FMA 快 4×（数据宽度 4× + 指令吞吐）
+
+PyTorch 后端: FBGEMM (Facebook GEneral Matrix Multiplication)
+  专门为 x86 int8 优化，用 AVX-VNNI + cache 友好的分块
+</code></pre></div>
+<h3 id="a292-gpu-tensor-core-int8">A2.9.2 GPU: Tensor Core int8<a class="headerlink" href="#a292-gpu-tensor-core-int8" title="Permanent link">&para;</a></h3>
+<p>NVIDIA Tensor Core（Volta+）支持 int8 矩阵乘法：</p>
+<div class="highlight"><pre><span></span><code>Tensor Core IMMA (Integer Matrix Multiply-Accumulate):
+  D = A × B + C
+  A: int8 [16×16], B: int8 [16×16], C/D: int32 [16×16]
+  → 一个时钟周期完成 16×16×16 = 4096 次 int8 乘加
+
+  RTX 3090:  142 TFLOPS int8  (vs 35 TFLOPS fp32)
+  A100:      624 TOPS int8    (vs 19.5 TFLOPS fp32)
+</code></pre></div>
+<h3 id="a293">A2.9.3 其他硬件<a class="headerlink" href="#a293" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>硬件</th>
+<th>int8 支持</th>
+<th>框架</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Apple M1/M2 NPU</td>
+<td>是（Neural Engine）</td>
+<td>CoreML</td>
+</tr>
+<tr>
+<td>Qualcomm Hexagon DSP</td>
+<td>是</td>
+<td>Qualcomm SNPE</td>
+</tr>
+<tr>
+<td>Intel NPU (Lunar Lake)</td>
+<td>是</td>
+<td>OpenVINO</td>
+</tr>
+<tr>
+<td>ARM Cortex-A (手机)</td>
+<td>部分（SDOT 指令）</td>
+<td>TFLite</td>
+</tr>
+<tr>
+<td>Google TPU</td>
+<td>是（原生 int8）</td>
+<td>JAX/TF</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a210-pytorch">A2.10 与真实 PyTorch 对照<a class="headerlink" href="#a210-pytorch" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>PyTorch</th>
+<th>文件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Observer</td>
+<td><code>torch.ao.quantization.observer</code></td>
+<td><code>torch/ao/quantization/observer.py</code></td>
+</tr>
+<tr>
+<td>FakeQuantize</td>
+<td><code>torch.ao.quantization.fake_quantize</code></td>
+<td><code>torch/ao/quantization/fake_quantize.py</code></td>
+</tr>
+<tr>
+<td>PTQ</td>
+<td><code>quant.prepare</code> → <code>quant.convert</code></td>
+<td><code>torch/ao/quantization/quantize.py</code></td>
+</tr>
+<tr>
+<td>QAT</td>
+<td><code>quant.prepare_qat</code> → <code>quant.convert</code></td>
+<td>同上</td>
+</tr>
+<tr>
+<td>int8 kernel</td>
+<td><code>aten/src/ATen/native/quantized/</code></td>
+<td>FBGEMM / oneDNN 后端</td>
+</tr>
+<tr>
+<td>量化算子分发</td>
+<td><code>QuantizedCPU</code> dispatch key</td>
+<td><code>aten/src/ATen/Dispatch.h</code></td>
+</tr>
+<tr>
+<td>BN 融合</td>
+<td><code>fuse_modules</code></td>
+<td><code>torch/ao/quantization/fuser.py</code></td>
+</tr>
+<tr>
+<td>量化敏感度</td>
+<td><code>QuantizationAccuracyTester</code></td>
+<td><code>torch/ao/quantization/_quantize.py</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a211">A2.11 优劣势总结<a class="headerlink" href="#a211" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优势</th>
+<th>劣势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4× 显存压缩</td>
+<td>精度损失 0.5-3%</td>
+</tr>
+<tr>
+<td>2-4× 推理加速</td>
+<td>仅推理用，训练仍需 fp32/fp16</td>
+</tr>
+<tr>
+<td>硬件广泛支持</td>
+<td>量化流程复杂（fuse/prepare/convert）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a2111">A2.11.1 更激进的量化<a class="headerlink" href="#a2111" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>bit</th>
+<th>精度</th>
+<th>硬件支持</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>int8</td>
+<td>8</td>
+<td>好</td>
+<td>广泛</td>
+</tr>
+<tr>
+<td>int4</td>
+<td>4</td>
+<td>需 QAT</td>
+<td>部分新硬件</td>
+</tr>
+<tr>
+<td>二值网络 (BNN)</td>
+<td>1</td>
+<td>差</td>
+<td>学术</td>
+</tr>
+<tr>
+<td>混合精度量化</td>
+<td>8/4 混</td>
+<td>好</td>
+<td>中</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a2112">A2.11.2 混合精度量化<a class="headerlink" href="#a2112" title="Permanent link">&para;</a></h3>
+<p>不是所有层都量化到同一 bit，按敏感度分配：</p>
+<div class="highlight"><pre><span></span><code>敏感度分析结果:
+  conv1: 量化后精度降 0.1% → int8
+  conv2: 量化后精度降 0.05% → int8
+  conv3: 量化后精度降 3.0% → 保持 fp16 (敏感层不量化)
+  conv4: 量化后精度降 0.2% → int8
+
+→ 混合精度: 大部分 int8 + 少数 fp16，精度接近 fp32，速度接近 int8
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># PyTorch 混合精度量化</span>
+<span class="n">model</span><span class="o">.</span><span class="n">qconfig</span> <span class="o">=</span> <span class="n">quant</span><span class="o">.</span><span class="n">get_default_qconfig</span><span class="p">(</span><span class="s1">&#39;fbgemm&#39;</span><span class="p">)</span>
+
+<span class="c1"># 对敏感层用更高精度</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">sensitive_layers</span><span class="p">:</span>
+        <span class="n">module</span><span class="o">.</span><span class="n">qconfig</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 不量化该层</span>
+</code></pre></div>
+<hr />
+<h2 id="a212-minitorch">A2.12 minitorch 量化草图<a class="headerlink" href="#a212-minitorch" title="Permanent link">&para;</a></h2>
+<p>minitorch 未实现量化（教学范围外），但可以基于已有模块勾勒框架：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># minitorch/quantization.py (草图，未实现)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">Module</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">QuantStub</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;前向: fp32 → int8 (实际只标记，不真量化)&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observer</span> <span class="o">=</span> <span class="n">MovingAverageMinMaxObserver</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zero_point</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">observer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span>  <span class="c1"># minitorch 无 int8 Tensor，保持 fp32</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DeQuantStub</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;前向: int8 → fp32&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">QuantizeLinear</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;量化线性层: Conv/Linear + FakeQuantize&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_quant</span> <span class="o">=</span> <span class="n">FakeQuantize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_quant</span> <span class="o">=</span> <span class="n">FakeQuantize</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_quant</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_quant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">forward_with_weight</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>为什么 minitorch 不实现完整量化</strong>：
+1. 需要 int8 Tensor 类型（minitorch 只有 fp32）
+2. 需要 int8 算子内核（需 C++ AVX/VNNI 实现）
+3. 量化流程的框架代码量大（prepare/convert/fuse）
+4. 教学目标已由本附录的原理讲解覆盖</p>
+<hr />
+<h2 id="a213">A2.13 小结<a class="headerlink" href="#a213" title="Permanent link">&para;</a></h2>
+<p>量化的三个核心概念：</p>
+<ol>
+<li><strong>量化映射</strong>：<code>q = round(r / scale + zero_point)</code>，scale 由数据范围决定</li>
+<li><strong>Observer</strong>：观测激活/权重的 min/max，计算最优 scale</li>
+<li><strong>FakeQuantize</strong>：前向量化引入误差，反向 STE 传梯度，让模型适应量化</li>
+</ol>
+<p>PTQ 快但精度差，QAT 精度好但需训练。int8 是工程甜点，更低 bit 需要更精细的方法。</p>
+<p><strong>关键工程实践</strong>：
+- 权重用 Per-Channel 对称量化，激活用 Per-Tensor 非对称量化
+- 先做 BN Fold 再量化（减少量化误差）
+- 校准数据要代表性、多样化
+- 精度下降大时做敏感度分析，对敏感层保持高精度
+- QAT 从 fp32 checkpoint 恢复，只需 5-10% 原始训练量</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.code.tabs", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -87,26 +87,26 @@ B.variable = x
 ### 4.2.3 动态图 vs 静态图
 
 !!! tip "核心区别"
-**静态图**（TF1/Theano）：先编译一张图，反复执行同一张图。
-**动态图**（PyTorch/minitorch）：每次前向**新建一张图**，反向后**丢弃**。
+    **静态图**（TF1/Theano）：先编译一张图，反复执行同一张图。
+    **动态图**（PyTorch/minitorch）：每次前向**新建一张图**，反向后**丢弃**。
 
-动态图的含义：
+    动态图的含义：
 
-```python
-for x, y in dataloader:
+    ```python
+    for x, y in dataloader:
     pred = model(x)        # 每次前向都建一张新图
     loss = criterion(pred, y)
     loss.backward()        # 反向走这张图
     optimizer.step()
     optimizer.zero_grad()
     # 图在 backward 后被释放，下一轮前向建新图
-```
+    ```
 
-每个 batch 都是一张全新的图。如果模型里有 `if pred > 0:` 这种控制流，
-不同 batch 的图结构可能不同——动态图天然支持，静态图要 `tf.cond` 等特殊 API。
+    每个 batch 都是一张全新的图。如果模型里有 `if pred > 0:` 这种控制流，
+    不同 batch 的图结构可能不同——动态图天然支持，静态图要 `tf.cond` 等特殊 API。
 
-代价是：动态图无法做跨 batch 的全局优化（如算子融合），每次前向都有建图开销。
-`torch.compile` 就是想"把动态图静态化"以获得优化机会。
+    代价是：动态图无法做跨 batch 的全局优化（如算子融合），每次前向都有建图开销。
+    `torch.compile` 就是想"把动态图静态化"以获得优化机会。
 
 ### 4.2.4 图的生命周期三阶段
 
@@ -668,13 +668,13 @@ print(y.grad_fn)   # 可能仍非 None（中间 node 的 grad_fn 没被显式清
 | 叶子原地操作检测                    | 抛 "a leaf Variable that requires grad is being used in an in-place operation" | minitorch 不检测，允许但结果可能错                                       |
 
 !!! tip "PyTorch 的 `create_graph` vs `retain_graph`"
-PyTorch 的 `backward(create_graph=True)` 会在反向过程中**为反向图本身建图**，
-这样就能对梯度再求梯度（高阶导数）。
-`retain_graph=True` 只是保留前向图，不建反向图。
-两者正交：`retain_graph` 控制"前向图留不留"，`create_graph` 控制"反向图建不建"。
-minitorch 暂不支持 `create_graph`，反向固定在 `no_grad` 下。
+    PyTorch 的 `backward(create_graph=True)` 会在反向过程中**为反向图本身建图**，
+    这样就能对梯度再求梯度（高阶导数）。
+    `retain_graph=True` 只是保留前向图，不建反向图。
+    两者正交：`retain_graph` 控制"前向图留不留"，`create_graph` 控制"反向图建不建"。
+    minitorch 暂不支持 `create_graph`，反向固定在 `no_grad` 下。
 
----
+    ---
 
 ## 4.8 历史背景
 

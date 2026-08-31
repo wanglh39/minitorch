@@ -72,26 +72,26 @@ backward 再取出来。最典型的就是 `Mul`：反向需要原输入 $a, b$�
 ### 2.2.4 计算图是"顺手"建出来的
 
 !!! tip "心智模型"
-前向计算时，每经过一个可微算子，就在输出张量上挂一个"小标签" `grad_fn`，
-记录"我是被哪个算子从哪些输入算出来的"。这些标签连起来就是计算图。
+    前向计算时，每经过一个可微算子，就在输出张量上挂一个"小标签" `grad_fn`，
+    记录"我是被哪个算子从哪些输入算出来的"。这些标签连起来就是计算图。
 
-用图示意一次 `z = (x * x) + (x * x)` 的前向：
+    用图示意一次 `z = (x * x) + (x * x)` 的前向：
 
-```
-   x (叶子, requires_grad=True)
-   │
-   ├──> Mul ──> y1 = x*x   (y1.grad_fn = Mul, next_edges=[AccumulateGrad(x), AccumulateGrad(x)])
-   │
-   └──> Mul ──> y2 = x*x   (y2.grad_fn = Mul, next_edges=[AccumulateGrad(x), AccumulateGrad(x)])
+    ```
+       x (叶子, requires_grad=True)
+       │
+       ├──> Mul ──> y1 = x*x   (y1.grad_fn = Mul, next_edges=[AccumulateGrad(x), AccumulateGrad(x)])
+       │
+       └──> Mul ──> y2 = x*x   (y2.grad_fn = Mul, next_edges=[AccumulateGrad(x), AccumulateGrad(x)])
 
-   y1, y2 ──> Add ──> z    (z.grad_fn = Add, next_edges=[y1.grad_fn, y2.grad_fn])
-```
+       y1, y2 ──> Add ──> z    (z.grad_fn = Add, next_edges=[y1.grad_fn, y2.grad_fn])
+    ```
 
-注意三件事：
+    注意三件事：
 
-1. **叶子节点 `x` 没有自己的 `grad_fn`**，但反向时仍要接收梯度——这就是 `AccumulateGrad` 存在的理由。
-2. **同一个 `x` 被用了两次**，所以图里有两个 `AccumulateGrad(x)` 实例，反向时它们的梯度会被**累加**到同一个 `x.grad`。
-3. **`z` 是输出**，它的 `grad_fn` 是整张图的入口，反向引擎从这里开始走。
+    1. **叶子节点 `x` 没有自己的 `grad_fn`**，但反向时仍要接收梯度——这就是 `AccumulateGrad` 存在的理由。
+    2. **同一个 `x` 被用了两次**，所以图里有两个 `AccumulateGrad(x)` 实例，反向时它们的梯度会被**累加**到同一个 `x.grad`。
+    3. **`z` 是输出**，它的 `grad_fn` 是整张图的入口，反向引擎从这里开始走。
 
 ### 2.2.5 类比：快递面单
 
@@ -234,8 +234,8 @@ c = a + b             # 前向：b 被广播成 (3, 4)
 2. **大小为 1 的维度**：前向把 `1` 扩成 `3`，反向沿这个维度 `sum(keepdim=True)` 还原成 `1`。
 
 !!! warning "易错点"
-`_reduce_grad` 只处理"前向广播过的维度"。如果 `grad` 和 `shape` 完全一致，
-函数原样返回，不会有任何副作用。所以**每个二元算子的反向都无脑调一次**是安全的。
+    `_reduce_grad` 只处理"前向广播过的维度"。如果 `grad` 和 `shape` 完全一致，
+    函数原样返回，不会有任何副作用。所以**每个二元算子的反向都无脑调一次**是安全的。
 
 ### 2.4.5 `Function` 基类与 `apply`
 
@@ -642,12 +642,12 @@ with no_grad():
 | `ctx.meta` dict               | `ctx.meta()` / 直接挂属性                           | PyTorch 允许任意属性，minitorch 集中到一个 dict                          |
 
 !!! tip "关键差异详解"
-PyTorch 的分发是**多层的**：一个 `torch::add` 调用会先走 `Autograd` key（建图），
-再走 `CPU` key（数值）。minitorch 把这两层硬编码进了 `apply`（建图）和 `_add`（数值），
-没有显式的 Autograd dispatch key。这种"两层硬编码"在教学上更清晰，
-但牺牲了 PyTorch 分发系统的可扩展性（如 functorch 的 vmap 就靠插入新 dispatch key 实现）。
+    PyTorch 的分发是**多层的**：一个 `torch::add` 调用会先走 `Autograd` key（建图），
+    再走 `CPU` key（数值）。minitorch 把这两层硬编码进了 `apply`（建图）和 `_add`（数值），
+    没有显式的 Autograd dispatch key。这种"两层硬编码"在教学上更清晰，
+    但牺牲了 PyTorch 分发系统的可扩展性（如 functorch 的 vmap 就靠插入新 dispatch key 实现）。
 
----
+    ---
 
 ## 2.8 历史背景
 

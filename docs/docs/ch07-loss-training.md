@@ -130,7 +130,7 @@ loss = NLLLoss(log_probs, target) # -mean(log_probs[target])
 `NLLLoss`（Negative Log Likelihood）只是取 `log_probs[target]` 取负求均值，不涉及 exp，不会溢出。
 
 !!! tip "拆分的教学价值"
-拆开不是为了性能，是为了**暴露数值稳定技巧**。学生能看到 `LogSoftmax` 里减 max 的代码，理解为什么。如果合成一个 `cross_entropy` 黑盒，技巧藏在内部，教学不友好。PyTorch 也这样拆，`F.cross_entropy` 内部调 `log_softmax` + `nll_loss`。
+    拆开不是为了性能，是为了**暴露数值稳定技巧**。学生能看到 `LogSoftmax` 里减 max 的代码，理解为什么。如果合成一个 `cross_entropy` 黑盒，技巧藏在内部，教学不友好。PyTorch 也这样拆，`F.cross_entropy` 内部调 `log_softmax` + `nll_loss`。
 
 ### 7.2.6 LogSoftmax 的 backward
 
@@ -388,7 +388,7 @@ class LogSoftmax(Function):
 - **⑥ `grad_x = g - softmax * sum(g)`**：LogSoftmax 的 backward 公式（见 7.2.6）。
 
 !!! warning "为什么不直接 `np.log(np.sum(np.exp(arr)))`？"
-如果 `arr = [1000, 1001, 1002]`，`np.exp(1000)` = inf，`sum` = inf，`log(inf)` = inf。结果全是 inf 或 nan。减 max 后 `arr - max = [-2, -1, 0]`，`exp` 都在 `[exp(-2), 1]`，安全。
+    如果 `arr = [1000, 1001, 1002]`，`np.exp(1000)` = inf，`sum` = inf，`log(inf)` = inf。结果全是 inf 或 nan。减 max 后 `arr - max = [-2, -1, 0]`，`exp` 都在 `[exp(-2), 1]`，安全。
 
 ### 7.4.3 `functional.py`：Softmax
 
@@ -495,10 +495,10 @@ def mse_loss(pred: Tensor, target: Tensor) -> Tensor:
 - **`mse_loss`**：用现有算子 `-`、`**2`、`.mean()` 组合。无需自定义 backward，autograd 自动推。这是"用现有算子组合"的风格，与 `Relu`（自定义 backward）对比。
 
 !!! tip "两种实现损失的风格"
-- **自定义 backward**（`NLLLoss`、`LogSoftmax`）：手写 forward 和 backward。性能好，但要小心 backward 公式正确。
-- **组合现有算子**（`mse_loss`）：用 `+`、`-`、`*`、`**`、`.mean()` 等。无需写 backward，autograd 自动。但建图节点多，性能略差。
+    - **自定义 backward**（`NLLLoss`、`LogSoftmax`）：手写 forward 和 backward。性能好，但要小心 backward 公式正确。
+    - **组合现有算子**（`mse_loss`）：用 `+`、`-`、`*`、`**`、`.mean()` 等。无需写 backward，autograd 自动。但建图节点多，性能略差。
 
-minitorch 的 `mse_loss` 用组合，`cross_entropy` 用自定义（因为 log_softmax 的数值稳定要手动处理）。
+    minitorch 的 `mse_loss` 用组合，`cross_entropy` 用自定义（因为 log_softmax 的数值稳定要手动处理）。
 
 ### 7.4.6 `loss.py`：Module 包装
 
@@ -523,9 +523,9 @@ class CrossEntropyLoss(Module):
 - **无 `__init__`**：不需要，继承 `Module.__init__` 即可（但 `Module.__init__` 不会自动调，所以严格说应该加 `def __init__(self): super().__init__()`。minitorch 这里省略了，依赖 `Module.__init__` 在首次 `__setattr__` 时 `setdefault` 建空字典——能跑但不严谨）。
 
 !!! warning "严格说应该调 super().__init__()"
-`MSELoss()` 没调 `super().__init__()`，`_parameters` 等不存在。但因为 `MSELoss` 不注册任何参数/子模块，且 `__getattr__` 用 `.get(..., {})` 防御了缺失，所以能跑。如果调 `crit.parameters()` 会触发 `__getattr__("_parameters")` 返回 `{}`，`yield from {}` 不 yield，正常。但这是脆弱的，建议加 `super().__init__()`。
+    `MSELoss()` 没调 `super().__init__()`，`_parameters` 等不存在。但因为 `MSELoss` 不注册任何参数/子模块，且 `__getattr__` 用 `.get(..., {})` 防御了缺失，所以能跑。如果调 `crit.parameters()` 会触发 `__getattr__("_parameters")` 返回 `{}`，`yield from {}` 不 yield，正常。但这是脆弱的，建议加 `super().__init__()`。
 
----
+    ---
 
 ## 7.5 完整示例
 
