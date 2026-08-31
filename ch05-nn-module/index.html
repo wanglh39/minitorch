@@ -1,0 +1,4196 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="从零实现迷你版 PyTorch，学习底层原理与设计原则">
+      
+      
+        <meta name="author" content="minitorch contributor">
+      
+      
+      
+        <link rel="prev" href="../ch04-computation-graph/">
+      
+      
+        <link rel="next" href="../ch06-optimizer/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Ch5 nn.Module 体系 - minitorch</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#nnmodule" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="minitorch" class="md-header__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            minitorch
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ch5 nn.Module 体系
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../ch01-tensor-storage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段一·纯 Python
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ch08-cpp-core/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段二·C++ 核心
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../appendix/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  附录
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../differences/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  与真实 PyTorch 的差异
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="minitorch" class="md-nav__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    minitorch
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段一·纯 Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段一·纯 Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch01-tensor-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch1 张量与存储
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch02-ops-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch2 算子与分发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch03-autograd-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch3 自动微分引擎
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch04-computation-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch4 计算图机制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch5 nn.Module 体系
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch5 nn.Module 体系
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 原理铺垫：从一个朴素的需求说起
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.2 原理铺垫：从一个朴素的需求说起">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#521" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.1 朴素写法的问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#522" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.2 核心思路：拦截赋值，自动注册
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#523-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.3 Python 属性访问机制回顾
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#524-mromethod-resolution-order-super" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.4 MRO（Method Resolution Order）与 super()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#525" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.5 三大注册表的职责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#526" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.6 递归遍历：为什么用生成器
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#527-traineval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.7 train/eval 的递归传播
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#528-sequential-vs-modulelist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.8 容器：Sequential vs ModuleList
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#529-hooks-forward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.9 hooks：在 forward 前后插入逻辑
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 设计决策与权衡
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 代码逐行实现
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.4 代码逐行实现">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#541-parameterpyparameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.1 parameter.py：Parameter 类
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#542-modulepy__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.2 module.py：__init__
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#543-modulepy__setattr__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.3 module.py：__setattr__ 拦截
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#544-modulepy__getattr__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.4 module.py：__getattr__ 反查
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#545-modulepy__call__-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.5 module.py：__call__ 与 hooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#546-modulepy-parameters-named_parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.6 module.py：递归 parameters() 与 named_parameters()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#547-modulepystate_dict-load_state_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.7 module.py：state_dict 与 load_state_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#548-modulepytrain-eval-zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.8 module.py：train / eval / zero_grad
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#549-modulepyhooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.9 module.py：hooks 注册
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5410-containerspysequential-modulelist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.10 containers.py：Sequential 与 ModuleList
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5411-linearpylinear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.11 linear.py：Linear 层
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5412-modulepy__repr__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.12 module.py：__repr__ 调试输出
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5413-modulepyregister_parameter-register_buffer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.13 module.py：register_parameter 与 register_buffer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5414" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.14 三大注册表的对比总结
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#55" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 完整示例
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.5 完整示例">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#551-mlp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.1 定义并使用一个 MLP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#552" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.2 查看注册表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#553" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.3 递归收集参数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#554-state_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.4 state_dict 保存与加载
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#555-traineval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.5 train/eval 切换
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#556-sequential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.6 Sequential 拼装
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#557-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.7 hooks 调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#558-mlp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.8 端到端：训练一个 MLP 回归（与第七章呼应）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 常见陷阱
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.6 常见陷阱">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-super__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 1：忘记调 super().__init__()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-tensor-parameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 2：把 Tensor 当 Parameter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-__getattr__-selfxxx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 3：在 __getattr__ 里访问 self.xxx
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-forward-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 4：直接调 forward 绕过 hooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 5：parameters() 是生成器，只能迭代一次
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6sequential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 6：Sequential 不能用名字索引
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7biasnone-selfbias-none-__dict__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 7：bias=None 后 self.bias 是 None 但在 __dict__ 里
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8lambda-hook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 8：lambda hook 重复注册
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#57-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.7 与真实 PyTorch 对照">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#571-modulelistforward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7.1 关键差异详解：ModuleList.forward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#572-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7.2 关键差异详解：hooks 的移除
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#58" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 历史背景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.8 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#581-pytorch-lua-torch-nnmodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.1 PyTorch 之前：Lua Torch 的 nn.Module
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#582-pytorch-01__setattr__-trick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.2 PyTorch 0.1：__setattr__ trick 的引入
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#583-zero_grad-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.3 zero_grad 从零张量到 None 的演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#584-modulelist-vs-sequential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.4 ModuleList vs Sequential 的分化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#585-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.5 hooks 的演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#59" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.9 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-moduledict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 1：实现 ModuleDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-__setattr__-self__dict__setdefault-self_parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 2：为什么 __setattr__ 里用 self.__dict__.setdefault 而非 self._parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-applyfn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 3：实现 apply(fn) 递归对子模块调函数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4state_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 4：state_dict 为什么不存模块结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 5：hooks 的执行顺序
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#510" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.10 关键测试解读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.10 关键测试解读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test_parameter_requires_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_parameter_requires_grad
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_module_setattr_register" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_module_setattr_register
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_nested_parameters_recursive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_nested_parameters_recursive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_named_parameters_prefix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_named_parameters_prefix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_state_dict_roundtrip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_state_dict_roundtrip
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_train_eval_propagates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_train_eval_propagates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_forward_hook_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_forward_hook_order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_zero_grad
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_linear_backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_linear_backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#511" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.11 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.11 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        劣势
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#512" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.12 下一章预告
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch06-optimizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch6 优化器系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch07-loss-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch7 损失与训练循环
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch11-dataloader/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch11 数据加载与采样
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch12-serialization-amp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch12 持久化与混合精度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch13-fx-compile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch13 图与编译导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段二·C++ 核心
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段二·C++ 核心
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch08-cpp-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch8 C++ 核心重写
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch09-cpp-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch9 C++ 高级特性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch10-cuda-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch10 CUDA 与 dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../appendix/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    附录
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a1-distributed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A1 分布式训练
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a2-quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A2 量化导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a3-torchscript-onnx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A3 TorchScript 与 ONNX
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a4-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A4 profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a5-dispatch-key/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A5 dispatch key 链
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a6-c-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A6 CPython C-API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../differences/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    与真实 PyTorch 的差异
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 原理铺垫：从一个朴素的需求说起
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.2 原理铺垫：从一个朴素的需求说起">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#521" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.1 朴素写法的问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#522" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.2 核心思路：拦截赋值，自动注册
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#523-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.3 Python 属性访问机制回顾
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#524-mromethod-resolution-order-super" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.4 MRO（Method Resolution Order）与 super()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#525" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.5 三大注册表的职责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#526" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.6 递归遍历：为什么用生成器
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#527-traineval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.7 train/eval 的递归传播
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#528-sequential-vs-modulelist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.8 容器：Sequential vs ModuleList
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#529-hooks-forward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.9 hooks：在 forward 前后插入逻辑
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 设计决策与权衡
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 代码逐行实现
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.4 代码逐行实现">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#541-parameterpyparameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.1 parameter.py：Parameter 类
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#542-modulepy__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.2 module.py：__init__
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#543-modulepy__setattr__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.3 module.py：__setattr__ 拦截
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#544-modulepy__getattr__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.4 module.py：__getattr__ 反查
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#545-modulepy__call__-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.5 module.py：__call__ 与 hooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#546-modulepy-parameters-named_parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.6 module.py：递归 parameters() 与 named_parameters()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#547-modulepystate_dict-load_state_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.7 module.py：state_dict 与 load_state_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#548-modulepytrain-eval-zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.8 module.py：train / eval / zero_grad
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#549-modulepyhooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.9 module.py：hooks 注册
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5410-containerspysequential-modulelist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.10 containers.py：Sequential 与 ModuleList
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5411-linearpylinear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.11 linear.py：Linear 层
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5412-modulepy__repr__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.12 module.py：__repr__ 调试输出
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5413-modulepyregister_parameter-register_buffer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.13 module.py：register_parameter 与 register_buffer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5414" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.14 三大注册表的对比总结
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#55" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 完整示例
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.5 完整示例">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#551-mlp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.1 定义并使用一个 MLP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#552" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.2 查看注册表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#553" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.3 递归收集参数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#554-state_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.4 state_dict 保存与加载
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#555-traineval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.5 train/eval 切换
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#556-sequential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.6 Sequential 拼装
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#557-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.7 hooks 调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#558-mlp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5.8 端到端：训练一个 MLP 回归（与第七章呼应）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 常见陷阱
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.6 常见陷阱">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-super__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 1：忘记调 super().__init__()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-tensor-parameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 2：把 Tensor 当 Parameter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-__getattr__-selfxxx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 3：在 __getattr__ 里访问 self.xxx
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-forward-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 4：直接调 forward 绕过 hooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 5：parameters() 是生成器，只能迭代一次
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6sequential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 6：Sequential 不能用名字索引
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7biasnone-selfbias-none-__dict__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 7：bias=None 后 self.bias 是 None 但在 __dict__ 里
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8lambda-hook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 8：lambda hook 重复注册
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#57-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.7 与真实 PyTorch 对照">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#571-modulelistforward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7.1 关键差异详解：ModuleList.forward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#572-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7.2 关键差异详解：hooks 的移除
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#58" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 历史背景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.8 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#581-pytorch-lua-torch-nnmodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.1 PyTorch 之前：Lua Torch 的 nn.Module
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#582-pytorch-01__setattr__-trick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.2 PyTorch 0.1：__setattr__ trick 的引入
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#583-zero_grad-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.3 zero_grad 从零张量到 None 的演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#584-modulelist-vs-sequential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.4 ModuleList vs Sequential 的分化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#585-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.5 hooks 的演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#59" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.9 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-moduledict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 1：实现 ModuleDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-__setattr__-self__dict__setdefault-self_parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 2：为什么 __setattr__ 里用 self.__dict__.setdefault 而非 self._parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-applyfn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 3：实现 apply(fn) 递归对子模块调函数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4state_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 4：state_dict 为什么不存模块结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 5：hooks 的执行顺序
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#510" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.10 关键测试解读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.10 关键测试解读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test_parameter_requires_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_parameter_requires_grad
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_module_setattr_register" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_module_setattr_register
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_nested_parameters_recursive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_nested_parameters_recursive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_named_parameters_prefix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_named_parameters_prefix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_state_dict_roundtrip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_state_dict_roundtrip
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_train_eval_propagates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_train_eval_propagates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_forward_hook_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_forward_hook_order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_zero_grad
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_linear_backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_linear_backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#511" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.11 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.11 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        劣势
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#512" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.12 下一章预告
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="nnmodule">第五章 nn.Module 体系：参数注册、递归遍历与容器设计<a class="headerlink" href="#nnmodule" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>前四章我们解决了"张量怎么存"、"算子怎么分发"、"自动微分怎么算"、"计算图怎么管"。
+但一个真正的神经网络有几十上百个参数，靠用户手写 <code>w1, b1, w2, b2, ...</code> 管理是不现实的。
+本章讲 minitorch 怎么用 <code>nn.Module</code> 这一个基类，通过 <code>__setattr__</code> 拦截、三大注册表、
+递归遍历，把"一堆参数"组织成"一个可训练的整体"。这是 PyTorch 最具工程美感的设计之一。</p>
+</blockquote>
+<hr />
+<h2 id="51">5.1 本章目标<a class="headerlink" href="#51" title="Permanent link">&para;</a></h2>
+<p>读完本章后，你应当能够：</p>
+<ol>
+<li>解释 <code>Module.__setattr__</code> 为什么能在你写 <code>self.weight = Parameter(...)</code> 时自动把参数注册到 <code>_parameters</code> 字典，而普通赋值走 <code>object.__setattr__</code>。</li>
+<li>画出 <code>__getattr__</code> 的查找顺序：<code>__dict__</code> → <code>_parameters</code> → <code>_modules</code> → <code>_buffers</code> → 抛 <code>AttributeError</code>，并说明为什么 <code>__getattr__</code> 只在正常查找失败时才被调用。</li>
+<li>区分 <code>_parameters</code>、<code>_modules</code>、<code>_buffers</code> 三大注册表的用途，说出 <code>BatchNorm</code> 的 <code>running_mean</code> 应该放进哪一个。</li>
+<li>手写一个递归 <code>parameters()</code> 生成器，正确处理嵌套子模块，并解释为什么用 <code>yield from</code> 而不是 <code>return list</code>。</li>
+<li>描述 <code>state_dict()</code> 的键命名规则（<code>fc1.weight</code>、<code>fc1.fc2.bias</code>），并实现一个 <code>load_state_dict</code> 把外部权重灌回模型。</li>
+<li>解释 <code>train()</code> / <code>eval()</code> 为什么必须递归调用子模块，以及 <code>Dropout</code> 和 <code>BatchNorm</code> 为什么依赖 <code>self.training</code> 标志。</li>
+<li>用 <code>Sequential</code> 和 <code>ModuleList</code> 拼出一个多层感知机，并说出两者在 <code>forward</code> 上的差别。</li>
+<li>写一个 <code>register_forward_hook</code>，在 <code>Linear</code> 前向前后插入打印逻辑，理解 hook 是调试和可视化（如 activation hook）的基础。</li>
+</ol>
+<hr />
+<h2 id="52">5.2 原理铺垫：从一个朴素的需求说起<a class="headerlink" href="#52" title="Permanent link">&para;</a></h2>
+<h3 id="521">5.2.1 朴素写法的问题<a class="headerlink" href="#521" title="Permanent link">&para;</a></h3>
+<p>假设没有 <code>nn.Module</code>，你要写一个两层 MLP：</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MLP</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">b1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">h</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">w2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">b2</span>
+</code></pre></div>
+<p>看起来没问题。但现在你要：</p>
+<ul>
+<li><strong>收集所有参数交给优化器</strong>：得手写 <code>params = [self.w1, self.b1, self.w2, self.b2]</code>，每加一层就改一次。</li>
+<li><strong>保存模型</strong>：得手写 <code>{"w1": self.w1, "b1": self.b1, ...}</code>，键名容易写错。</li>
+<li><strong>加载模型</strong>：得反向一个个赋值。</li>
+<li><strong>切换 train/eval</strong>：如果有 <code>Dropout</code>，得给每个子层单独调 <code>dropout.train()</code>。</li>
+<li><strong>嵌套</strong>：如果 <code>MLP</code> 里套一个 <code>Block</code>，<code>Block</code> 里又套 <code>Linear</code>，参数收集要递归。</li>
+</ul>
+<p>这些都是<strong>机械重复</strong>的工作。<code>nn.Module</code> 的目标就是把这些自动化。</p>
+<h3 id="522">5.2.2 核心思路：拦截赋值，自动注册<a class="headerlink" href="#522" title="Permanent link">&para;</a></h3>
+<p>Python 对象的属性都存在 <code>self.__dict__</code> 里。<code>nn.Module</code> 的核心 trick 是：</p>
+<blockquote>
+<p><strong>重写 <code>__setattr__</code>，在赋值时判断值的类型，如果是 <code>Parameter</code> 就塞进 <code>_parameters</code> 字典，如果是 <code>Module</code> 就塞进 <code>_modules</code> 字典，否则走默认行为。</strong></p>
+</blockquote>
+<p>这样用户写 <code>self.weight = Parameter(...)</code> 时，<code>weight</code> 不会进 <code>self.__dict__</code>，而是进 <code>self._parameters["weight"]</code>。读取时再靠 <code>__getattr__</code> 从 <code>_parameters</code> 取出来。</p>
+<p>为什么不让参数直接进 <code>__dict__</code>？因为要<strong>区分类型</strong>：</p>
+<ul>
+<li><code>Parameter</code>：要被优化器收集、要进 <code>state_dict</code>、要算梯度。</li>
+<li><code>Module</code>：要递归遍历其参数、要递归切 train/eval。</li>
+<li>普通属性（如 <code>self.training</code>）：什么都不做。</li>
+</ul>
+<p>如果全塞 <code>__dict__</code>，就没法区分，得在每次遍历时 <code>isinstance</code> 判断全量扫描——慢且易错。</p>
+<h3 id="523-python">5.2.3 Python 属性访问机制回顾<a class="headerlink" href="#523-python" title="Permanent link">&para;</a></h3>
+<p>要理解这套 trick，必须先搞清楚 Python 的属性访问协议：</p>
+<div class="highlight"><pre><span></span><code>读取 self.name：
+  1. 先查 type(self).__dict__ 里的数据描述符（有 __get__ 和 __set__）
+  2. 再查 self.__dict__（实例字典）
+  3. 再查 type(self).__dict__ 里的非数据描述符/普通类属性
+  4. 都没找到 → 调用 __getattr__(name)（如果定义了）
+
+写入 self.name = value：
+  1. 先查 type(self).__dict__ 里的数据描述符（有 __set__）
+  2. 否则直接写 self.__dict__[name] = value
+  3. 但如果重写了 __setattr__，则全部走 __setattr__
+</code></pre></div>
+<p>关键点：</p>
+<div class="admonition tip">
+<p class="admonition-title"><code>__getattr__</code> vs <code>__getattribute__</code></p>
+</div>
+<ul>
+<li><code>__getattribute__</code>：<strong>每次</strong>属性访问都调用，性能开销大，容易递归爆栈。</li>
+<li><code>__getattr__</code>：<strong>只在正常查找失败时</strong>才调用，安全且高效。</li>
+</ul>
+<p>minitorch 用 <code>__getattr__</code>。所以 <code>self.training</code> 这种在 <code>__dict__</code> 里的属性，<strong>不会</strong>触发 <code>__getattr__</code>，直接走快速路径。只有 <code>self.weight</code>（不在 <code>__dict__</code>，在 <code>_parameters</code>）才会触发 <code>__getattr__</code>。</p>
+<h3 id="524-mromethod-resolution-order-super">5.2.4 MRO（Method Resolution Order）与 <code>super()</code><a class="headerlink" href="#524-mromethod-resolution-order-super" title="Permanent link">&para;</a></h3>
+<p><code>Module.__setattr__</code> 里有一行 <code>super().__setattr__(name, value)</code>。这里的 <code>super()</code> 在 Python 3 里是动态的，等价于：</p>
+<div class="highlight"><pre><span></span><code><span class="nb">super</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+<p>但实际更精确：它按 <strong>MRO</strong>（方法解析顺序）找到当前类的下一个类。对于 <code>Module</code> 单继承：</p>
+<div class="highlight"><pre><span></span><code>Module → object
+</code></pre></div>
+<p>所以 <code>super().__setattr__</code> 就是 <code>object.__setattr__</code>，即默认行为：写 <code>self.__dict__[name] = value</code>。</p>
+<p>MRO 在多继承时才复杂（C3 线性化）。minitorch 的 <code>Module</code> 是单继承，MRO 就是 <code>[Module, object]</code>。但理解 MRO 对后续读 PyTorch 源码（<code>Linear(Module)</code>、<code>BatchNorm(_NormBase)</code>、<code>_NormBase(Module)</code>）有帮助。</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Module</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">):</span>
+            <span class="o">...</span>  <span class="c1"># 进 _parameters</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Module</span><span class="p">):</span>
+            <span class="o">...</span>  <span class="c1"># 进 _modules</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>  <span class="c1"># ← 走 object.__setattr__，进 __dict__</span>
+</code></pre></div>
+<h3 id="525">5.2.5 三大注册表的职责<a class="headerlink" href="#525" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>self._parameters: dict[str, Parameter]   # 可学习参数（weight、bias）
+self._modules:    dict[str, Module]      # 子模块（fc1、fc2、layer1）
+self._buffers:    dict[str, Tensor]      # 不可学习但需保存的状态（running_mean、running_var）
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>注册表</th>
+<th>谁进去</th>
+<th>进 state_dict</th>
+<th>进 parameters()</th>
+<th>requires_grad</th>
+<th>典型例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_parameters</code></td>
+<td><code>Parameter</code> 实例</td>
+<td>是</td>
+<td>是</td>
+<td>通常 True</td>
+<td><code>Linear.weight</code></td>
+</tr>
+<tr>
+<td><code>_modules</code></td>
+<td><code>Module</code> 实例</td>
+<td>递归子模块</td>
+<td>递归子模块</td>
+<td>-</td>
+<td><code>MLP.fc1</code></td>
+</tr>
+<tr>
+<td><code>_buffers</code></td>
+<td><code>Tensor</code>（手动 register）</td>
+<td>是</td>
+<td>否</td>
+<td>通常 False</td>
+<td><code>BatchNorm.running_mean</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>_buffers</code> 在 minitorch 里只声明了字典和 <code>register_buffer</code> 接口，本章末尾会讨论它的设计。<code>BatchNorm</code> 的完整实现留到后续章节。</p>
+<h3 id="526">5.2.6 递归遍历：为什么用生成器<a class="headerlink" href="#526" title="Permanent link">&para;</a></h3>
+<p><code>parameters()</code> 要收集所有嵌套子模块的参数。两种写法：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 写法 A：列表</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+<span class="c1"># 写法 B：生成器（minitorch 采用）</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">yield from</span> <span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+</code></pre></div>
+<p>生成器的优势：</p>
+<ol>
+<li><strong>惰性</strong>：不一次性物化整个列表。大模型参数几亿个，列表本身也是内存。</li>
+<li><strong>可组合</strong>：<code>yield from</code> 自然处理嵌套递归，代码简洁。</li>
+<li><strong>语义清晰</strong>：<code>parameters()</code> 返回的是"迭代器"，暗示"遍历一次就完"，符合 PyTorch 习惯。</li>
+</ol>
+<p>代价：生成器只能迭代一次。如果用户要多次遍历，得 <code>list(model.parameters())</code>。PyTorch 也是这样。</p>
+<h3 id="527-traineval">5.2.7 train/eval 的递归传播<a class="headerlink" href="#527-traineval" title="Permanent link">&para;</a></h3>
+<p>很多层的行为依赖模式：</p>
+<ul>
+<li><code>Dropout</code>：train 时随机置零，eval 时恒等。</li>
+<li><code>BatchNorm</code>：train 时用 batch 统计并更新 running_mean，eval 时用 running_mean。</li>
+<li><code>Linear</code>：不依赖模式，但仍要递归（因为可能套在 <code>Sequential</code> 里）。</li>
+</ul>
+<p>所以 <code>train()</code> 必须递归：</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="o">=</span> <span class="n">mode</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>   <span class="c1"># ← 递归</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+<p>返回 <code>self</code> 是为了链式调用：<code>model.train().to(device)</code>（虽然 minitorch 没有 <code>.to</code>）。</p>
+<h3 id="528-sequential-vs-modulelist">5.2.8 容器：Sequential vs ModuleList<a class="headerlink" href="#528-sequential-vs-modulelist" title="Permanent link">&para;</a></h3>
+<p><code>Sequential</code>：按顺序执行，前一个的输出是后一个的输入。</p>
+<div class="highlight"><pre><span></span><code><span class="n">net</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">ReLU</span><span class="p">(),</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">net</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c1"># 等价于 Linear(8,2)(ReLU()(Linear(4,8)(x)))</span>
+</code></pre></div>
+<p><code>ModuleList</code>：只是把一组模块存起来，<strong>不</strong>自动 forward。用户自己决定怎么调。</p>
+<div class="highlight"><pre><span></span><code><span class="n">layers</span> <span class="o">=</span> <span class="n">ModuleList</span><span class="p">([</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">)])</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">x</span><span class="p">))</span>   <span class="c1"># 用户自己写执行顺序</span>
+</code></pre></div>
+<p>两者的 <code>__init__</code> 都用 <code>setattr(self, str(i), m)</code> 把模块注册成 <code>"0"</code>、<code>"1"</code>、<code>"2"</code>... 这样的属性名。这样 <code>__setattr__</code> 会自动把它们塞进 <code>_modules</code>，参数收集就能递归到。</p>
+<h3 id="529-hooks-forward">5.2.9 hooks：在 forward 前后插入逻辑<a class="headerlink" href="#529-hooks-forward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">m</span><span class="o">.</span><span class="n">register_forward_pre_hook</span><span class="p">(</span><span class="k">lambda</span> <span class="n">mod</span><span class="p">,</span> <span class="n">inp</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">"before"</span><span class="p">,</span> <span class="n">inp</span><span class="p">))</span>
+<span class="n">m</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span><span class="k">lambda</span> <span class="n">mod</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">"after"</span><span class="p">,</span> <span class="n">out</span><span class="p">))</span>
+<span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="c1"># 输出：</span>
+<span class="c1"># before (x,)</span>
+<span class="c1"># after &lt;forward 结果&gt;</span>
+</code></pre></div>
+<p>hooks 存在 <code>_forward_pre_hooks</code> 和 <code>_forward_hooks</code> 字典里，键是 <code>id(hook)</code>（避免重复注册同一个函数）。<code>__call__</code> 在调 <code>forward</code> 前后遍历这些字典调一遍。</p>
+<p>hooks 的用途：</p>
+<ul>
+<li><strong>调试</strong>：打印每层输入输出形状。</li>
+<li><strong>可视化</strong>：取中间激活做特征图可视化。</li>
+<li><strong>梯度剪裁</strong>：在 backward hook 里剪裁梯度（minitorch 暂未实现 backward hook）。</li>
+<li><strong>forward hook 写 feature</strong>：CNN 可视化里取某一层输出。</li>
+</ul>
+<hr />
+<h2 id="53">5.3 设计决策与权衡<a class="headerlink" href="#53" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>决策</th>
+<th>选择</th>
+<th>理由</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>拦截赋值的方式</td>
+<td>重写 <code>__setattr__</code></td>
+<td>用户写法最自然：<code>self.w = Parameter(...)</code></td>
+<td>所有赋值都过 <code>__setattr__</code>，有微小开销</td>
+</tr>
+<tr>
+<td>区分参数/模块/普通属性</td>
+<td><code>isinstance</code> 判断</td>
+<td>类型即语义，无需额外标记</td>
+<td><code>Parameter</code> 必须显式包装，不能直接传 Tensor</td>
+</tr>
+<tr>
+<td>注册表数据结构</td>
+<td>三个 <code>dict</code></td>
+<td>O(1) 查找，键名即属性名</td>
+<td>三个 dict 占内存（但相对参数本身可忽略）</td>
+</tr>
+<tr>
+<td><code>__getattr__</code> 而非 <code>__getattribute__</code></td>
+<td>只在查找失败时触发</td>
+<td>不影响 <code>self.training</code> 等快速路径</td>
+<td>需保证 <code>_parameters</code> 等本身在 <code>__dict__</code> 里</td>
+</tr>
+<tr>
+<td><code>parameters()</code> 返回类型</td>
+<td>生成器</td>
+<td>惰性、省内存、可递归</td>
+<td>只能迭代一次，多次用要 <code>list()</code></td>
+</tr>
+<tr>
+<td><code>state_dict</code> 键命名</td>
+<td><code>prefix + name</code>，递归加 <code>.</code></td>
+<td>唯一且可读，匹配 PyTorch</td>
+<td>嵌套深时键名长（<code>block1.layer3.fc2.weight</code>）</td>
+</tr>
+<tr>
+<td><code>train()</code> 返回值</td>
+<td>返回 <code>self</code></td>
+<td>支持链式 <code>model.train().to(device)</code></td>
+<td>容易误以为返回新对象，实际是 in-place</td>
+</tr>
+<tr>
+<td><code>Sequential</code> 模块命名</td>
+<td>用 <code>str(i)</code>（"0"、"1"）</td>
+<td>简单、有序</td>
+<td>不能用名字索引（PyTorch 也这样，要 <code>OrderedDict</code>）</td>
+</tr>
+<tr>
+<td>hooks 的 key</td>
+<td><code>id(hook)</code></td>
+<td>同一函数不重复注册</td>
+<td>lambda 每次新建 id 不同，会重复注册</td>
+</tr>
+<tr>
+<td><code>__call__</code> 调 <code>forward</code></td>
+<td>不直接调 <code>forward</code>，走 <code>__call__</code></td>
+<td>hooks 只在 <code>__call__</code> 里</td>
+<td>直接 <code>model.forward(x)</code> 会绕过 hooks</td>
+</tr>
+<tr>
+<td><code>_buffers</code> 是否自动注册</td>
+<td>手动 <code>register_buffer</code></td>
+<td>区分普通 Tensor 和 buffer</td>
+<td>用户要记得调 <code>register_buffer</code></td>
+</tr>
+<tr>
+<td><code>__repr__</code> 实现</td>
+<td>列出参数和子模块</td>
+<td>调试友好</td>
+<td>大模型 repr 很长</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="54">5.4 代码逐行实现<a class="headerlink" href="#54" title="Permanent link">&para;</a></h2>
+<h3 id="541-parameterpyparameter">5.4.1 <code>parameter.py</code>：Parameter 类<a class="headerlink" href="#541-parameterpyparameter" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Parameter</span><span class="p">(</span><span class="n">Tensor</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">requires_grad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">):</span>
+            <span class="c1"># 已经是 Tensor：复用其 storage/shape/strides，强制 requires_grad=True</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">storage</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">strides</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">storage_offset</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 是 list/ndarray：先转 ndarray，再建 Storage</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">storage</span> <span class="o">=</span> <span class="n">Storage</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+                <span class="n">storage</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">_compute_contiguous_strides</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="n">requires_grad</span>   <span class="c1"># ← 允许用户传 False 冻结参数</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>class Parameter(Tensor)</code></strong>：继承 Tensor，所以 <code>Parameter</code> 既能参与所有张量运算，又能被 <code>isinstance</code> 识别。</li>
+<li><strong><code>if isinstance(data, Tensor)</code></strong>：支持两种构造方式：<code>Parameter(some_tensor)</code> 或 <code>Parameter([[1,2],[3,4]])</code>。前者复用底层 Storage（零拷贝），后者新建。</li>
+<li><strong><code>requires_grad=True</code> 默认</strong>：参数默认要算梯度。这与普通 Tensor 默认 <code>False</code> 形成对比——这是 <code>Parameter</code> 存在的核心意义。</li>
+<li><strong><code>_compute_contiguous_strides</code></strong>：从 shape 算出连续布局的 strides，详见第一章。</li>
+<li><strong>最后一行 <code>self.requires_grad = requires_grad</code></strong>：允许 <code>Parameter(data, requires_grad=False)</code> 冻结参数（迁移学习常用）。</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">为什么不直接用 Tensor？</p>
+</div>
+<p>如果直接 <code>self.weight = Tensor(...)</code>，<code>__setattr__</code> 不会把它放进 <code>_parameters</code>（因为不是 <code>Parameter</code> 实例），优化器就收集不到。<code>Parameter</code> 的<strong>类型本身</strong>就是信号。这是"类型即语义"的典型应用。</p>
+<h3 id="542-modulepy__init__">5.4.2 <code>module.py</code>：<code>__init__</code><a class="headerlink" href="#542-modulepy__init__" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Module</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>   <span class="c1"># ① 参数注册表</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>         <span class="c1"># ② 子模块注册表</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>         <span class="c1"># ③ 状态注册表</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>                    <span class="c1"># ④ train/eval 标志</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_forward_pre_hooks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># ⑤ 前 hook</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_forward_hooks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>      <span class="c1"># ⑥ 后 hook</span>
+</code></pre></div>
+<p>注意一个微妙点：这些赋值<strong>会触发 <code>__setattr__</code></strong>。但此时 <code>_parameters</code> 等还不存在（<code>__dict__</code> 里没有），所以 <code>__setattr__</code> 里的 <code>isinstance(value, Parameter)</code> 判断：<code>{}</code> 不是 <code>Parameter</code>，不是 <code>Module</code>，走 <code>super().__setattr__</code>，正常写进 <code>__dict__</code>。<strong>初始化顺序很重要</strong>：必须先建 <code>_parameters</code> 等空字典，后续赋值才能往里塞。</p>
+<p>如果反过来先 <code>self.weight = Parameter(...)</code>，此时 <code>__setattr__</code> 里 <code>self.__dict__.setdefault("_parameters", {})</code> 会自动建一个空字典再塞——所以 <code>setdefault</code> 的设计就是为了应对这种顺序问题。这是 PyTorch 源码里也有的防御性写法。</p>
+<h3 id="543-modulepy__setattr__">5.4.3 <code>module.py</code>：<code>__setattr__</code> 拦截<a class="headerlink" href="#543-modulepy__setattr__" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">):</span>
+        <span class="c1"># 是参数 → 塞 _parameters，不进 __dict__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"_parameters"</span><span class="p">,</span> <span class="p">{})[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Module</span><span class="p">):</span>
+        <span class="c1"># 是子模块 → 塞 _modules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"_modules"</span><span class="p">,</span> <span class="p">{})[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># 普通值 → 走默认，进 __dict__</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>isinstance(value, Parameter)</code></strong>：因为 <code>Parameter</code> 继承 <code>Tensor</code>，所以 <code>isinstance(param, Tensor)</code> 也是 True。但这里先判 <code>Parameter</code>，所以参数不会走 <code>Tensor</code> 分支。<strong>判断顺序很重要</strong>：先具体后一般。</li>
+<li><strong><code>self.__dict__.setdefault("_parameters", {})</code></strong>：直接操作 <code>__dict__</code> 而非 <code>self._parameters</code>，是为了<strong>避免递归</strong>。如果写 <code>self._parameters[name] = value</code>，会再次触发 <code>__setattr__</code>（给 <code>_parameters</code> 赋值？不，是读 <code>self._parameters</code>，读会触发 <code>__getattr__</code>...）。直接操作 <code>__dict__</code> 绕过属性协议。</li>
+<li><strong><code>setdefault</code></strong>：如果 <code>_parameters</code> 不存在就建空字典。这处理了"用户在 <code>super().__init__()</code> 之前就赋值参数"的边界情况。</li>
+<li><strong><code>super().__setattr__</code></strong>：走 <code>object.__setattr__</code>，即 <code>self.__dict__[name] = value</code>。</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">为什么不直接 <code>self.__dict__[name] = value</code>？</p>
+</div>
+<p>等价。但用 <code>super().__setattr__</code> 更"正统"，未来如果 MRO 中间插入了别的 <code>__setattr__</code>（如某个 mixin），能正确转发。这是防御性编程。</p>
+<h3 id="544-modulepy__getattr__">5.4.4 <code>module.py</code>：<code>__getattr__</code> 反查<a class="headerlink" href="#544-modulepy__getattr__" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="c1"># ⚠️ 只在 self.__dict__ 没找到 name 时才被调用</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"_parameters"</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="n">modules</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"_modules"</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="n">buffers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"_buffers"</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">buffers</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">buffers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">' has no attribute '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>__getattr__</code> 只在正常查找失败时调用</strong>：所以 <code>self.training</code>（在 <code>__dict__</code>）不会进这里，直接走快速路径。这是性能关键。</li>
+<li><strong><code>self.__dict__.get("_parameters", {})</code></strong>：用 <code>.get</code> 而非 <code>self._parameters</code>，避免递归。如果 <code>_parameters</code> 还没初始化（<code>__init__</code> 没调），返回 <code>{}</code> 而非抛错。</li>
+<li><strong>查找顺序</strong>：<code>_parameters</code> → <code>_modules</code> → <code>_buffers</code>。实际中名字不会冲突（用户不会同时 <code>self.x = Parameter()</code> 和 <code>self.x = Module()</code>），但顺序定义了优先级。</li>
+<li><strong>抛 <code>AttributeError</code></strong>：必须抛，否则 Python 内部很多机制（如 <code>hasattr</code>、pickle）会失效。</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">一个经典坑</p>
+</div>
+<p>在 <code>__getattr__</code> 里写 <code>self._parameters</code> 会<strong>无限递归</strong>：<code>self._parameters</code> 触发 <code>__getattr__("_parameters")</code>，里面又 <code>self._parameters</code>... 所以必须用 <code>self.__dict__.get("_parameters")</code>。这是写 <code>__getattr__</code> 的铁律。</p>
+<h3 id="545-modulepy__call__-hooks">5.4.5 <code>module.py</code>：<code>__call__</code> 与 hooks<a class="headerlink" href="#545-modulepy__call__-hooks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_pre_hooks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>                          <span class="c1"># 前 hook：可改输入（这里不改）</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>        <span class="c1"># 真正的前向</span>
+    <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_hooks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>                  <span class="c1"># 后 hook：可观察输出</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>__call__</code> 而非直接 <code>forward</code></strong>：用户写 <code>model(x)</code> 触发 <code>__call__</code>，<code>__call__</code> 调 <code>forward</code>。这样 hooks 有统一入口。如果用户直接 <code>model.forward(x)</code>，会绕过 hooks——所以文档都说"别直接调 forward"。</li>
+<li><strong><code>hook(self, args)</code></strong>：签名是 <code>(module, input)</code>。input 是 tuple（因为 <code>*args</code>）。</li>
+<li><strong><code>hook(self, args, result)</code></strong>：签名是 <code>(module, input, output)</code>。</li>
+<li><strong>遍历 <code>.values()</code></strong>：hooks 存在 dict 里，键是 <code>id(hook)</code>。遍历 values 不关心键。</li>
+</ul>
+<h3 id="546-modulepy-parameters-named_parameters">5.4.6 <code>module.py</code>：递归 <code>parameters()</code> 与 <code>named_parameters()</code><a class="headerlink" href="#546-modulepy-parameters-named_parameters" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Parameter</span><span class="p">]:</span>
+    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>          <span class="c1"># 自己的直接参数</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>              <span class="c1"># 遍历子模块</span>
+        <span class="k">yield from</span> <span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>                 <span class="c1"># 递归子模块的参数</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">named_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">]]:</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">yield</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span>                    <span class="c1"># 自己的参数，加前缀</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">yield from</span> <span class="n">m</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">"."</span><span class="p">)</span>  <span class="c1"># 递归，前缀加 "子模块名."</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>yield from</code></strong>：把一个可迭代对象的每个元素逐个 yield 出来，等价于 <code>for x in iter: yield x</code>，但更高效（CPython 优化）。</li>
+<li><strong>递归终止</strong>：叶子模块（如 <code>Linear</code>）的 <code>_modules</code> 为空，循环不进，自然终止。</li>
+<li><strong><code>prefix</code> 累积</strong>：<code>named_parameters</code> 在递归时把当前模块名加进前缀。<code>MLP.fc1.weight</code> 就是这么来的：<code>MLP</code> 调 <code>fc1.named_parameters("fc1.")</code>，<code>fc1</code> yield <code>("fc1.weight", w)</code>。</li>
+</ul>
+<h3 id="547-modulepystate_dict-load_state_dict">5.4.7 <code>module.py</code>：<code>state_dict</code> 与 <code>load_state_dict</code><a class="headerlink" href="#547-modulepystate_dict-load_state_dict" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]:</span>
+    <span class="n">state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">state</span><span class="p">[</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>                  <span class="c1"># 参数进 state</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">state</span><span class="p">[</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>                  <span class="c1"># buffer 也进 state</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">"."</span><span class="p">))</span>  <span class="c1"># 递归子模块</span>
+    <span class="k">return</span> <span class="n">state</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">state_dict</span><span class="p">:</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">_storage</span><span class="o">.</span><span class="n">_data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">_numpy_view</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>  <span class="c1"># in-place 拷贝数据</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">"."</span><span class="p">)</span>    <span class="c1"># 递归</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>state_dict</code> 包含参数和 buffer</strong>：但<strong>不</strong>包含子模块结构。所以加载时模型结构必须匹配。</li>
+<li><strong><code>load_state_dict</code> 是 in-place</strong>：直接改 <code>p._storage._data</code>，不替换 <code>Parameter</code> 对象。这样优化器里对 <code>p</code> 的引用仍然有效。</li>
+<li><strong><code>src._numpy_view().ravel()</code></strong>：把源张量展平成一维 numpy 视图，再 <code>[:]</code> 拷贝到目标 storage。<code>ravel</code> 处理形状不一致（实际应一致，但防御性）。</li>
+<li><strong>不报错如果 key 不在 state_dict</strong>：<code>if key in state_dict</code> 静默跳过。PyTorch 会报 <code>missing keys</code>，minitorch 简化了。</li>
+</ul>
+<h3 id="548-modulepytrain-eval-zero_grad">5.4.8 <code>module.py</code>：<code>train</code> / <code>eval</code> / <code>zero_grad</code><a class="headerlink" href="#548-modulepytrain-eval-zero_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Module</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="o">=</span> <span class="n">mode</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>                             <span class="c1"># 递归子模块</span>
+    <span class="k">return</span> <span class="bp">self</span>                                   <span class="c1"># 返回 self 支持链式</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Module</span><span class="p">:</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>                      <span class="c1"># eval 就是 train(False)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">zero_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>                             <span class="c1"># 设 None 而非 0，省内存且符合 PyTorch 语义</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>train</code> 递归</strong>：必须递归，否则子模块的 <code>Dropout</code> 不知道要切模式。</li>
+<li><strong><code>return self</code></strong>：链式调用 <code>model.train().to(device)</code>。</li>
+<li><strong><code>zero_grad</code> 设 <code>None</code></strong>：PyTorch 0.4+ 改成 <code>None</code> 而非零张量，原因是：① 省内存（不存零张量）；② 优化器能区分"这一步没算梯度"和"梯度是零"。minitorch 跟随这一设计。</li>
+</ul>
+<h3 id="549-modulepyhooks">5.4.9 <code>module.py</code>：hooks 注册<a class="headerlink" href="#549-modulepyhooks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">register_forward_pre_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_forward_pre_hooks</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">hook</span><span class="p">)]</span> <span class="o">=</span> <span class="n">hook</span>      <span class="c1"># 用 id(hook) 做 key</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">register_forward_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_forward_hooks</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">hook</span><span class="p">)]</span> <span class="o">=</span> <span class="n">hook</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>id(hook)</code> 做 key</strong>：避免重复注册同一个函数对象。<code>id</code> 返回内存地址，同一对象 <code>id</code> 相同，后注册会覆盖前注册。</li>
+<li><strong>lambda 每次新建 id 不同</strong>：所以 <code>m.register_forward_hook(lambda ...)</code> 多次调用会注册多个不同 hook。这是已知行为，用户应注意。</li>
+</ul>
+<h3 id="5410-containerspysequential-modulelist">5.4.10 <code>containers.py</code>：Sequential 与 ModuleList<a class="headerlink" href="#5410-containerspysequential-modulelist" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Sequential</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">modules</span><span class="p">:</span> <span class="n">Module</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">modules</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">m</span><span class="p">)</span>              <span class="c1"># 把模块注册成属性 "0"、"1"...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>                              <span class="c1"># 顺序执行，前一个输出是后一个输入</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ModuleList</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modules</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Module</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">modules</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">modules</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">m</span><span class="p">)</span>          <span class="c1"># 同样注册成 "0"、"1"...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Module</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>                              <span class="c1"># 也提供默认 forward（顺序执行）</span>
+        <span class="k">return</span> <span class="n">x</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>setattr(self, str(i), m)</code></strong>：等价于 <code>self."0" = m</code>（Python 不允许直接写 <code>self.0 = m</code>，但 <code>setattr</code> 可以）。这触发 <code>Module.__setattr__</code>，把 <code>m</code> 塞进 <code>_modules["0"]</code>。</li>
+<li><strong><code>Sequential.forward</code> 顺序执行</strong>：这是 Sequential 的语义。如果用户想要分支/跳连，得自己写 <code>Module</code> 子类。</li>
+<li><strong><code>ModuleList</code> 有 <code>__len__</code> 和 <code>__iter__</code></strong>：可以 <code>len(ml)</code>、<code>for layer in ml</code>、<code>ml[0]</code>（后者 minitorch 未实现，PyTorch 通过 <code>__getitem__</code> 实现）。</li>
+<li><strong><code>ModuleList.forward</code> 也顺序执行</strong>：这是 minitorch 的简化。PyTorch 的 <code>ModuleList</code> <strong>没有</strong> <code>forward</code>，调用会报错——因为 ModuleList 的语义是"存储"而非"执行"。minitorch 加了默认 forward 是为了简化教学。</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">与 PyTorch 的差异</p>
+</div>
+<p>PyTorch 的 <code>ModuleList</code> 没有 <code>forward</code>，调 <code>ml(x)</code> 会 <code>NotImplementedError</code>。minitorch 给了默认顺序执行，这是教学简化。生产代码里 <code>ModuleList</code> 通常用在 <code>Module</code> 子类的 <code>forward</code> 里手动控制执行顺序。</p>
+<h3 id="5411-linearpylinear">5.4.11 <code>linear.py</code>：Linear 层<a class="headerlink" href="#5411-linearpylinear" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Linear</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_features</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>          <span class="c1"># Kaiming uniform 的简化版</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">bound</span><span class="p">,</span> <span class="n">bound</span><span class="p">,</span> <span class="p">(</span><span class="n">out_features</span><span class="p">,</span> <span class="n">in_features</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>   <span class="c1"># ← 触发 __setattr__，进 _parameters</span>
+        <span class="k">if</span> <span class="n">bias</span><span class="p">:</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">bound</span><span class="p">,</span> <span class="n">bound</span><span class="p">,</span> <span class="p">(</span><span class="n">out_features</span><span class="p">,))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="kc">None</span>                      <span class="c1"># None 不触发注册</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">x</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>         <span class="c1"># x @ W^T，形状 (N, in) @ (in, out) = (N, out)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span>                 <span class="c1"># 广播加 bias</span>
+        <span class="k">return</span> <span class="n">out</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>bound = 1 / sqrt(in_features)</code></strong>：这是 PyTorch <code>Linear</code> 的默认初始化（Kaiming uniform 的一个特例）。让权重方差 ≈ <code>1/in</code>，保证前向方差稳定。</li>
+<li><strong><code>weight</code> 形状 <code>(out, in)</code></strong>：注意是 <code>(out, in)</code> 不是 <code>(in, out)</code>。所以前向要 <code>x @ weight.T</code>。这是 PyTorch 的约定，历史原因。</li>
+<li><strong><code>self.weight = Parameter(...)</code></strong>：这一行触发 <code>Module.__setattr__</code>，把 <code>weight</code> 塞进 <code>_parameters["weight"]</code>。用户后续 <code>self.weight</code> 读取时，<code>__getattr__</code> 从 <code>_parameters</code> 取出。</li>
+<li><strong><code>self.bias = None</code></strong>：<code>None</code> 不是 <code>Parameter</code> 也不是 <code>Module</code>，走 <code>super().__setattr__</code>，进 <code>__dict__</code>。所以 <code>self.bias</code> 读取时直接从 <code>__dict__</code> 取，不触发 <code>__getattr__</code>。</li>
+<li><strong><code>forward</code> 里 <code>self.weight</code></strong>：触发 <code>__getattr__</code>（因为 weight 不在 <code>__dict__</code>，在 <code>_parameters</code>），取出 <code>Parameter</code>。<code>Parameter</code> 是 <code>Tensor</code> 子类，能参与 <code>@</code> 和 <code>transpose</code>。</li>
+</ul>
+<h3 id="5412-modulepy__repr__">5.4.12 <code>module.py</code>：<code>__repr__</code> 调试输出<a class="headerlink" href="#5412-modulepy__repr__" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">(</span><span class="s2">"]                # ① 类名开头</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>                <span class="c1"># ② 缩进列参数</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>                <span class="c1"># ③ 缩进列子模块（递归 repr）</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">")"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>type(self).__name__</code></strong>：取类名字符串，避免硬编码。子类自动用子类名。</li>
+<li><strong>两空格缩进</strong>：<code>{name}:</code> 让嵌套结构可读。PyTorch 的 repr 更精细（带 <code>extra_repr</code>、参数形状而非值），minitorch 简化。</li>
+<li><strong><code>{m}</code> 触发子模块的 <code>__repr__</code></strong>：递归。所以 <code>print(MLP())</code> 会展开所有嵌套层。</li>
+<li><strong>只列 <code>_parameters</code> 和 <code>_modules</code></strong>：不列 <code>_buffers</code> 和普通属性。PyTorch 列 buffer，minitorch 简化。</li>
+</ul>
+<h3 id="5413-modulepyregister_parameter-register_buffer">5.4.13 <code>module.py</code>：<code>register_parameter</code> 与 <code>register_buffer</code><a class="headerlink" href="#5413-modulepyregister_parameter-register_buffer" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">register_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">Parameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span>                   <span class="c1"># 直接塞，不走 __setattr__</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">register_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tensor</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_buffers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tensor</span>                     <span class="c1"># buffer 不进 _parameters</span>
+</code></pre></div>
+<p>逐行解读：</p>
+<ul>
+<li><strong><code>register_parameter</code></strong>：等价于 <code>setattr(self, name, param)</code>，但更显式。PyTorch 内部用这个 API 注册参数，避免 <code>__setattr__</code> 的隐式魔法。</li>
+<li><strong><code>register_buffer</code></strong>：注册 buffer。buffer 不是参数（不进 <code>parameters()</code>、不算梯度），但要进 <code>state_dict</code>（要保存/加载）。典型例子：<code>BatchNorm.running_mean</code>、<code>running_var</code>。</li>
+<li><strong>直接操作 <code>_buffers</code> 字典</strong>：不走 <code>__setattr__</code>（因为 <code>__setattr__</code> 只识别 <code>Parameter</code>/<code>Module</code>，普通 <code>Tensor</code> 会进 <code>__dict__</code> 而非 <code>_buffers</code>）。所以<strong>必须</strong>用 <code>register_buffer</code> 才能注册 buffer。</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">为什么 buffer 不直接 <code>self.running_mean = tensor</code>？</p>
+</div>
+<p>如果 <code>self.running_mean = some_tensor</code>，<code>__setattr__</code> 判断 <code>some_tensor</code> 不是 <code>Parameter</code> 也不是 <code>Module</code>，走默认分支进 <code>__dict__</code>。这样 <code>state_dict</code> 收集不到它（<code>state_dict</code> 只遍历 <code>_parameters</code>/<code>_buffers</code>/<code>_modules</code>），保存模型时会丢。所以 buffer 必须用 <code>register_buffer</code> 显式注册到 <code>_buffers</code> 字典。</p>
+<div class="admonition warning">
+<p class="admonition-title">minitorch 的 <code>state_dict</code> 漏了 buffer 的加载</p>
+</div>
+<p>看 <code>load_state_dict</code> 的实现：它只遍历 <code>_parameters</code>，<strong>没</strong>遍历 <code>_buffers</code>。所以即使 <code>state_dict</code> 里有 buffer 的键，<code>load_state_dict</code> 也不会灌回 buffer。这是 minitorch 的一个简化缺陷（PyTorch 的 <code>load_state_dict</code> 会处理 buffer）。如果要支持 BatchNorm 的完整保存加载，得在 <code>load_state_dict</code> 里加一段遍历 <code>_buffers</code> 的逻辑。</p>
+<h3 id="5414">5.4.14 三大注册表的对比总结<a class="headerlink" href="#5414" title="Permanent link">&para;</a></h3>
+<p>把 <code>_parameters</code>、<code>_modules</code>、<code>_buffers</code> 放在一起对比，记住一个口诀：</p>
+<blockquote>
+<p><strong>参数要梯度、模块要递归、buffer 要保存。</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th><code>_parameters</code></th>
+<th><code>_modules</code></th>
+<th><code>_buffers</code></th>
+<th><code>__dict__</code>（普通属性）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>parameters()</code> 收集</td>
+<td>是</td>
+<td>递归子模块</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>state_dict()</code> 保存</td>
+<td>是</td>
+<td>递归子模块</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>train()</code> 递归</td>
+<td>否</td>
+<td>是</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>zero_grad()</code> 清</td>
+<td>是</td>
+<td>递归子模块</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td>算梯度</td>
+<td>是（默认）</td>
+<td>-</td>
+<td>否（默认）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>这张表是本章最值得记住的：它解释了为什么要把不同东西放进不同字典——因为每种操作要"挑选"的对象不同，分开存就不用每次全量扫描判断。</p>
+<hr />
+<h2 id="55">5.5 完整示例<a class="headerlink" href="#55" title="Permanent link">&para;</a></h2>
+<h3 id="551-mlp">5.5.1 定义并使用一个 MLP<a class="headerlink" href="#551-mlp" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linear</span><span class="p">,</span> <span class="n">Module</span><span class="p">,</span> <span class="n">Sequential</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MLP</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>      <span class="c1"># ← 触发 __setattr__，fc1 进 _modules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>      <span class="c1"># ← fc2 进 _modules</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">()</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>                     <span class="c1"># (3, 2)</span>
+</code></pre></div>
+<h3 id="552">5.5.2 查看注册表<a class="headerlink" href="#552" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_modules</span><span class="p">)</span>                <span class="c1"># {'fc1': Linear(...), 'fc2': Linear(...)}</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_parameters</span><span class="p">)</span>             <span class="c1"># {} ← MLP 自己没有直接参数</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc1</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>  <span class="c1"># dict_keys(['weight', 'bias'])</span>
+</code></pre></div>
+<h3 id="553">5.5.3 递归收集参数<a class="headerlink" href="#553" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">params</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>                   <span class="c1"># 4：fc1.weight, fc1.bias, fc2.weight, fc2.bias</span>
+
+<span class="n">names</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">names</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="c1"># dict_keys(['fc1.weight', 'fc1.bias', 'fc2.weight', 'fc2.bias'])</span>
+</code></pre></div>
+<h3 id="554-state_dict">5.5.4 state_dict 保存与加载<a class="headerlink" href="#554-state_dict" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">sd</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sd</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="c1"># dict_keys(['fc1.weight', 'fc1.bias', 'fc2.weight', 'fc2.bias'])</span>
+
+<span class="c1"># 新建一个同结构模型，加载权重</span>
+<span class="n">model2</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">()</span>
+<span class="n">model2</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">sd</span><span class="p">)</span>
+
+<span class="c1"># 验证输出一致</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">model2</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">))</span>   <span class="c1"># True</span>
+</code></pre></div>
+<h3 id="555-traineval">5.5.5 train/eval 切换<a class="headerlink" href="#555-traineval" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">training</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">fc1</span><span class="o">.</span><span class="n">training</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">fc2</span><span class="o">.</span><span class="n">training</span><span class="p">)</span>   <span class="c1"># True True True</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">training</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">fc1</span><span class="o">.</span><span class="n">training</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">fc2</span><span class="o">.</span><span class="n">training</span><span class="p">)</span>   <span class="c1"># False False False</span>
+<span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">training</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">fc1</span><span class="o">.</span><span class="n">training</span><span class="p">)</span>                        <span class="c1"># True True</span>
+</code></pre></div>
+<h3 id="556-sequential">5.5.6 Sequential 拼装<a class="headerlink" href="#556-sequential" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">net</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">net</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>                    <span class="c1"># (2, 2)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">parameters</span><span class="p">())))</span>  <span class="c1"># 4</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">_modules</span><span class="p">)</span>                 <span class="c1"># {'0': Linear(4,8), '1': Linear(8,2)}</span>
+</code></pre></div>
+<h3 id="557-hooks">5.5.7 hooks 调试<a class="headerlink" href="#557-hooks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">lin</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">calls</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">lin</span><span class="o">.</span><span class="n">register_forward_pre_hook</span><span class="p">(</span><span class="k">lambda</span> <span class="n">mod</span><span class="p">,</span> <span class="n">inp</span><span class="p">:</span> <span class="n">calls</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"pre"</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">inp</span><span class="p">)))</span>
+<span class="n">lin</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span><span class="k">lambda</span> <span class="n">mod</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="n">calls</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"post"</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">out</span><span class="o">.</span><span class="n">shape</span><span class="p">)))</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">lin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">calls</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">mod</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+<span class="c1"># pre Linear (Tensor 形状 (1, 3),)</span>
+<span class="c1"># post Linear (1, 2)</span>
+</code></pre></div>
+<h3 id="558-mlp">5.5.8 端到端：训练一个 MLP 回归（与第七章呼应）<a class="headerlink" href="#558-mlp" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">SGD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">MSELoss</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">W_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">W_true</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">MLP_regression</span><span class="p">()</span>   <span class="c1"># 假设有 4→8→1 的 MLP</span>
+<span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">crit</span> <span class="o">=</span> <span class="n">MSELoss</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">crit</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">Y</span><span class="p">))</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="mi">20</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">, loss </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="c1"># epoch 0, loss 1.2345</span>
+<span class="c1"># epoch 20, loss 0.3456</span>
+<span class="c1"># ...</span>
+<span class="c1"># epoch 80, loss 0.0123</span>
+</code></pre></div>
+<hr />
+<h2 id="56">5.6 常见陷阱<a class="headerlink" href="#56" title="Permanent link">&para;</a></h2>
+<h3 id="1-super__init__">陷阱 1：忘记调 <code>super().__init__()</code><a class="headerlink" href="#1-super__init__" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BadMLP</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 忘了 super().__init__()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>症状</strong>：<code>AttributeError: 'BadMLP' object has no attribute '_parameters'</code>。</p>
+<p><strong>原因</strong>：<code>_parameters</code> 等字典在 <code>Module.__init__</code> 里创建。没调就不存在。虽然 <code>__setattr__</code> 用了 <code>setdefault</code> 能建 <code>_parameters</code>，但 <code>__getattr__</code> 里读 <code>_modules</code> 会失败。</p>
+<p><strong>解决</strong>：永远在 <code>__init__</code> 第一行调 <code>super().__init__()</code>。</p>
+<h3 id="2-tensor-parameter">陷阱 2：把 Tensor 当 Parameter<a class="headerlink" href="#2-tensor-parameter" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Wrong</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>   <span class="c1"># ← 不是 Parameter!</span>
+</code></pre></div>
+<p><strong>症状</strong>：<code>list(model.parameters())</code> 是空的，优化器没参数可更新。</p>
+<p><strong>原因</strong>：<code>__setattr__</code> 判断 <code>isinstance(value, Parameter)</code>，普通 <code>Tensor</code> 不通过，走默认分支进 <code>__dict__</code>，不被注册。</p>
+<p><strong>解决</strong>：<code>self.weight = Parameter(Tensor.from_numpy(...))</code>。</p>
+<h3 id="3-__getattr__-selfxxx">陷阱 3：在 <code>__getattr__</code> 里访问 <code>self.xxx</code><a class="headerlink" href="#3-__getattr__-selfxxx" title="Permanent link">&para;</a></h3>
+<p>（这是实现者的陷阱，不是用户的。）如果你修改 <code>__getattr__</code>，里面写 <code>self._parameters</code>，会无限递归。必须用 <code>self.__dict__.get("_parameters", {})</code>。</p>
+<h3 id="4-forward-hooks">陷阱 4：直接调 <code>forward</code> 绕过 hooks<a class="headerlink" href="#4-forward-hooks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c1"># ← 不触发 hooks</span>
+<span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>           <span class="c1"># ← 触发 hooks</span>
+</code></pre></div>
+<p><strong>解决</strong>：永远用 <code>model(x)</code>。</p>
+<h3 id="5parameters">陷阱 5：<code>parameters()</code> 是生成器，只能迭代一次<a class="headerlink" href="#5parameters" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">params</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">params</span><span class="p">)))</span>   <span class="c1"># 4</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">params</span><span class="p">)))</span>   <span class="c1"># 0 ← 已经耗尽!</span>
+</code></pre></div>
+<p><strong>解决</strong>：<code>params = list(model.parameters())</code> 物化成列表，或每次重新调 <code>model.parameters()</code>。</p>
+<h3 id="6sequential">陷阱 6：<code>Sequential</code> 不能用名字索引<a class="headerlink" href="#6sequential" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">net</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">net</span><span class="p">[</span><span class="s2">"0"</span><span class="p">]</span>          <span class="c1"># ← minitorch 不支持，会 TypeError</span>
+<span class="n">net</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>            <span class="c1"># ← minitorch 也不支持（PyTorch 支持 __getitem__）</span>
+</code></pre></div>
+<p><strong>解决</strong>：用 <code>net._modules["0"]</code>（不推荐，访问私有），或改用 <code>ModuleList</code> + 自己写 forward。</p>
+<h3 id="7biasnone-selfbias-none-__dict__">陷阱 7：<code>bias=None</code> 后 <code>self.bias</code> 是 None 但在 <code>__dict__</code> 里<a class="headerlink" href="#7biasnone-selfbias-none-__dict__" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">lin</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lin</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>                  <span class="c1"># None</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"_parameters"</span> <span class="ow">in</span> <span class="n">lin</span><span class="o">.</span><span class="vm">__dict__</span> <span class="ow">and</span> <span class="s2">"bias"</span> <span class="ow">in</span> <span class="n">lin</span><span class="o">.</span><span class="n">_parameters</span><span class="p">)</span>  <span class="c1"># False</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"bias"</span> <span class="ow">in</span> <span class="n">lin</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>    <span class="c1"># True ← None 进了 __dict__</span>
+</code></pre></div>
+<p>这不影响功能，但要知道 <code>None</code> 走的是默认 <code>__setattr__</code> 路径。</p>
+<h3 id="8lambda-hook">陷阱 8：lambda hook 重复注册<a class="headerlink" href="#8lambda-hook" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">lin</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span><span class="k">lambda</span> <span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lin</span><span class="o">.</span><span class="n">_forward_hooks</span><span class="p">))</span>   <span class="c1"># 3 ← 每次 lambda 都是新对象，id 不同</span>
+</code></pre></div>
+<p><strong>解决</strong>：把 lambda 提出来赋给变量，或用具名函数。</p>
+<hr />
+<h2 id="57-pytorch">5.7 与真实 PyTorch 对照<a class="headerlink" href="#57-pytorch" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>minitorch</th>
+<th>PyTorch</th>
+<th>差异说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Module.__setattr__</code> 拦截 Parameter/Module</td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>_parameters</code>/<code>_modules</code>/<code>_buffers</code> 三表</td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>__getattr__</code> 反查三表</td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>parameters()</code> 返回生成器</td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>named_parameters(prefix="")</code></td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>state_dict()</code> 含参数和 buffer</td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>load_state_dict</code> 静默跳过缺失 key</td>
+<td>报 <code>RuntimeError: missing/unexpected keys</code></td>
+<td>minitorch 简化，不严格检查</td>
+</tr>
+<tr>
+<td><code>train()</code> 返回 self</td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>zero_grad()</code> 设 <code>grad = None</code></td>
+<td>同（0.4+）</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>register_forward_pre_hook</code> 用 <code>id(hook)</code> 做 key</td>
+<td>用 <code>RemovableHandle</code> 对象，返回 handle 可 <code>remove()</code></td>
+<td>minitorch 不能移除单个 hook</td>
+</tr>
+<tr>
+<td><code>Sequential</code> 用 <code>str(i)</code> 命名</td>
+<td>同（PyTorch 1.x 也用 "0"、"1"）</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>ModuleList</code> 有默认 <code>forward</code>（顺序执行）</td>
+<td><code>ModuleList</code> 无 <code>forward</code>，调用报错</td>
+<td><strong>差异</strong>：minitorch 教学简化</td>
+</tr>
+<tr>
+<td><code>ModuleList</code> 不支持 <code>__getitem__</code></td>
+<td>支持，返回 <code>ModuleList</code> 子集</td>
+<td>minitorch 未实现</td>
+</tr>
+<tr>
+<td><code>Linear</code> 初始化 <code>uniform(-1/sqrt(in), 1/sqrt(in))</code></td>
+<td>同</td>
+<td>一致（Kaiming uniform 特例）</td>
+</tr>
+<tr>
+<td><code>Linear.weight</code> 形状 <code>(out, in)</code></td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td><code>__repr__</code> 列出参数和子模块</td>
+<td>更精细，递归 repr，带缩进</td>
+<td>minitorch 简化</td>
+</tr>
+<tr>
+<td>无 <code>__getstate__</code>/<code>__setstate__</code>（pickle）</td>
+<td>实现，支持 <code>pickle.dump(model)</code></td>
+<td>minitorch 未实现</td>
+</tr>
+<tr>
+<td>无 <code>to(device)</code>/<code>cuda()</code>/<code>cpu()</code></td>
+<td>有</td>
+<td>minitorch 单设备</td>
+</tr>
+<tr>
+<td>无 <code>extra_repr</code></td>
+<td>有，子类可扩展 repr</td>
+<td>minitorch 简化</td>
+</tr>
+<tr>
+<td>无 <code>apply(fn)</code> 递归对子模块调函数</td>
+<td>有</td>
+<td>minitorch 未实现，但 <code>train()</code> 内部用了类似逻辑</td>
+</tr>
+<tr>
+<td>无 backward hooks</td>
+<td>有 <code>register_full_backward_hook</code> 等</td>
+<td>minitorch 未实现</td>
+</tr>
+</tbody>
+</table>
+<h3 id="571-modulelistforward">5.7.1 关键差异详解：<code>ModuleList.forward</code><a class="headerlink" href="#571-modulelistforward" title="Permanent link">&para;</a></h3>
+<p>PyTorch 的 <code>ModuleList</code> 故意不实现 <code>forward</code>，因为 <code>ModuleList</code> 的语义是"参数容器"而非"执行单元"。用户应该在 <code>Module</code> 子类的 <code>forward</code> 里手动写执行顺序：</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MyNet</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">ModuleList</span><span class="p">([</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">)])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span>
+</code></pre></div>
+<p>minitorch 给 <code>ModuleList</code> 加了默认 <code>forward</code>（顺序执行），是为了让 <code>Sequential</code> 和 <code>ModuleList</code> 在简单场景下行为一致，降低初学者认知负担。但<strong>生产代码</strong>应遵循 PyTorch 语义：<code>ModuleList</code> 不直接 call。</p>
+<h3 id="572-hooks">5.7.2 关键差异详解：hooks 的移除<a class="headerlink" href="#572-hooks" title="Permanent link">&para;</a></h3>
+<p>PyTorch 的 <code>register_forward_hook</code> 返回一个 <code>RemovableHandle</code>，调 <code>handle.remove()</code> 能移除该 hook。minitorch 用 <code>id(hook)</code> 做 key，没有 handle，只能 <code>m._forward_hooks.clear()</code> 全清。这是工程上的简化。</p>
+<hr />
+<h2 id="58">5.8 历史背景<a class="headerlink" href="#58" title="Permanent link">&para;</a></h2>
+<h3 id="581-pytorch-lua-torch-nnmodule">5.8.1 PyTorch 之前：Lua Torch 的 <code>nn.Module</code><a class="headerlink" href="#581-pytorch-lua-torch-nnmodule" title="Permanent link">&para;</a></h3>
+<p>PyTorch 的前身是 Lua Torch。Lua Torch 也有 <code>nn.Module</code>，但 Lua 没有重写 <code>__setattr__</code> 的优雅机制（Lua 的 metatable <code>__newindex</code> 类似但语义不同）。参数注册更多靠显式 <code>self.weight = nn.Parameter(...)</code> 加上框架内部的注册逻辑。</p>
+<h3 id="582-pytorch-01__setattr__-trick">5.8.2 PyTorch 0.1：<code>__setattr__</code> trick 的引入<a class="headerlink" href="#582-pytorch-01__setattr__-trick" title="Permanent link">&para;</a></h3>
+<p>PyTorch 0.1（2017 年初）确立了当前的 <code>nn.Module</code> 设计：用 <code>__setattr__</code> 拦截 <code>Parameter</code> 和 <code>Module</code>，自动注册到三个字典。这一设计来自 Soumith Chintala 等人，核心目标是"让用户代码尽可能自然"。</p>
+<p>对比 TF1 的 <code>tf.Variable</code>：用户必须显式 <code>tf.get_variable("weight", ...)</code>，且要在 <code>tf.variable_scope</code> 下。PyTorch 的 <code>self.weight = Parameter(...)</code> 更接近"写普通 Python 类"的直觉。</p>
+<h3 id="583-zero_grad-none">5.8.3 <code>zero_grad</code> 从零张量到 None 的演化<a class="headerlink" href="#583-zero_grad-none" title="Permanent link">&para;</a></h3>
+<p>PyTorch 0.3 之前，<code>zero_grad</code> 把 <code>grad</code> 设成零张量。0.4 改成 <code>None</code>。原因：</p>
+<ol>
+<li><strong>省内存</strong>：不存零张量。</li>
+<li><strong>语义清晰</strong>：<code>None</code> 表示"没算梯度"，零张量表示"算了，恰好是零"。优化器能区分。</li>
+<li><strong>避免累加脏数据</strong>：<code>backward</code> 是累加的，如果 <code>zero_grad</code> 设零张量，下次 <code>backward</code> 在零基础上累加；如果 <code>None</code>，<code>backward</code> 第一次直接赋值。后者更安全。</li>
+</ol>
+<p>minitorch 跟随 0.4+ 的 <code>None</code> 语义。</p>
+<h3 id="584-modulelist-vs-sequential">5.8.4 <code>ModuleList</code> vs <code>Sequential</code> 的分化<a class="headerlink" href="#584-modulelist-vs-sequential" title="Permanent link">&para;</a></h3>
+<p>早期 PyTorch 只有 <code>Sequential</code>。但用户越来越需要"存一组模块但执行顺序自定义"（如 ResNet 的残差块、Transformer 的多头注意力）。于是引入 <code>ModuleList</code>（只存不执行）、<code>ModuleDict</code>（按名存）、<code>ParameterList</code>、<code>ParameterDict</code> 等容器。minitorch 只实现了前两个。</p>
+<h3 id="585-hooks">5.8.5 hooks 的演化<a class="headerlink" href="#585-hooks" title="Permanent link">&para;</a></h3>
+<p>早期 PyTorch 的 hooks 是 <code>dict</code> 存，key 是 <code>id</code>。后来引入 <code>RemovableHandle</code> 让 hook 可移除（避免内存泄漏——hook 闭包捕获大对象时不释放）。再后来（1.10+）引入 <code>register_full_backward_hook</code> 统一各种 backward hook 的混乱 API。minitorch 只实现了 forward hooks 的最简版本。</p>
+<hr />
+<h2 id="59">5.9 练习题<a class="headerlink" href="#59" title="Permanent link">&para;</a></h2>
+<h3 id="1-moduledict">练习 1：实现 <code>ModuleDict</code><a class="headerlink" href="#1-moduledict" title="Permanent link">&para;</a></h3>
+<p>实现一个 <code>ModuleDict(Module)</code>，接受 <code>dict[str, Module]</code>，支持按名索引、<code>__len__</code>、<code>__iter__</code>，且参数能被递归收集。</p>
+<details class="解答">
+<summary>解答</summary>
+<p><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ModuleDict</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modules</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Module</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">modules</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">modules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>   <span class="c1"># 触发 __setattr__，进 _modules</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+</code></pre></div>
+关键点：<code>setattr(self, name, m)</code> 用名字而非下标，所以 <code>state_dict</code> 键会是 <code>block_a.weight</code> 而非 <code>0.weight</code>。</p>
+</details>
+<p>???</p>
+<h3 id="2-__setattr__-self__dict__setdefault-self_parameters">练习 2：为什么 <code>__setattr__</code> 里用 <code>self.__dict__.setdefault</code> 而非 <code>self._parameters</code><a class="headerlink" href="#2-__setattr__-self__dict__setdefault-self_parameters" title="Permanent link">&para;</a></h3>
+<p>用代码演示如果写成 <code>self._parameters[name] = value</code> 会出什么问题。</p>
+<details class="解答">
+<summary>解答</summary>
+<p><code>self._parameters</code> 会触发 <code>__getattr__("_parameters")</code>。如果 <code>_parameters</code> 已在 <code>__dict__</code>，<code>__getattr__</code> 不被调用，直接从 <code>__dict__</code> 取，没问题。但如果 <code>__init__</code> 还没执行（<code>_parameters</code> 不存在），<code>__getattr__</code> 里 <code>self.__dict__.get("_parameters", {})</code> 返回 <code>{}</code>（一个临时空字典），往里塞 name→value，<strong>但这个临时字典不是 <code>self.__dict__["_parameters"]</code></strong>，赋值丢失。所以必须用 <code>self.__dict__.setdefault("_parameters", {})</code> 直接操作 <code>__dict__</code>。</p>
+</details>
+<p>???</p>
+<h3 id="3-applyfn">练习 3：实现 <code>apply(fn)</code> 递归对子模块调函数<a class="headerlink" href="#3-applyfn" title="Permanent link">&para;</a></h3>
+<p>PyTorch 的 <code>model.apply(init_fn)</code> 常用于初始化。实现一个。</p>
+<details class="解答">
+<summary>解答</summary>
+<p><div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="n">fn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+用法：<code>model.apply(lambda m: m.reset_parameters() if hasattr(m, 'reset_parameters') else None)</code>。</p>
+</details>
+<p>???</p>
+<h3 id="4state_dict">练习 4：<code>state_dict</code> 为什么不存模块结构<a class="headerlink" href="#4state_dict" title="Permanent link">&para;</a></h3>
+<p>如果 <code>state_dict</code> 只存参数不存结构，加载时怎么保证结构匹配？</p>
+<details class="解答">
+<summary>解答</summary>
+<p><code>state_dict</code> 只存 <code>{键: 张量}</code>，不存"模型有几个层、每层多大"。加载时模型结构由用户代码决定：<code>model = MLP(); model.load_state_dict(sd)</code>。如果 <code>MLP</code> 结构和保存时不一致（如 <code>fc1</code> 从 <code>Linear(4,8)</code> 变成 <code>Linear(4,16)</code>），<code>load_state_dict</code> 里 <code>p._storage._data[:] = src...</code> 会形状不匹配报错（或静默错误）。PyTorch 会检查 <code>missing_keys</code> 和 <code>unexpected_keys</code> 报警告。这种设计让"模型结构"和"参数"解耦：结构在代码里，参数在文件里。</p>
+</details>
+<p>???</p>
+<h3 id="5hooks">练习 5：hooks 的执行顺序<a class="headerlink" href="#5hooks" title="Permanent link">&para;</a></h3>
+<p>如果注册了多个 pre_hook，执行顺序是什么？为什么用 <code>dict</code> 而非 <code>list</code>？</p>
+<details class="解答">
+<summary>解答</summary>
+<p>顺序是 <code>dict.values()</code> 的迭代顺序，Python 3.7+ 是<strong>插入顺序</strong>。所以先注册先执行。用 <code>dict</code> 而非 <code>list</code> 是为了用 <code>id(hook)</code> 做 key 去重——同一个函数对象重复注册不会重复执行。代价是 lambda 每次新建对象，<code>id</code> 不同，会重复注册（已知行为）。</p>
+</details>
+<p>???</p>
+<hr />
+<h2 id="510">5.10 关键测试解读<a class="headerlink" href="#510" title="Permanent link">&para;</a></h2>
+<p><code>tests/test_module.py</code> 的每个测试都在防御一类 bug：</p>
+<h3 id="test_parameter_requires_grad"><code>test_parameter_requires_grad</code><a class="headerlink" href="#test_parameter_requires_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])))</span>
+<span class="k">assert</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span>
+</code></pre></div>
+<p><strong>防御</strong>：<code>Parameter</code> 默认 <code>requires_grad=True</code>。如果某次重构把 <code>super().__init__</code> 的 <code>requires_grad</code> 写成 <code>False</code>，这个测试会挂。</p>
+<h3 id="test_module_setattr_register"><code>test_module_setattr_register</code><a class="headerlink" href="#test_module_setattr_register" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">m</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">assert</span> <span class="s2">"weight"</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">_parameters</span>
+<span class="k">assert</span> <span class="s2">"bias"</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">_parameters</span>
+</code></pre></div>
+<p><strong>防御</strong>：<code>self.weight = Parameter(...)</code> 确实进了 <code>_parameters</code> 而非 <code>__dict__</code>。如果 <code>__setattr__</code> 的 <code>isinstance</code> 判断写反或漏了，参数会进错地方。</p>
+<h3 id="test_nested_parameters_recursive"><code>test_nested_parameters_recursive</code><a class="headerlink" href="#test_nested_parameters_recursive" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">m</span> <span class="o">=</span> <span class="n">_MLP</span><span class="p">()</span>   <span class="c1"># fc1: Linear(4,8), fc2: Linear(8,2)</span>
+<span class="n">params</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span>
+</code></pre></div>
+<p><strong>防御</strong>：递归收集。<code>MLP</code> 自己 <code>_parameters</code> 是空的，参数全在子模块里。如果 <code>parameters()</code> 没递归，会返回 0 个。</p>
+<h3 id="test_named_parameters_prefix"><code>test_named_parameters_prefix</code><a class="headerlink" href="#test_named_parameters_prefix" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">names</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">())</span>
+<span class="k">assert</span> <span class="s2">"fc1.weight"</span> <span class="ow">in</span> <span class="n">names</span>
+<span class="k">assert</span> <span class="s2">"fc2.bias"</span> <span class="ow">in</span> <span class="n">names</span>
+</code></pre></div>
+<p><strong>防御</strong>：前缀拼接正确。如果 <code>prefix + name + "."</code> 写错（如漏了 <code>.</code>），键会是 <code>fc1weight</code> 而非 <code>fc1.weight</code>。</p>
+<h3 id="test_state_dict_roundtrip"><code>test_state_dict_roundtrip</code><a class="headerlink" href="#test_state_dict_roundtrip" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">m</span> <span class="o">=</span> <span class="n">_MLP</span><span class="p">()</span>
+<span class="n">out1</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">sd</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+<span class="n">m2</span> <span class="o">=</span> <span class="n">_MLP</span><span class="p">()</span>
+<span class="n">m2</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">sd</span><span class="p">)</span>
+<span class="n">out2</span> <span class="o">=</span> <span class="n">m2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">out1</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">out2</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>防御</strong>：保存再加载后，模型行为不变。这是端到端测试，覆盖 <code>state_dict</code> + <code>load_state_dict</code> + 数据拷贝的正确性。</p>
+<h3 id="test_train_eval_propagates"><code>test_train_eval_propagates</code><a class="headerlink" href="#test_train_eval_propagates" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">m</span> <span class="o">=</span> <span class="n">_MLP</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">m</span><span class="o">.</span><span class="n">training</span> <span class="ow">and</span> <span class="n">m</span><span class="o">.</span><span class="n">fc1</span><span class="o">.</span><span class="n">training</span> <span class="ow">and</span> <span class="n">m</span><span class="o">.</span><span class="n">fc2</span><span class="o">.</span><span class="n">training</span>
+<span class="n">m</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">training</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">fc1</span><span class="o">.</span><span class="n">training</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">fc2</span><span class="o">.</span><span class="n">training</span>
+</code></pre></div>
+<p><strong>防御</strong>：<code>eval()</code> 递归切到所有子模块。如果 <code>train</code> 没递归，<code>fc1.training</code> 会还是 True。</p>
+<h3 id="test_forward_hook_order"><code>test_forward_hook_order</code><a class="headerlink" href="#test_forward_hook_order" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">calls</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">m</span><span class="o">.</span><span class="n">register_forward_pre_hook</span><span class="p">(</span><span class="k">lambda</span> <span class="n">mod</span><span class="p">,</span> <span class="n">inp</span><span class="p">:</span> <span class="n">calls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"pre"</span><span class="p">))</span>
+<span class="n">m</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span><span class="k">lambda</span> <span class="n">mod</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="n">calls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"post"</span><span class="p">))</span>
+<span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">calls</span> <span class="o">==</span> <span class="p">[</span><span class="s2">"pre"</span><span class="p">,</span> <span class="s2">"post"</span><span class="p">]</span>
+</code></pre></div>
+<p><strong>防御</strong>：pre_hook 在 forward 前，post_hook 在 forward 后，顺序正确。如果 <code>__call__</code> 里两个 hook 顺序写反，会挂。</p>
+<h3 id="test_zero_grad"><code>test_zero_grad</code><a class="headerlink" href="#test_zero_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">m</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+    <span class="k">assert</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span>
+</code></pre></div>
+<p><strong>防御</strong>：<code>zero_grad</code> 把 <code>grad</code> 设成 <code>None</code> 而非零张量。如果设成零张量，<code>p.grad is None</code> 会是 False。</p>
+<h3 id="test_linear_backward"><code>test_linear_backward</code><a class="headerlink" href="#test_linear_backward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="k">assert</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</code></pre></div>
+<p><strong>防御</strong>：<code>Linear</code> 的参数确实收到了梯度。这依赖整个 autograd 链路（<code>@</code>、<code>transpose</code>、<code>+</code>、<code>sum</code>）正确，是集成测试。</p>
+<hr />
+<h2 id="511">5.11 优劣势总结<a class="headerlink" href="#511" title="Permanent link">&para;</a></h2>
+<h3 id="_1">优势<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>用户代码自然</strong>：<code>self.weight = Parameter(...)</code> 就是普通 Python 类写法，无需框架 DSL。</li>
+<li><strong>类型即语义</strong>：<code>Parameter</code> / <code>Module</code> / <code>Tensor</code> 三种类型自动分流，无需额外标记。</li>
+<li><strong>递归免费</strong>：<code>parameters()</code>、<code>state_dict()</code>、<code>train()</code> 自动递归，嵌套模块无需特殊处理。</li>
+<li><strong>扩展性强</strong>：新层只需继承 <code>Module</code> 实现 <code>forward</code>，注册/收集/保存全自动。</li>
+<li><strong>与 autograd 解耦</strong>：<code>Module</code> 只管组织参数，<code>Tensor</code> 管自动微分，职责清晰。</li>
+</ol>
+<h3 id="_2">劣势<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong><code>__setattr__</code> 全局拦截</strong>：所有赋值都过一遍 <code>isinstance</code>，有微小开销。大模型 <code>__init__</code> 时几千个赋值，累积可感知。</li>
+<li><strong><code>__getattr__</code> 的递归陷阱</strong>：实现者稍不留神就无限递归。这是 Python 属性协议的固有复杂度。</li>
+<li><strong><code>state_dict</code> 不存结构</strong>：模型结构必须在代码里定义，加载时结构必须匹配。改结构要写迁移逻辑。</li>
+<li><strong>hooks 不可移除</strong>：lambda 重复注册、无法精确删一个 hook，工程上不便。</li>
+<li><strong><code>ModuleList</code> 语义偏离</strong>：minitorch 给了默认 forward，与 PyTorch 语义不一致，可能误导初学者。</li>
+<li><strong>无 pickle 支持</strong>：不能直接 <code>pickle.dump(model)</code>，要自己存 <code>state_dict</code>。</li>
+</ol>
+<hr />
+<h2 id="512">5.12 下一章预告<a class="headerlink" href="#512" title="Permanent link">&para;</a></h2>
+<p>本章我们解决了"参数怎么组织"。下一章 <strong>第六章 优化器系统</strong> 将回答：</p>
+<ul>
+<li>有了参数和梯度，怎么更新？<code>SGD</code> 的 <code>p -= lr * grad</code> 背后有什么数学？</li>
+<li>为什么需要动量？Nesterov 动量和普通动量差在哪？</li>
+<li><code>Adam</code> 为什么对每个参数有自适应步长？一阶矩、二阶矩、bias correction 各解决什么问题？</li>
+<li><code>param_groups</code> 怎么让不同层用不同学习率？</li>
+<li>优化器的 <code>state</code> 为什么用 <code>id(p)</code> 做 key？参数对象和优化器状态怎么关联？</li>
+<li><code>LR Scheduler</code> 怎么在训练过程中调学习率？<code>CosineAnnealingLR</code> 的曲线长什么样？</li>
+</ul>
+<p>我们将从梯度下降的数学推导开始，一步步加出动量、Nesterov、Adam，并对照 minitorch 的 <code>optim/sgd.py</code> 和 <code>optim/adam.py</code> 逐行实现。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.code.tabs", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

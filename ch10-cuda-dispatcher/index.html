@@ -1,0 +1,4021 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="从零实现迷你版 PyTorch，学习底层原理与设计原则">
+      
+      
+        <meta name="author" content="minitorch contributor">
+      
+      
+      
+        <link rel="prev" href="../ch09-cpp-advanced/">
+      
+      
+        <link rel="next" href="../appendix/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Ch10 CUDA 与 dispatcher - minitorch</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cuda-dispatcher-device" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="minitorch" class="md-header__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            minitorch
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ch10 CUDA 与 dispatcher
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ch01-tensor-storage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段一·纯 Python
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../ch08-cpp-core/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段二·C++ 核心
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../appendix/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  附录
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../differences/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  与真实 PyTorch 的差异
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="minitorch" class="md-nav__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    minitorch
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段一·纯 Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段一·纯 Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch01-tensor-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch1 张量与存储
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch02-ops-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch2 算子与分发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch03-autograd-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch3 自动微分引擎
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch04-computation-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch4 计算图机制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch05-nn-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch5 nn.Module 体系
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch06-optimizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch6 优化器系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch07-loss-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch7 损失与训练循环
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch11-dataloader/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch11 数据加载与采样
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch12-serialization-amp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch12 持久化与混合精度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch13-fx-compile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch13 图与编译导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段二·C++ 核心
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段二·C++ 核心
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch08-cpp-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch8 C++ 核心重写
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch09-cpp-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch9 C++ 高级特性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch10 CUDA 与 dispatcher
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch10 CUDA 与 dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#101" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#102-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 原理铺垫：异构计算与 dispatcher
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.2 原理铺垫：异构计算与 dispatcher">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1021" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.1 为什么要异构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1022-dispatcher-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.2 dispatcher：按 device 路由
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1023-pytorch-dispatch-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.3 真实 PyTorch 的 dispatch key
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#103-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 原理铺垫：CUDA 编程模型
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.3 原理铺垫：CUDA 编程模型">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1031-thread-block-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.1 三级层次：thread / block / grid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1032-simt-warp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.2 SIMT 与 warp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1033" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.3 内存层次
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1034" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.4 异步执行与同步
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1035-launch-blocks-threads-shared_mem-stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.5 launch 配置 &lt;&lt;&lt;blocks, threads, shared_mem, stream&gt;&gt;&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1036-sm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.6 SM 与占用率
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#104" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4 设计决策与权衡
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.4 设计决策与权衡">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1041" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4.1 为什么教学版"来回拷"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1042-unordered_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4.2 为什么用 unordered_map 而非数组
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#105-dispatch-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5 代码逐行实现：dispatch table
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.5 代码逐行实现：dispatch table">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1051-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.1 Device 类型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1052-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.2 Kernel 函数签名
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1053-dispatchtable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.3 DispatchTable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1054-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.4 全局 Dispatcher 单例
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1055-device_of-helper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.5 device_of 与适配 helper
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#106-cpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6 代码逐行实现：CPU 算子注册
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#107-cuda-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7 代码逐行实现：CUDA kernel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.7 代码逐行实现：CUDA kernel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1071-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.1 加法 kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1072-relu-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.2 ReLU kernel（演示分支）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1073-kernelreduction-shared-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.3 求和 kernel（reduction + shared memory）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1074-host-wrapper-launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.4 host 端 wrapper：内存拷贝 + launch + 同步
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1075-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.5 注册 CUDA 算子
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1076" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.6 错误处理与调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1077-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.7 编译守卫与无 GPU 构建
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#108-cpu-vs-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8 完整示例：CPU vs CUDA 注册和调用
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.8 完整示例：CPU vs CUDA 注册和调用">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1081-modulecpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.1 初始化（在 module.cpp 里）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1082-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.2 Python 端调用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1083-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.3 编译启用 CUDA
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#109" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9 常见陷阱
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.9 常见陷阱">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1091" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.1 异步执行：读到旧数据
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1092" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.2 内存拷贝开销
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1093-bank-conflict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.3 bank conflict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1094" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.4 越界访问
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1095-warp-divergence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.5 warp divergence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1096-block-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.6 block size 选多大
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1010-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.10 与真实 PyTorch 对照">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10101-dispatchtable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.1 DispatchTable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10102-dispatchkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.2 DispatchKey
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10103-atennativecuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.3 aten/native/cuda/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10104-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.4 dispatcher 演化史
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10105-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.5 一段真实 PyTorch 注册代码
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1011" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.11 历史背景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.11 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10111-cuda-2006" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.11.1 CUDA 的诞生（2006）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10112-pytorch-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.11.2 PyTorch dispatcher 演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.12 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.12 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-cuda-neg-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 1：写一个 CUDA neg kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-add_kernel-__syncthreads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 2：解释为什么 add_kernel 不需要 __syncthreads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 3：launch 配置计算
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 4：dispatcher 为什么不用虚函数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 5：教学版为什么小张量 GPU 反而慢
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-dispatcher-op" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 6：给 dispatcher 加一个不存在的 op 调用，看报什么错
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-sum_kernel-block-size-256-32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 7：把 sum_kernel 的 block size 从 256 改成 32，会怎样
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1013" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13 关键测试解读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.13 关键测试解读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10131-cpu-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13.1 CPU dispatcher 测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10132-cuda-skip-if-no-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13.2 CUDA 测试（skip if no CUDA）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10133" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13.3 路由测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10134" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13.4 检测函数
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1014" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.14 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10141" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14.1 优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10142" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14.2 劣势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10143-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14.3 什么时候值得上 GPU
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1015" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.15 本章总结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../appendix/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    附录
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a1-distributed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A1 分布式训练
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a2-quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A2 量化导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a3-torchscript-onnx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A3 TorchScript 与 ONNX
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a4-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A4 profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a5-dispatch-key/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A5 dispatch key 链
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a6-c-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A6 CPython C-API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../differences/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    与真实 PyTorch 的差异
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#101" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#102-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 原理铺垫：异构计算与 dispatcher
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.2 原理铺垫：异构计算与 dispatcher">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1021" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.1 为什么要异构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1022-dispatcher-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.2 dispatcher：按 device 路由
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1023-pytorch-dispatch-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.3 真实 PyTorch 的 dispatch key
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#103-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 原理铺垫：CUDA 编程模型
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.3 原理铺垫：CUDA 编程模型">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1031-thread-block-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.1 三级层次：thread / block / grid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1032-simt-warp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.2 SIMT 与 warp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1033" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.3 内存层次
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1034" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.4 异步执行与同步
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1035-launch-blocks-threads-shared_mem-stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.5 launch 配置 &lt;&lt;&lt;blocks, threads, shared_mem, stream&gt;&gt;&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1036-sm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.6 SM 与占用率
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#104" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4 设计决策与权衡
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.4 设计决策与权衡">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1041" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4.1 为什么教学版"来回拷"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1042-unordered_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4.2 为什么用 unordered_map 而非数组
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#105-dispatch-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5 代码逐行实现：dispatch table
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.5 代码逐行实现：dispatch table">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1051-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.1 Device 类型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1052-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.2 Kernel 函数签名
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1053-dispatchtable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.3 DispatchTable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1054-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.4 全局 Dispatcher 单例
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1055-device_of-helper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5.5 device_of 与适配 helper
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#106-cpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6 代码逐行实现：CPU 算子注册
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#107-cuda-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7 代码逐行实现：CUDA kernel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.7 代码逐行实现：CUDA kernel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1071-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.1 加法 kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1072-relu-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.2 ReLU kernel（演示分支）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1073-kernelreduction-shared-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.3 求和 kernel（reduction + shared memory）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1074-host-wrapper-launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.4 host 端 wrapper：内存拷贝 + launch + 同步
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1075-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.5 注册 CUDA 算子
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1076" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.6 错误处理与调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1077-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.7 编译守卫与无 GPU 构建
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#108-cpu-vs-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8 完整示例：CPU vs CUDA 注册和调用
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.8 完整示例：CPU vs CUDA 注册和调用">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1081-modulecpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.1 初始化（在 module.cpp 里）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1082-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.2 Python 端调用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1083-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8.3 编译启用 CUDA
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#109" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9 常见陷阱
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.9 常见陷阱">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1091" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.1 异步执行：读到旧数据
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1092" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.2 内存拷贝开销
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1093-bank-conflict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.3 bank conflict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1094" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.4 越界访问
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1095-warp-divergence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.5 warp divergence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1096-block-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9.6 block size 选多大
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1010-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.10 与真实 PyTorch 对照">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10101-dispatchtable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.1 DispatchTable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10102-dispatchkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.2 DispatchKey
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10103-atennativecuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.3 aten/native/cuda/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10104-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.4 dispatcher 演化史
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10105-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.10.5 一段真实 PyTorch 注册代码
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1011" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.11 历史背景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.11 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10111-cuda-2006" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.11.1 CUDA 的诞生（2006）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10112-pytorch-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.11.2 PyTorch dispatcher 演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.12 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.12 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-cuda-neg-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 1：写一个 CUDA neg kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-add_kernel-__syncthreads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 2：解释为什么 add_kernel 不需要 __syncthreads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 3：launch 配置计算
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 4：dispatcher 为什么不用虚函数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 5：教学版为什么小张量 GPU 反而慢
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-dispatcher-op" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 6：给 dispatcher 加一个不存在的 op 调用，看报什么错
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-sum_kernel-block-size-256-32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 7：把 sum_kernel 的 block size 从 256 改成 32，会怎样
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1013" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13 关键测试解读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.13 关键测试解读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10131-cpu-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13.1 CPU dispatcher 测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10132-cuda-skip-if-no-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13.2 CUDA 测试（skip if no CUDA）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10133" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13.3 路由测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10134" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.13.4 检测函数
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1014" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.14 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10141" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14.1 优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10142" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14.2 劣势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10143-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.14.3 什么时候值得上 GPU
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1015" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.15 本章总结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cuda-dispatcher-device">第十章 CUDA 与 dispatcher：异构计算与 device 路由<a class="headerlink" href="#cuda-dispatcher-device" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>上一章我们把核心计算迁到 C++，但还只跑在 CPU 上。本章给 minitorch 接上 GPU：
+引入 <strong>dispatcher</strong>——一个按张量 device 把算子路由到 CPU kernel 或 CUDA kernel 的
+调度表——并写出真正的 CUDA kernel（<code>__global__</code> 函数、thread/block/grid、shared memory reduction）。
+你会看到"同一个 <code>add</code> 在 CPU 和 GPU 上是两份代码，但调用点只有一处"是怎么做到的，
+这正是 PyTorch 能同时跑在 CPU/CUDA/MPS/XLA/... 的核心机制。本章代码在无 GPU 环境也完整可读。</p>
+</blockquote>
+<hr />
+<h2 id="101">10.1 本章目标<a class="headerlink" href="#101" title="Permanent link">&para;</a></h2>
+<p>读完本章后，你应当能够：</p>
+<ol>
+<li>解释<strong>异构计算</strong>的动机：CPU 擅长串行复杂逻辑，GPU 擅长大规模数据并行，要把算子分派到对的设备。</li>
+<li>说出 <strong>dispatcher 的 device 路由</strong>思想：<code>op_name → (device → kernel)</code> 的查表分发，为什么比 <code>if (device == CPU) ... else ...</code> 硬编码好。</li>
+<li>讲清 <strong>CUDA 编程模型</strong>的三级层次：thread（线程）/ block（线程块）/ grid（网格），以及 <code>threadIdx</code>/<code>blockIdx</code>/<code>blockDim</code>/<code>gridDim</code> 内置变量。</li>
+<li>写一个最简单的 CUDA kernel：<code>__global__ void add_kernel(...)</code>，配边界守卫 <code>if (i &lt; n)</code>，并用 <code>&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;</code> 语法 launch。</li>
+<li>解释 <strong>kernel launch 是异步的</strong>：<code>&lt;&lt;&lt;&gt;&gt;&gt;</code> 立即返回，要 <code>cudaStreamSynchronize</code> 或隐式同步（如 <code>cudaMemcpy</code> Device→Host）才等结果。</li>
+<li>用 <strong>shared memory + <code>__syncthreads</code></strong> 写一个 block 内 reduction（sum kernel），说出为什么 shared memory 比 global memory 快、为什么必须同步。</li>
+<li>实现 dispatch table：<code>unordered_map&lt;op_name, unordered_map&lt;device, KernelFn&gt;&gt;</code>，把 CPU 和 CUDA 算子注册进去。</li>
+<li>排查三类 CUDA 常见陷阱：异步执行导致的"读到旧数据"、host↔device 内存拷贝开销、shared memory bank conflict。</li>
+<li>对照真实 PyTorch：<code>c10::DispatchTable</code> / <code>c10::DispatchKey</code> / <code>aten/native/cuda/</code>，说出我们的简化在哪。</li>
+<li>讲清 CUDA 的诞生（2006 NVIDIA G80）和 PyTorch dispatcher 的演化（从 <code>TH</code> 函数指针表到 <code>c10::Dispatcher</code>）。</li>
+</ol>
+<hr />
+<h2 id="102-dispatcher">10.2 原理铺垫：异构计算与 dispatcher<a class="headerlink" href="#102-dispatcher" title="Permanent link">&para;</a></h2>
+<h3 id="1021">10.2.1 为什么要异构<a class="headerlink" href="#1021" title="Permanent link">&para;</a></h3>
+<p>CPU 和 GPU 是两种截然不同的处理器：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>CPU</th>
+<th>GPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>核心数</td>
+<td>4–64 个复杂核心</td>
+<td>数千个简单核心</td>
+</tr>
+<tr>
+<td>单核性能</td>
+<td>强（深流水、分支预测、大缓存）</td>
+<td>弱（顺序执行、简单控制）</td>
+</tr>
+<tr>
+<td>并行粒度</td>
+<td>线程级（几线程到几十线程）</td>
+<td>数据级（SIMT，一个 warp 32 线程同步执行）</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>DDR，几十 GB，延迟低</td>
+<td>显存（HBM/GDDR），几十 GB，带宽高但延迟高</td>
+</tr>
+<tr>
+<td>擅长</td>
+<td>串行逻辑、复杂控制流、小数据</td>
+<td>大规模数据并行（矩阵乘、逐元素、conv）</td>
+</tr>
+</tbody>
+</table>
+<p>深度学习的核心计算（矩阵乘、卷积、逐元素算子）正好是"大规模数据并行"——一个 <code>[10000, 10000]</code> 的矩阵乘有 10^12 次乘加，GPU 的几千核心并行能比 CPU 快 10–100 倍。</p>
+<p>但训练循环的"框架逻辑"（建图、反向、optimizer step 的控制流）是串行的，GPU 跑反而慢。所以<strong>同一个程序里，框架逻辑在 CPU，热路径算子在 GPU</strong>——这就是异构计算。</p>
+<h3 id="1022-dispatcher-device">10.2.2 dispatcher：按 device 路由<a class="headerlink" href="#1022-dispatcher-device" title="Permanent link">&para;</a></h3>
+<p>现在问题来了：<code>c = a + b</code> 这个加法，如果 <code>a</code>、<code>b</code> 在 CPU 上，要走 CPU 加法；如果在 GPU 上，要走 GPU 加法。怎么写？</p>
+<p><strong>朴素方案</strong>：在每个算子里 <code>if</code>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">TensorImplPtr</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">device</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CPU</span><span class="p">)</span><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">cpu_add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">device</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">cuda_add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="p">...;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>这能跑，但有几个问题：</p>
+<ol>
+<li><strong>算子数量爆炸</strong>：几十个算子，每个都要写这个 <code>if</code>，重复且易漏。</li>
+<li><strong>新增 device 要改所有算子</strong>：想加 MPS 支持？去每个算子里加一个 <code>if</code> 分支。灾难。</li>
+<li><strong>算子和 device 耦合</strong>：<code>add</code> 的代码里出现 <code>cuda_add</code>，编译时就算没 CUDA 也要能过（要 <code>#ifdef</code>）。</li>
+<li><strong>难扩展其他维度</strong>：除了 device，还想按 dtype（float32 vs float16）、按 autograd（要不要建图）路由，<code>if</code> 嵌套会爆炸。</li>
+</ol>
+<p><strong>dispatcher 方案</strong>：把"算子名"和"实现"解耦，用一张表：</p>
+<div class="highlight"><pre><span></span><code>dispatch_table:
+    "add"   → { CPU: cpu_add,   CUDA: cuda_add   }
+    "mul"   → { CPU: cpu_mul,   CUDA: cuda_mul   }
+    "relu"  → { CPU: cpu_relu,  CUDA: cuda_relu  }
+    "matmul"→ { CPU: cpu_matmul,CUDA: cuda_matmul}
+    ...
+</code></pre></div>
+<p>调用时：<code>dispatcher.call("add", {a, b})</code>——查表，按 <code>a.device()</code> 取 kernel，调用。<strong>调用点不知道也不关心 device</strong>。</p>
+<p>新增 device（如 MPS）：只写 <code>mps_add</code> 并 <code>register_kernel("add", MPS, mps_add)</code>，<strong>任何调用点不改</strong>。这是 dispatcher 的核心价值。</p>
+<div class="admonition tip">
+<p class="admonition-title">心智模型</p>
+</div>
+<p>dispatcher 就像餐厅的"菜单—厨房"映射：菜单上写"宫保鸡丁"（op name），后厨有川菜厨师（CPU kernel）和粤菜师傅（CUDA kernel）。服务员（调用点）只报菜名，餐厅经理（dispatcher）看今天哪个厨师在岗（device）派单。新来个鲁菜师傅（新 device），菜单不用改，只需登记"鲁菜师傅也会做宫保鸡丁"。</p>
+<h3 id="1023-pytorch-dispatch-key">10.2.3 真实 PyTorch 的 dispatch key<a class="headerlink" href="#1023-pytorch-dispatch-key" title="Permanent link">&para;</a></h3>
+<p>真实 PyTorch 的 dispatcher 比这复杂——除了 device，还要按 <strong>dtype</strong>、<strong>layout</strong>（dense/sparse）、<strong>autograd</strong>（要不要建图）、<strong>autocast</strong>（要不要自动类型转换）路由。这些统称 <strong>dispatch key</strong>，组合起来有几百种。</p>
+<p>我们的教学版只按 device（CPU/CUDA）路由，是真实 dispatcher 的"投影"——足以讲清"查表分发"的思想，又不被几百种 key 淹没。</p>
+<hr />
+<h2 id="103-cuda">10.3 原理铺垫：CUDA 编程模型<a class="headerlink" href="#103-cuda" title="Permanent link">&para;</a></h2>
+<h3 id="1031-thread-block-grid">10.3.1 三级层次：thread / block / grid<a class="headerlink" href="#1031-thread-block-grid" title="Permanent link">&para;</a></h3>
+<p>一次 kernel launch 会启动大量线程，它们被组织成三级层次：</p>
+<div class="highlight"><pre><span></span><code>grid
+├── block (0,0)
+│   ├── thread (0,0)   ← threadIdx = (0,0), blockIdx = (0,0)
+│   ├── thread (1,0)
+│   └── ... (blockDim.x × blockDim.y 个 thread)
+├── block (1,0)
+│   └── ...
+└── ... (gridDim.x × gridDim.y 个 block)
+</code></pre></div>
+<ul>
+<li><strong>thread</strong>：最小执行单元，跑一份 kernel 代码，有私有寄存器。</li>
+<li><strong>block</strong>：若干 thread 组成。block 内 thread 可通过 <strong>shared memory</strong> 协作，可用 <code>__syncthreads()</code> 同步。block 之间<strong>不能</strong>直接通信或同步。</li>
+<li><strong>grid</strong>：一次 launch 的所有 block。所有 block 跑同一份 kernel 代码。</li>
+</ul>
+<p>每个 thread 用内置变量定位自己：</p>
+<div class="highlight"><pre><span></span><code><span class="kt">int</span><span class="w"> </span><span class="n">tid</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span><span class="w">                    </span><span class="c1">// block 内 x 方向索引</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">bid</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span><span class="w">                     </span><span class="c1">// grid 内 block x 方向索引</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">bdim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span><span class="w">                     </span><span class="c1">// block 的 x 方向 thread 数</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">gdim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span><span class="w">                      </span><span class="c1">// grid 的 x 方向 block 数</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">bid</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">bdim</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tid</span><span class="p">;</span><span class="w">               </span><span class="c1">// 全局一维索引（最常用）</span>
+</code></pre></div>
+<h3 id="1032-simt-warp">10.3.2 SIMT 与 warp<a class="headerlink" href="#1032-simt-warp" title="Permanent link">&para;</a></h3>
+<p>GPU 执行模型是 <strong>SIMT</strong>（Single Instruction, Multiple Threads）：每 32 个 thread 组成一个 <strong>warp</strong>，warp 内所有 thread <strong>同一时刻执行同一条指令</strong>（不同数据）。</p>
+<p>如果 kernel 里有 <code>if (cond) A else B</code>，warp 内有的 thread 走 A、有的走 B，GPU 会<strong>串行执行两个分支</strong>（warp divergence），性能下降。所以写 kernel 要尽量让 warp 内分支一致。</p>
+<h3 id="1033">10.3.3 内存层次<a class="headerlink" href="#1033" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>范围</th>
+<th>大小</th>
+<th>速度</th>
+<th>谁能访问</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>寄存器</td>
+<td>单 thread</td>
+<td>几 KB/线程</td>
+<td>最快</td>
+<td>私有</td>
+</tr>
+<tr>
+<td>shared memory</td>
+<td>单 block</td>
+<td>~48 KB/block</td>
+<td>快（~20×寄存器延迟）</td>
+<td>block 内所有 thread，可同步</td>
+</tr>
+<tr>
+<td>global memory（显存）</td>
+<td>全 grid</td>
+<td>几 GB</td>
+<td>慢（~100×shared）</td>
+<td>所有 thread + host</td>
+</tr>
+<tr>
+<td>host memory</td>
+<td>CPU 内存</td>
+<td>几十 GB</td>
+<td>最慢（要 PCIe 传）</td>
+<td>host</td>
+</tr>
+</tbody>
+</table>
+<p>写 kernel 的核心优化思路：<strong>把数据从 global 搬到 shared，在 shared 里算，结果写回 global</strong>。因为 shared 比 global 快几十倍。</p>
+<h3 id="1034">10.3.4 异步执行与同步<a class="headerlink" href="#1034" title="Permanent link">&para;</a></h3>
+<p>kernel launch 是<strong>异步</strong>的：</p>
+<div class="highlight"><pre><span></span><code><span class="n">add_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">db</span><span class="p">,</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w">   </span><span class="c1">// 立即返回！</span>
+<span class="c1">// 这里 dc 可能还没算完</span>
+<span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">hc</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="p">...,</span><span class="w"> </span><span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span><span class="w">  </span><span class="c1">// 这行会等 kernel</span>
+<span class="c1">// 这里 hc 才有效</span>
+</code></pre></div>
+<p><code>cudaMemcpy</code> Device→Host 会<strong>隐式同步</strong>（等之前所有 kernel 完成）。但 Device→Device 的拷贝是异步的。要显式等：</p>
+<div class="highlight"><pre><span></span><code><span class="n">cudaDeviceSynchronize</span><span class="p">();</span><span class="w">   </span><span class="c1">// 等所有 stream 所有 kernel</span>
+<span class="n">cudaStreamSynchronize</span><span class="p">(</span><span class="n">stream</span><span class="p">);</span><span class="w">  </span><span class="c1">// 等特定 stream</span>
+</code></pre></div>
+<p>异步的好处：CPU 可以在 GPU 算的时候干别的（比如准备下一批数据）。坏处：容易写出"读到未算完数据"的 bug。</p>
+<h3 id="1035-launch-blocks-threads-shared_mem-stream">10.3.5 launch 配置 <code>&lt;&lt;&lt;blocks, threads, shared_mem, stream&gt;&gt;&gt;</code><a class="headerlink" href="#1035-launch-blocks-threads-shared_mem-stream" title="Permanent link">&para;</a></h3>
+<p>完整的 launch 语法有四个参数：</p>
+<div class="highlight"><pre><span></span><code><span class="n">kernel</span><span class="o">&lt;&lt;&lt;</span><span class="nb">gridDim</span><span class="p">,</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">,</span><span class="w"> </span><span class="n">sharedMemBytes</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+</code></pre></div>
+<ul>
+<li><code>gridDim</code>：grid 的形状（多少个 block）。可传 <code>int</code>（1D）或 <code>dim3</code>（3D）。</li>
+<li><code>blockDim</code>：每个 block 的 thread 数。同样可 <code>int</code> 或 <code>dim3</code>。</li>
+<li><code>sharedMemBytes</code>：动态 shared memory 大小（字节）。对应 kernel 里的 <code>extern __shared__</code> 数组。默认 0。</li>
+<li><code>stream</code>：在哪个 stream 上 launch。默认 0（默认 stream）。不同 stream 上的 kernel 可并发执行。</li>
+</ul>
+<p>教学版只用了前两个：<code>add_kernel&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;(...)</code>。sum kernel 用了第三个（动态 shared mem）：<code>sum_kernel&lt;&lt;&lt;blocks, threads, threads*sizeof(double)&gt;&gt;&gt;</code>。</p>
+<p><strong>约束</strong>：</p>
+<ul>
+<li><code>blockDim.x * blockDim.y * blockDim.z ≤ 1024</code>（多数 GPU 一个 block 最多 1024 thread）。</li>
+<li><code>gridDim.x/y/z ≤ 2^31 - 1</code>（grid 维度上限很大，但 block 总数受 SM 数量限制，多了排队）。</li>
+<li>shared memory 每 block 上限 ~48KB（可配置到 96KB，但会减少可同驻的 block 数）。</li>
+</ul>
+<h3 id="1036-sm">10.3.6 SM 与占用率<a class="headerlink" href="#1036-sm" title="Permanent link">&para;</a></h3>
+<p>GPU 由若干 <strong>SM</strong>（Streaming Multiprocessor）组成，每个 SM 能同时跑多个 block（co-residency）。一个 block 跑在哪个 SM 上由硬件决定，软件不可控。</p>
+<p><strong>占用率</strong>（occupancy）= 实际活跃 warp 数 / SM 最大 warp 数。影响占用率的因素：</p>
+<ul>
+<li>block 的 thread 数（太少占用低）</li>
+<li>block 用的寄存器数（太多限制 co-residency）</li>
+<li>block 用的 shared memory（太多限制 co-residency）</li>
+</ul>
+<p>教学版 block=256、不用多少寄存器和 shared mem，占用率高。真实 PyTorch 的复杂 kernel（如 conv）会 profile 调 block size 最大化占用率。</p>
+<div class="admonition tip">
+<p class="admonition-title">占用率不是越高越好</p>
+</div>
+<p>100% 占用率不一定最快。如果 kernel 是访存受限（memory-bound），多 warp 也喂不饱显存带宽，反而增加调度开销。要 profile 看是 compute-bound 还是 memory-bound，对症下药。</p>
+<hr />
+<h2 id="104">10.4 设计决策与权衡<a class="headerlink" href="#104" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>决策点</th>
+<th>选项</th>
+<th>我们选</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dispatch key</td>
+<td>只 device / device+dtype / 全组合</td>
+<td><strong>只 device</strong></td>
+<td>教学简化；讲清路由思想即可</td>
+</tr>
+<tr>
+<td>表结构</td>
+<td>嵌套 hash map / 扁平数组</td>
+<td><strong>嵌套 <code>unordered_map</code></strong></td>
+<td>简单直观；真实 PyTorch 用扁平数组（DispatchKey 下标）更高效</td>
+</tr>
+<tr>
+<td>kernel 签名</td>
+<td>固定元数 / 变参 vector</td>
+<td><strong>统一 <code>vector&lt;TensorImplPtr&gt; → TensorImplPtr</code></strong></td>
+<td>能放进同一张表；真实 PyTorch 用 stackbased 变参更高效</td>
+</tr>
+<tr>
+<td>CUDA 内存</td>
+<td>张量常驻 GPU / 每次来回拷</td>
+<td><strong>教学版来回拷</strong></td>
+<td>复用 Ch8 的 host-only TensorImpl；真实 PyTorch 张量常驻 GPU</td>
+</tr>
+<tr>
+<td>何时同步</td>
+<td>每步同步 / 流式异步</td>
+<td><strong>每步隐式同步</strong></td>
+<td>教学清晰；真实 PyTorch 全异步 + caching allocator</td>
+</tr>
+<tr>
+<td>reduction 算法</td>
+<td>树形归约 / warp shuffle</td>
+<td><strong>树形归约 + shared mem</strong></td>
+<td>讲清 <code>__syncthreads</code>；真实 PyTorch 用 warp shuffle 更快</td>
+</tr>
+<tr>
+<td>是否实现全部算子的 CUDA 版</td>
+<td>全做 / 只做几个演示</td>
+<td><strong>只做 add/mul/relu/sum</strong></td>
+<td>讲清模式即可；其余算子同构</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1041">10.4.1 为什么教学版"来回拷"<a class="headerlink" href="#1041" title="Permanent link">&para;</a></h3>
+<p>真实 PyTorch 的张量可以常驻 GPU：<code>a = a.cuda()</code> 后 <code>a</code> 的 Storage 在显存，后续算子都在 GPU 跑，不来回拷。</p>
+<p>但我们的 Ch8 <code>TensorImpl</code> 的 <code>Storage</code> 是 <code>std::vector&lt;double&gt;</code>（host 内存），没有"GPU Storage"概念。要支持常驻 GPU 得给 TensorImpl 加 device 字段、给 Storage 加 allocator——改动大。</p>
+<p>教学版取巧：每次调 CUDA 算子，把 host 数据拷到 GPU、算完、拷回 host、包成原 TensorImpl。<strong>语义正确，性能不如常驻</strong>，但代码简单、能复用 Ch8 全部基础设施。文档里会反复强调这是教学简化。</p>
+<h3 id="1042-unordered_map">10.4.2 为什么用 <code>unordered_map</code> 而非数组<a class="headerlink" href="#1042-unordered_map" title="Permanent link">&para;</a></h3>
+<p>真实 PyTorch 的 dispatch table 是<strong>扁平数组</strong>：<code>KernelFn table[NUM_DISPATCH_KEYS]</code>，用 <code>DispatchKey</code>（int）当下标，O(1) 且缓存友好。</p>
+<p>我们用 <code>unordered_map&lt;op_name, unordered_map&lt;device, KernelFn&gt;&gt;</code>，O(1) 平均但常数大（两次 hash）。教学选 hash map 是因为它直观——"op 名 → device → kernel"的映射一目了然。性能差距在教学场景可忽略。</p>
+<hr />
+<h2 id="105-dispatch-table">10.5 代码逐行实现：dispatch table<a class="headerlink" href="#105-dispatch-table" title="Permanent link">&para;</a></h2>
+<p><code>cpp/aten/dispatcher.h</code> 是 dispatcher 的全部。逐段看：</p>
+<h3 id="1051-device">10.5.1 Device 类型<a class="headerlink" href="#1051-device" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">DeviceType</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">int8_t</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">CPU</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">CUDA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="kr">inline</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">device_name</span><span class="p">(</span><span class="n">DeviceType</span><span class="w"> </span><span class="n">d</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">DeviceType</span><span class="o">::</span><span class="no">CPU</span><span class="p">:</span><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="s">"cpu"</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">DeviceType</span><span class="o">::</span><span class="no">CUDA</span><span class="p">:</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="s">"cuda"</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">"unknown"</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">using</span><span class="w"> </span><span class="n">DispatchKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DeviceType</span><span class="p">;</span><span class="w">   </span><span class="c1">// 教学版直接用 device 当 key</span>
+</code></pre></div>
+<p><code>enum class</code> 强类型枚举，不会隐式转 int。真实 PyTorch 的 <code>DispatchKey</code> 是一个稠密 int 枚举，有几十个值（CPU/CUDA/MPS/XLA/AutogradCPU/AutocastCPU/...），我们只两个。</p>
+<h3 id="1052-kernel">10.5.2 Kernel 函数签名<a class="headerlink" href="#1052-kernel" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">using</span><span class="w"> </span><span class="n">KernelFn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;&amp;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</code></pre></div>
+<p>所有算子统一签名为"收一个张量 vector，返回一个张量"。这样不同元数的算子（一元 relu、二元 add、归约 sum）能放进同一张表。</p>
+<p>代价：每次调用要打包/解包 vector。真实 PyTorch 用 stackbased 变参（直接从栈上读参数），省这步。教学版可接受。</p>
+<h3 id="1053-dispatchtable">10.5.3 DispatchTable<a class="headerlink" href="#1053-dispatchtable" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DispatchTable</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">register_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">op_name</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">DispatchKey</span><span class="w"> </span><span class="n">device</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">KernelFn</span><span class="w"> </span><span class="n">fn</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">table_</span><span class="p">[</span><span class="n">op_name</span><span class="p">][</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">device</span><span class="p">)]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">fn</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">has_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">op_name</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="w"> </span><span class="n">device</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">table_</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">op_name</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">table_</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">device</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">KernelFn</span><span class="o">&amp;</span><span class="w"> </span><span class="n">lookup</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">op_name</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="w"> </span><span class="n">device</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">table_</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">op_name</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">table_</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">"dispatch: unknown op '"</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">op_name</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">"'"</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">kit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">device</span><span class="p">));</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">kit</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span>
+<span class="w">                </span><span class="s">"dispatch: op '"</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">op_name</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">"' has no kernel for device "</span><span class="w"> </span><span class="o">+</span>
+<span class="w">                </span><span class="n">device_name</span><span class="p">(</span><span class="n">device</span><span class="p">));</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">kit</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">KernelFn</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">table_</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>嵌套 map：外层按 op 名查，内层按 device 查。<code>lookup</code> 在两处可能抛异常——op 没注册、或 op 在该 device 没注册。错误信息带 op 名和 device 名，方便调试。</p>
+<h3 id="1054-dispatcher">10.5.4 全局 Dispatcher 单例<a class="headerlink" href="#1054-dispatcher" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Dispatcher</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="n">Dispatcher</span><span class="o">&amp;</span><span class="w"> </span><span class="n">instance</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="n">Dispatcher</span><span class="w"> </span><span class="n">inst</span><span class="p">;</span><span class="w">   </span><span class="c1">// Meyers 单例，线程安全（C++11+）</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">inst</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">register_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">op_name</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">DispatchKey</span><span class="w"> </span><span class="n">device</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">KernelFn</span><span class="w"> </span><span class="n">fn</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">table_</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="n">op_name</span><span class="p">,</span><span class="w"> </span><span class="n">device</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">fn</span><span class="p">));</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">call</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">op_name</span><span class="p">,</span>
+<span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">"dispatch: call with no args"</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="n">DispatchKey</span><span class="w"> </span><span class="n">device</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device_of</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w">   </span><span class="c1">// 按第一个张量定 device</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">KernelFn</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">table_</span><span class="p">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">op_name</span><span class="p">,</span><span class="w"> </span><span class="n">device</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">fn</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="n">DispatchTable</span><span class="w"> </span><span class="n">table_</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div>
+<p><code>call</code> 是 dispatcher 的入口：取第一个张量的 device，查表，调 kernel。<strong>调用点只写 <code>Dispatcher::instance().call("add", {a, b})</code>，不关心 device</strong>。</p>
+<div class="admonition warning">
+<p class="admonition-title">约定：所有输入张量必须同 device</p>
+</div>
+<p><code>call</code> 只看 <code>args[0]</code> 的 device。如果 <code>a</code> 在 CPU、<code>b</code> 在 CUDA，会按 CPU 路由但 <code>b</code> 的数据在 GPU——崩。真实 PyTorch 会自动跨 device 拷贝（把 <code>b</code> 拉到 <code>a</code> 的 device），我们简化为"逼用户显式 <code>.to()</code>"，错误更早暴露。</p>
+<h3 id="1055-device_of-helper">10.5.5 device_of 与适配 helper<a class="headerlink" href="#1055-device_of-helper" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">DispatchKey</span><span class="w"> </span><span class="nf">device_of</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 默认 CPU。CUDA 张量的 device 标记见 ops_cuda.cu</span>
+<span class="w">    </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">t</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Fn</span><span class="o">&gt;</span>
+<span class="n">KernelFn</span><span class="w"> </span><span class="n">unary_kernel</span><span class="p">(</span><span class="n">Fn</span><span class="w"> </span><span class="n">fn</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[</span><span class="n">fn</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">"unary op needs 1 arg"</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">fn</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Fn</span><span class="o">&gt;</span>
+<span class="n">KernelFn</span><span class="w"> </span><span class="n">binary_kernel</span><span class="p">(</span><span class="n">Fn</span><span class="w"> </span><span class="n">fn</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[</span><span class="n">fn</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">"binary op needs 2 args"</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">fn</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>unary_kernel</code>/<code>binary_kernel</code> 把固定元数的 lambda 适配成 <code>KernelFn</code> 的统一签名。注册时用：</p>
+<div class="highlight"><pre><span></span><code><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"add"</span><span class="p">,</span><span class="w"> </span><span class="n">CPU</span><span class="p">,</span><span class="w"> </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">){</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">cpu_add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+</code></pre></div>
+<hr />
+<h2 id="106-cpu">10.6 代码逐行实现：CPU 算子注册<a class="headerlink" href="#106-cpu" title="Permanent link">&para;</a></h2>
+<p><code>cpp/aten/native/cpu/ops_cpu.cpp</code> 把 Ch8 的算子注册到 dispatcher 的 CPU 槽。这层<strong>不做计算</strong>，只接线：</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">"ops_cpu.h"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"../../ops.h"</span><span class="w">   </span><span class="c1">// Ch8 的算子实现</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">minitorch</span><span class="o">::</span><span class="nn">native</span><span class="o">::</span><span class="nn">cpu</span><span class="w"> </span><span class="p">{</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">minitorch</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">minitorch</span><span class="o">::</span><span class="nn">ops</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">register_all_cpu_ops</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Dispatcher</span><span class="o">::</span><span class="n">instance</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"add"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"sub"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">sub</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"mul"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">mul</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"div"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">div</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"neg"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">unary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">neg</span><span class="p">(</span><span class="n">a</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"relu"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">unary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">relu</span><span class="p">(</span><span class="n">a</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"sum"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">unary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">sum</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"mean"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">unary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">mean</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"matmul"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CPU</span><span class="p">,</span>
+<span class="w">        </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">matmul</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="p">}</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// namespace minitorch::native::cpu</span>
+</code></pre></div>
+<p><strong>Ch8 的算子代码零改动</strong>——<code>add</code>/<code>sub</code>/... 还是原来那些函数，只是被"注册"到 dispatcher。这演示了 dispatcher 的解耦价值：现有算子不用改就能接入。</p>
+<hr />
+<h2 id="107-cuda-kernel">10.7 代码逐行实现：CUDA kernel<a class="headerlink" href="#107-cuda-kernel" title="Permanent link">&para;</a></h2>
+<p><code>cpp/aten/native/cuda/ops_cuda.cu</code> 是 CUDA 源文件，由 <strong>nvcc</strong> 编译。逐段看：</p>
+<h3 id="1071-kernel">10.7.1 加法 kernel<a class="headerlink" href="#1071-kernel" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">add_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">a</span><span class="p">,</span>
+<span class="w">                           </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">b</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">c</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>逐行：</p>
+<ul>
+<li><code>__global__</code>：这是从 host 调用、在 device 执行的 kernel。<code>__device__</code> 是只在 device 执行（不能从 host launch），<code>__host__</code> 是只在 host 执行。</li>
+<li><code>__restrict__</code>：告诉编译器 <code>a</code>/<code>b</code>/<code>c</code> 指针不别名（不指向同一块），编译器可放心重排、向量化。CUDA 优化关键。</li>
+<li><code>int i = blockIdx.x * blockDim.x + threadIdx.x;</code>：算本 thread 的全局一维索引。这是 1D launch 的标准公式。</li>
+<li><code>if (i &lt; n)</code>：<strong>边界守卫</strong>。launch 时 thread 总数通常不是 n 的整数倍，多出来的 thread 要跳过，否则越界访问显存。</li>
+<li><code>c[i] = a[i] + b[i];</code>：每个 thread 处理一个元素，天然并行。</li>
+</ul>
+<h3 id="1072-relu-kernel">10.7.2 ReLU kernel（演示分支）<a class="headerlink" href="#1072-relu-kernel" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">relu_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">a</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">c</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>x &gt; 0.0 ? x : 0.0</code> 是分支。warp 内如果有的 thread <code>x &gt; 0</code>、有的 <code>x &lt;= 0</code>，会 warp divergence——两分支串行。但 ReLU 分歧不严重（一半走一半不走，串行一次），性能影响小。</p>
+<h3 id="1073-kernelreduction-shared-memory">10.7.3 求和 kernel（reduction + shared memory）<a class="headerlink" href="#1073-kernelreduction-shared-memory" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">sum_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">a</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">partial</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="kt">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sdata</span><span class="p">[];</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tid</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">sdata</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="nf">__syncthreads</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">&gt;&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">sdata</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">sdata</span><span class="p">[</span><span class="n">tid</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">s</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nf">__syncthreads</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tid</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">partial</span><span class="p">[</span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sdata</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>这是经典的<strong>两级 reduction</strong>：</p>
+<ol>
+<li><code>extern __shared__ double sdata[]</code>：动态大小的 shared memory，由 launch 时的第三个参数指定（<code>&lt;&lt;&lt;blocks, threads, threads*sizeof(double)&gt;&gt;&gt;</code>）。shared memory 是 block 内所有 thread 共享的快速内存。</li>
+<li>每个 thread 把自己负责的元素读进 <code>sdata[tid]</code>（越界填 0）。<code>__syncthreads()</code> 等所有 thread 都写完。</li>
+<li><strong>树形归约</strong>：步长 <code>s</code> 从 <code>blockDim/2</code> 逐次减半。每轮前 <code>s</code> 个 thread 把 <code>sdata[tid+s]</code> 累加到 <code>sdata[tid]</code>。<code>__syncthreads()</code> 每轮同步，否则下一轮可能读到上一轮没写完的数据。</li>
+<li>归约结束后 <code>sdata[0]</code> 是本 block 的总和，由 <code>tid == 0</code> 的 thread 写到 <code>partial[blockIdx.x]</code>。</li>
+</ol>
+<p>最后 host 上把 <code>partial[]</code> 加起来（或再 launch 一个 kernel 归约）。</p>
+<div class="admonition tip">
+<p class="admonition-title">为什么用 shared memory</p>
+</div>
+<p>如果直接在 global memory 里归约（<code>a[tid] += a[tid+s]</code>），每步都访问慢速显存。把数据先搬到 shared（快几十倍），在 shared 里归约，只最后写一次 global，性能高一个数量级。这是 CUDA reduction 的标准优化。</p>
+<div class="admonition warning">
+<p class="admonition-title">__syncthreads 的规则</p>
+</div>
+<p><code>__syncthreads()</code> 必须在<strong>所有 thread 都会执行到</strong>的位置调用。如果写在 <code>if (tid &lt; s)</code> 里面，没进 if 的 thread 永远不到同步点，整个 block 死锁。所以上面的代码把 <code>__syncthreads()</code> 放在 if 外面——所有 thread 都同步，只有部分 thread 干活。</p>
+<h3 id="1074-host-wrapper-launch">10.7.4 host 端 wrapper：内存拷贝 + launch + 同步<a class="headerlink" href="#1074-host-wrapper-launch" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">TensorImplPtr</span><span class="w"> </span><span class="nf">cuda_add</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="o">-&gt;</span><span class="n">shape</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">b</span><span class="o">-&gt;</span><span class="n">shape</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">"cuda_add: shape 必须一致（教学版不支持广播）"</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">-&gt;</span><span class="n">numel</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="o">-&gt;</span><span class="n">to_vector</span><span class="p">();</span><span class="w">   </span><span class="c1">// host 数据</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">hb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">b</span><span class="o">-&gt;</span><span class="n">to_vector</span><span class="p">();</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">hc</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">));</span>
+
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">da</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">db</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">dc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="w">    </span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">db</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="w">    </span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">ha</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">db</span><span class="p">,</span><span class="w"> </span><span class="n">hb</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">threads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">blocks</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threads</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">threads</span><span class="p">;</span><span class="w">   </span><span class="c1">// ceil(n / 256)</span>
+<span class="w">    </span><span class="n">add_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">db</span><span class="p">,</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">hc</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">cudaFree</span><span class="p">(</span><span class="n">da</span><span class="p">);</span><span class="w"> </span><span class="n">cudaFree</span><span class="p">(</span><span class="n">db</span><span class="p">);</span><span class="w"> </span><span class="n">cudaFree</span><span class="p">(</span><span class="n">dc</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">make_tensor</span><span class="p">(</span><span class="n">hc</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="o">-&gt;</span><span class="n">shape</span><span class="p">());</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>这是 host 代码（虽然写在 <code>.cu</code> 里），被 dispatcher 调用。流程：</p>
+<ol>
+<li>从 <code>TensorImpl</code> 取 host 数据（<code>to_vector()</code>）。</li>
+<li><code>cudaMalloc</code> 在显存分配。</li>
+<li><code>cudaMemcpy</code> Host→Device 把数据搬去 GPU。</li>
+<li><code>&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;</code> launch kernel。<code>blocks = ceil(n/256)</code> 保证 thread 总数 ≥ n。</li>
+<li><code>cudaMemcpy</code> Device→Host 把结果搬回。<strong>这步隐式同步</strong>，等 kernel 算完。</li>
+<li><code>cudaFree</code> 释放显存。</li>
+<li>包成新 <code>TensorImpl</code> 返回。</li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">教学版的低效</p>
+</div>
+<p>每次调用都 <code>cudaMalloc</code>/<code>cudaFree</code>——真实场景这是性能灾难（分配显存很慢）。真实 PyTorch 用 <strong>caching allocator</strong>：分配过的显存块缓存起来复用，不真释放。教学版为了简单每次真分配，文档里反复强调这是简化。</p>
+<h3 id="1075-cuda">10.7.5 注册 CUDA 算子<a class="headerlink" href="#1075-cuda" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">register_all_cuda_ops</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Dispatcher</span><span class="o">::</span><span class="n">instance</span><span class="p">();</span>
+<span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">minitorch</span><span class="p">;</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"add"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CUDA</span><span class="p">,</span>
+<span class="w">        </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">cuda_add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"mul"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CUDA</span><span class="p">,</span>
+<span class="w">        </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">cuda_mul</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"relu"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CUDA</span><span class="p">,</span>
+<span class="w">        </span><span class="n">unary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">cuda_relu</span><span class="p">(</span><span class="n">a</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="w">    </span><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"sum"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CUDA</span><span class="p">,</span>
+<span class="w">        </span><span class="n">unary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">cuda_sum</span><span class="p">(</span><span class="n">a</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>和 CPU 注册一模一样，只是 device 换成 <code>CUDA</code>、kernel 换成 <code>cuda_*</code>。<strong>这就是 dispatcher 的统一性</strong>：注册 CPU 和 CUDA 算子用同一套 API。</p>
+<h3 id="1076">10.7.6 错误处理与调试<a class="headerlink" href="#1076" title="Permanent link">&para;</a></h3>
+<p>CUDA API 调用会返回 <code>cudaError_t</code>，教学版为了简洁没检查，生产代码必须查：</p>
+<div class="highlight"><pre><span></span><code><span class="n">cudaError_t</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cudaSuccess</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"cudaMalloc failed: "</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">                             </span><span class="n">cudaGetErrorString</span><span class="p">(</span><span class="n">err</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>宏包装</strong>（常见做法）：</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#define CUDA_CHECK(call) do {                                 \</span>
+<span class="cp">    cudaError_t e = (call);                                    \</span>
+<span class="cp">    if (e != cudaSuccess)                                      \</span>
+<span class="cp">        throw std::runtime_error(                              \</span>
+<span class="cp">            std::string(__FILE__) + ":" + std::to_string(__LINE__) + \</span>
+<span class="cp">            " CUDA error: " + cudaGetErrorString(e));          \</span>
+<span class="cp">} while (0)</span>
+
+<span class="c1">// 用法</span>
+<span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)));</span>
+</code></pre></div>
+<p><strong>kernel launch 错误</strong>是异步的，要两步查：</p>
+<div class="highlight"><pre><span></span><code><span class="n">add_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">db</span><span class="p">,</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+<span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaGetLastError</span><span class="p">());</span><span class="w">      </span><span class="c1">// 查 launch 配置错误（如 grid 太大）</span>
+<span class="c1">// ... 之后 ...</span>
+<span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaDeviceSynchronize</span><span class="p">());</span><span class="w"> </span><span class="c1">// 查 kernel 执行错误（如越界访问）</span>
+</code></pre></div>
+<p><code>cudaGetLastError()</code> 查的是 launch 本身的问题（参数非法、grid 维度超限）。kernel 内部的错误（非法地址访问）要等同步后才报。这是 CUDA 调试最反直觉的点。</p>
+<p><strong>调试工具</strong>：</p>
+<ul>
+<li><code>cuda-gdb</code>：GPU 版 gdb，能单步 kernel、查 thread 变量。</li>
+<li><code>printf</code> in kernel：CUDA 允许 kernel 里 <code>printf</code>，输出到 host 终端（限流，别打太多）。</li>
+<li><code>compute-sanitizer</code>（原 <code>cuda-memcheck</code>）：查越界、未初始化、race。教学版遇到莫名结果先跑一遍它。</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">教学版省略了所有 CUDA_CHECK</p>
+</div>
+<p>为了代码简洁，教学版的 <code>cuda_add</code> 等没检查返回值。<strong>生产代码绝不能这样</strong>——显存不足、driver 崩了、kernel 越界都会被吞掉，调试地狱。文档这里补上正确做法。</p>
+<h3 id="1077-gpu">10.7.7 编译守卫与无 GPU 构建<a class="headerlink" href="#1077-gpu" title="Permanent link">&para;</a></h3>
+<p><code>ops_cuda.cu</code> 顶部：</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#if defined(__CUDACC__) || defined(MINITORCH_HAS_CUDA)</span>
+<span class="c1">// ... 所有 CUDA 代码 ...</span>
+<span class="cp">#endif</span>
+</code></pre></div>
+<p>两个宏任一定义才编译：</p>
+<ul>
+<li><code>__CUDACC__</code>：nvcc 编译器自动定义。即用 nvcc 编 <code>.cu</code> 时生效。</li>
+<li><code>MINITORCH_HAS_CUDA</code>：CMake 在 <code>-DMINITORCH_ENABLE_CUDA=ON</code> 时传给 C++。让普通 C++ 编译器（g++/MSVC）编 <code>.cu</code> 里的 host 代码段时也能识别。</li>
+</ul>
+<p>这样无 GPU 环境（不启用 CUDA）整个文件编译成空，不依赖任何 CUDA 符号，能正常编进 CPU-only 的 <code>_C_ext</code>。这是教学版"代码完整可读、无 GPU 也能编"的关键。</p>
+<hr />
+<h2 id="108-cpu-vs-cuda">10.8 完整示例：CPU vs CUDA 注册和调用<a class="headerlink" href="#108-cpu-vs-cuda" title="Permanent link">&para;</a></h2>
+<h3 id="1081-modulecpp">10.8.1 初始化（在 module.cpp 里）<a class="headerlink" href="#1081-modulecpp" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">PYBIND11_MODULE</span><span class="p">(</span><span class="n">_C_ext</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ... Ch8 的绑定 ...</span>
+
+<span class="w">    </span><span class="c1">// Ch10：注册所有算子到 dispatcher</span>
+<span class="w">    </span><span class="n">minitorch</span><span class="o">::</span><span class="n">native</span><span class="o">::</span><span class="n">cpu</span><span class="o">::</span><span class="n">register_all_cpu_ops</span><span class="p">();</span>
+<span class="w">    </span><span class="cp">#if defined(MINITORCH_HAS_CUDA)</span>
+<span class="w">        </span><span class="n">minitorch</span><span class="o">::</span><span class="n">native</span><span class="o">::</span><span class="n">cuda</span><span class="o">::</span><span class="n">register_all_cuda_ops</span><span class="p">();</span>
+<span class="w">    </span><span class="cp">#endif</span>
+
+<span class="w">    </span><span class="c1">// 暴露 dispatcher 调用入口</span>
+<span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"dispatch_call"</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">op</span><span class="p">,</span>
+<span class="w">                              </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TensorImplPtr</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">minitorch</span><span class="o">::</span><span class="n">Dispatcher</span><span class="o">::</span><span class="n">instance</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">args</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>模块 import 时自动注册。<code>MINITORCH_HAS_CUDA</code> 宏控制是否注册 CUDA 算子——无 GPU 时只注册 CPU，dispatcher 仍可用。</p>
+<h3 id="1082-python">10.8.2 Python 端调用<a class="headerlink" href="#1082-python" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">_cpp_ext</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+
+<span class="c1"># 直接调（Ch8 的方式，不走 dispatcher）</span>
+<span class="n">c1</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+<span class="c1"># 走 dispatcher（Ch10 的方式）</span>
+<span class="n">c2</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">dispatch_call</span><span class="p">(</span><span class="s2">"add"</span><span class="p">,</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+
+<span class="c1"># 两者结果一致</span>
+<span class="k">assert</span> <span class="n">c1</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="n">c2</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span>
+</code></pre></div>
+<p><code>dispatch_call("add", ...)</code> 内部：查表 → <code>a</code> 是 CPU 张量 → 取 <code>cpu_add</code> → 调用。如果 <code>a</code> 是 CUDA 张量（教学版暂未支持构造），会取 <code>cuda_add</code>。</p>
+<h3 id="1083-cuda">10.8.3 编译启用 CUDA<a class="headerlink" href="#1083-cuda" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd </span><span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">wlh19</span><span class="p">\</span><span class="n">Desktop</span><span class="p">\</span><span class="n">pytorch</span><span class="p">\</span><span class="nb">cpp</span>
+<span class="n">cmake</span> <span class="n">-B</span> <span class="n">build</span> <span class="n">-S</span> <span class="p">.</span> <span class="n">-DMINITORCH_ENABLE_CUDA</span><span class="p">=</span><span class="n">ON</span>
+<span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="n">build</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span>
+</code></pre></div>
+<p>CMakeLists.txt 里：</p>
+<div class="highlight"><pre><span></span><code><span class="nb">option</span><span class="p">(</span><span class="s">MINITORCH_ENABLE_CUDA</span><span class="w"> </span><span class="s2">"Enable CUDA support (Ch10)"</span><span class="w"> </span><span class="s">OFF</span><span class="p">)</span>
+<span class="nb">if</span><span class="p">(</span><span class="s">MINITORCH_ENABLE_CUDA</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">enable_language</span><span class="p">(</span><span class="s">CUDA</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">target_sources</span><span class="p">(</span><span class="s">_C_ext</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">aten/native/cuda/ops_cuda.cu</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">target_compile_definitions</span><span class="p">(</span><span class="s">_C_ext</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">MINITORCH_HAS_CUDA</span><span class="p">)</span>
+<span class="nb">endif</span><span class="p">()</span>
+</code></pre></div>
+<p><code>enable_language(CUDA)</code> 让 CMake 用 nvcc 编译 <code>.cu</code> 文件。<code>MINITORCH_HAS_CUDA</code> 宏传给 C++，让 <code>#if defined(...)</code> 块生效。</p>
+<hr />
+<h2 id="109">10.9 常见陷阱<a class="headerlink" href="#109" title="Permanent link">&para;</a></h2>
+<h3 id="1091">10.9.1 异步执行：读到旧数据<a class="headerlink" href="#1091" title="Permanent link">&para;</a></h3>
+<p><strong>症状</strong>：kernel 算完前就读结果，拿到的是未初始化或旧数据。</p>
+<div class="highlight"><pre><span></span><code><span class="n">add_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="p">...</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">db</span><span class="p">,</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+<span class="c1">// 这里读 dc 是错的！kernel 可能还没跑</span>
+<span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">hc</span><span class="p">,</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="p">...,</span><span class="w"> </span><span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span><span class="w">  </span><span class="c1">// 这步会同步，hc 才对</span>
+</code></pre></div>
+<p><strong>规则</strong>：</p>
+<ul>
+<li><code>cudaMemcpy</code> Device→Host <strong>隐式同步</strong>。</li>
+<li>Device→Device 拷贝<strong>异步</strong>。</li>
+<li>要显式等：<code>cudaDeviceSynchronize()</code> 或 <code>cudaStreamSynchronize(stream)</code>。</li>
+</ul>
+<p><strong>调试技巧</strong>：<code>CUDA_LAUNCH_BLOCKING=1</code> 环境变量让所有 launch 同步，方便定位异步 bug（性能会差，只调试用）。</p>
+<h3 id="1092">10.9.2 内存拷贝开销<a class="headerlink" href="#1092" title="Permanent link">&para;</a></h3>
+<p><strong>症状</strong>：GPU 算得很快，但整体没加速——时间全花在 host↔device 拷贝上。</p>
+<p><strong>原因</strong>：PCIe 带宽（~16 GB/s）远低于显存带宽（~1 TB/s）。小数据上 GPU 算再搬回，拷贝时间远超计算时间。</p>
+<p><strong>解决</strong>：</p>
+<ul>
+<li><strong>数据常驻 GPU</strong>：一次拷上去，多次算，最后搬回。真实 PyTorch 的 <code>.cuda()</code> 就是这个思路。</li>
+<li><strong>减少拷贝</strong>：合并小算子，避免每个算子都来回搬。</li>
+<li><strong>用 pinned memory</strong>：<code>cudaMallocHost</code> 分配的 host 内存拷贝更快（DMA）。</li>
+</ul>
+<p>教学版每个算子都来回拷，所以小张量上 GPU 反而比 CPU 慢——这是预期的，文档反复强调。</p>
+<h3 id="1093-bank-conflict">10.9.3 bank conflict<a class="headerlink" href="#1093-bank-conflict" title="Permanent link">&para;</a></h3>
+<p><strong>症状</strong>：shared memory 访问比预期慢几倍。</p>
+<p><strong>原因</strong>：GPU 的 shared memory 分 32 个 bank，每个 bank 宽度 4 字节（对 float）。如果同一 warp 内多个 thread 访问同一 bank 的不同地址，会串行化（bank conflict）。</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 假设 sdata 是 float，warp 内 thread tid 访问 sdata[tid * 2]</span>
+<span class="c1">// tid=0 访问 bank 0, tid=1 访问 bank 2, ..., tid=16 访问 bank 0（冲突！）</span>
+</code></pre></div>
+<p><strong>解决</strong>：</p>
+<ul>
+<li>给 shared memory 加 padding：<code>sdata[33]</code> 而非 <code>sdata[32]</code>，错开 bank。</li>
+<li>用 <code>cudaSharedMemConfig</code> 改 bank 宽度（4B→8B，对 double 友好）。</li>
+<li>用 <strong>warp shuffle</strong>（<code>__shfl_down_sync</code>）做 reduction，完全不碰 shared memory，无 bank conflict。真实 PyTorch 的 reduction 就用 warp shuffle。</li>
+</ul>
+<h3 id="1094">10.9.4 越界访问<a class="headerlink" href="#1094" title="Permanent link">&para;</a></h3>
+<p><strong>症状</strong>：kernel 写了 <code>c[i]</code> 但 <code>i &gt;= n</code>，越界写显存，可能崩（<code>cudaErrorIllegalAddress</code>）或默默写坏别处数据。</p>
+<p><strong>解决</strong>：<strong>永远写边界守卫</strong> <code>if (i &lt; n)</code>。教学版每个 kernel 都有。真实 PyTorch 用 <code>at::native</code> 的 launcher 自动加守卫。</p>
+<h3 id="1095-warp-divergence">10.9.5 warp divergence<a class="headerlink" href="#1095-warp-divergence" title="Permanent link">&para;</a></h3>
+<p><strong>症状</strong>：kernel 里有 <code>if</code>，性能低于预期。</p>
+<p><strong>原因</strong>：warp 内 thread 走不同分支，串行执行所有分支。</p>
+<p><strong>解决</strong>：</p>
+<ul>
+<li>重排数据让 warp 内分支一致（如把正负数分组）。</li>
+<li>用 <code>predicated</code> 执行代替 <code>if</code>（编译器会自动转）。</li>
+<li>实在避不开就接受——ReLU 这种轻分支影响小。</li>
+</ul>
+<h3 id="1096-block-size">10.9.6 block size 选多大<a class="headerlink" href="#1096-block-size" title="Permanent link">&para;</a></h3>
+<p><strong>经验值</strong>：256 是个好默认。太小（如 32）launch 开销大、占用低；太大（如 1024）寄存器压力大、可能 co-residency 差。</p>
+<p><strong>规则</strong>：</p>
+<ul>
+<li>通常是 32（一个 warp）的倍数。</li>
+<li>reduction 用 2 的幂（树形归约要求）。</li>
+<li>要测不同值 profile——最优 block size 因 kernel 而异。</li>
+</ul>
+<hr />
+<h2 id="1010-pytorch">10.10 与真实 PyTorch 对照<a class="headerlink" href="#1010-pytorch" title="Permanent link">&para;</a></h2>
+<h3 id="10101-dispatchtable">10.10.1 DispatchTable<a class="headerlink" href="#10101-dispatchtable" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>我们的 <code>DispatchTable</code></th>
+<th>真实 <code>c10::DispatchTable</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>unordered_map&lt;op, map&lt;device, KernelFn&gt;&gt;</code></td>
+<td><code>std::array&lt;Kernel, NUM_KEYS&gt;</code> 扁平数组</td>
+</tr>
+<tr>
+<td>只 device key</td>
+<td>device + dtype + layout + autograd + autocast + ... 组合 key</td>
+</tr>
+<tr>
+<td><code>lookup</code> 两次 hash</td>
+<td>数组下标 O(1)</td>
+</tr>
+<tr>
+<td>运行时注册</td>
+<td>编译期从 <code>native_functions.yaml</code> 代码生成注册</td>
+</tr>
+</tbody>
+</table>
+<p>真实 PyTorch 的 dispatch key 有几百个（<code>DispatchKey.h</code> 里枚举），组合爆炸。它用<strong>扁平数组</strong> + <strong>DispatchKeySet 位运算</strong>做快速查找，比 hash map 快得多。但<strong>思想完全一致</strong>：op 名 + key → kernel 的查表。</p>
+<h3 id="10102-dispatchkey">10.10.2 DispatchKey<a class="headerlink" href="#10102-dispatchkey" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// 真实 PyTorch（简化）</span>
+<span class="k">enum</span><span class="w"> </span><span class="nc">DispatchKey</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">CPU</span><span class="p">,</span><span class="w"> </span><span class="n">CUDA</span><span class="p">,</span><span class="w"> </span><span class="n">MPS</span><span class="p">,</span><span class="w"> </span><span class="n">XLA</span><span class="p">,</span><span class="w"> </span><span class="n">Meta</span><span class="p">,</span><span class="w">    </span><span class="c1">// backend</span>
+<span class="w">    </span><span class="n">AutogradCPU</span><span class="p">,</span><span class="w"> </span><span class="n">AutogradCUDA</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="c1">// autograd 包裹</span>
+<span class="w">    </span><span class="n">AutocastCPU</span><span class="p">,</span><span class="w"> </span><span class="n">AutocastCUDA</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="c1">// 自动类型转换</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>我们的 <code>DeviceType { CPU, CUDA }</code> 是它的一个子集。真实 PyTorch 的 key 还能组合（一个 op 在 <code>AutogradCUDA</code> 上注册，表示"对 CUDA 张量自动建图"），我们简化掉这层。</p>
+<h3 id="10103-atennativecuda">10.10.3 aten/native/cuda/<a class="headerlink" href="#10103-atennativecuda" title="Permanent link">&para;</a></h3>
+<p>真实 PyTorch 的 CUDA 算子在 <code>aten/native/cuda/</code>：</p>
+<ul>
+<li><code>BinaryOps.cu</code>：逐元素算子（add/mul/...），用 <code>at::native::binary_kernel</code> 模板。</li>
+<li><code>ReductionOps.cu</code>：sum/mean/max，用 <code>at::native::reduce_kernel</code> 模板。</li>
+<li><code>TensorFactories.cu</code>：zeros/ones/rand。</li>
+</ul>
+<p>我们的 <code>ops_cuda.cu</code> 对应 <code>BinaryOps.cu</code> + <code>ReductionOps.cu</code> 的极简版。真实版本：</p>
+<ul>
+<li>用 <strong>warp shuffle</strong> 而非 shared memory 做 reduction（更快）。</li>
+<li>用 <strong>vectorized load</strong>（一次读 4 个 float）提高带宽利用率。</li>
+<li>用 <strong>caching allocator</strong> 而非 <code>cudaMalloc</code>。</li>
+<li>用 <strong>kernel fusion</strong>（<code>add+relu</code> 合成一个 kernel）减 launch 开销。</li>
+</ul>
+<p>但<strong>结构对照清晰</strong>：kernel 写法、host wrapper 的 malloc/launch/copy 流程、注册到 dispatcher 的模式，都和我们一致。</p>
+<h3 id="10104-dispatcher">10.10.4 dispatcher 演化史<a class="headerlink" href="#10104-dispatcher" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>PyTorch 0.x</strong>：<code>TH</code> 库用 C 函数指针表，按 device 选函数。简单但难扩展。</li>
+<li><strong>PyTorch 1.0</strong>：引入 <code>c10::Dispatcher</code>，支持多 dispatch key（device + dtype + ...）。</li>
+<li><strong>PyTorch 1.5+</strong>：dispatcher 成熟，所有算子迁到 <code>at::native</code> + 注册。</li>
+<li><strong>PyTorch 2.0</strong>：<code>torch.compile</code> 在 dispatcher 之上加图捕获，dispatcher 仍是底层路由。</li>
+</ul>
+<p>我们的 dispatcher 是 PyTorch 1.0 版本的"只 device key"投影。</p>
+<h3 id="10105-pytorch">10.10.5 一段真实 PyTorch 注册代码<a class="headerlink" href="#10105-pytorch" title="Permanent link">&para;</a></h3>
+<p>看真实 PyTorch 怎么注册 CUDA 加法（<code>aten/src/ATen/native/cuda/BinaryOps.cu</code> 简化）：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 真实 PyTorch（简化示意）</span>
+<span class="n">TORCH_LIBRARY_IMPL</span><span class="p">(</span><span class="n">aten</span><span class="p">,</span><span class="w"> </span><span class="n">CUDA</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="n">impl</span><span class="p">(</span><span class="s">"add.Tensor"</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="k">const</span><span class="w"> </span><span class="n">Tensor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Tensor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span><span class="p">,</span>
+<span class="w">                            </span><span class="k">const</span><span class="w"> </span><span class="n">Scalar</span><span class="o">&amp;</span><span class="w"> </span><span class="n">alpha</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">at</span><span class="o">::</span><span class="n">native</span><span class="o">::</span><span class="n">add_cuda</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="n">other</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>TORCH_LIBRARY_IMPL</code> 宏展开后，把 <code>"add.Tensor"</code> 这个 op 在 <code>CUDA</code> dispatch key 上的实现注册到全局 <code>c10::Dispatcher</code>。和我们的：</p>
+<div class="highlight"><pre><span></span><code><span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"add"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CUDA</span><span class="p">,</span>
+<span class="w">    </span><span class="n">binary_kernel</span><span class="p">([](</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">){</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">cuda_add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+</code></pre></div>
+<p><strong>结构完全一致</strong>：op 名 + device key + kernel 函数。差异只在：</p>
+<ul>
+<li>真实用 <code>Tensor</code>（已带 device/dtype）而非我们的 <code>TensorImplPtr</code>。</li>
+<li>真实的 op 名是 <code>"add.Tensor"</code>（带重载后缀，区分 <code>add.Tensor</code> 和 <code>add.Scalar</code>）。</li>
+<li>真实用宏而非裸调用，宏还处理 schema、autograd 包裹、命名参数等。</li>
+</ul>
+<p>但"注册到一张按 key 分派的表"这个<strong>核心动作一模一样</strong>。学会 minitorch 的 dispatcher，看真实 PyTorch 的 <code>TORCH_LIBRARY_IMPL</code> 就是"加了一堆宏糖的同一件事"。</p>
+<hr />
+<h2 id="1011">10.11 历史背景<a class="headerlink" href="#1011" title="Permanent link">&para;</a></h2>
+<h3 id="10111-cuda-2006">10.11.1 CUDA 的诞生（2006）<a class="headerlink" href="#10111-cuda-2006" title="Permanent link">&para;</a></h3>
+<p>2006 年 NVIDIA 发布 G80 架构，首次把 GPU 的可编程流水线暴露成通用计算接口 <strong>CUDA</strong>（Compute Unified Device Architecture）。之前 GPU 只能做图形渲染的固定流水线，CUDA 让 GPU 能跑任意 C 代码（kernel）。</p>
+<p>CUDA 的关键设计：</p>
+<ul>
+<li><strong>C 语言扩展</strong>：<code>__global__</code>/<code>__device__</code>/<code>__shared__</code> 等修饰符，<code>&lt;&lt;&lt;&gt;&gt;&gt;</code> launch 语法。</li>
+<li><strong>SIMT 执行</strong>：warp 32 线程同步执行，比 SIMD（CPU 的向量指令）更灵活（每 thread 有自己的 PC，分歧时串行而非崩溃）。</li>
+<li><strong>内存层次</strong>：寄存器/shared/global，程序员显式管理（不像 CPU 的缓存透明）。</li>
+</ul>
+<p>2007 年 NVIDIA 发布 CUDA 1.0。之后 cuBLAS/cuDNN 等库成熟，深度学习 GPU 加速成为标配。</p>
+<h3 id="10112-pytorch-dispatcher">10.11.2 PyTorch dispatcher 演化<a class="headerlink" href="#10112-pytorch-dispatcher" title="Permanent link">&para;</a></h3>
+<p><strong>Torch7 时代</strong>：<code>libtorch</code>（C）用函数指针表按 device 路由：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// 伪代码</span>
+<span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">add_fn</span><span class="p">[</span><span class="mi">2</span><span class="p">])(</span><span class="n">Tensor</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tensor</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">cpu_add</span><span class="p">,</span><span class="w"> </span><span class="n">cuda_add</span><span class="w"> </span><span class="p">};</span>
+<span class="n">add_fn</span><span class="p">[</span><span class="n">t</span><span class="o">-&gt;</span><span class="n">device</span><span class="p">](</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">);</span>
+</code></pre></div>
+<p>简单但只能按 device，难加新维度（dtype/autograd）。</p>
+<p><strong>PyTorch 0.x（2016）</strong>：ATen 沿用类似思路，但用 C++ 模板生成多 dtype 版本。仍无统一 dispatcher。</p>
+<p><strong>PyTorch 1.0（2018）</strong>：引入 <code>c10::Dispatcher</code>，设计多 dispatch key 的查表机制。所有算子迁到 <code>at::native</code> 命名空间，用 <code>TORCH_LIBRARY_IMPL</code> 宏注册。这是 PyTorch 工程化的里程碑——从此加新 backend（如 MPS、XLA）只需注册，不改任何算子调用点。</p>
+<p><strong>PyTorch 2.0（2022）</strong>：<code>torch.compile</code>（TorchDynamo + TorchInductor）在 dispatcher 之上加图捕获和代码生成，但底层路由仍靠 dispatcher。</p>
+<p>我们的 minitorch dispatcher 是 PyTorch 1.0 设计的"教学投影"——同一个思想，去掉 dtype/autograd/autocast 等复杂 key，只留 device 路由。</p>
+<hr />
+<h2 id="1012">10.12 练习题<a class="headerlink" href="#1012" title="Permanent link">&para;</a></h2>
+<h3 id="1-cuda-neg-kernel">练习 1：写一个 CUDA <code>neg</code> kernel<a class="headerlink" href="#1-cuda-neg-kernel" title="Permanent link">&para;</a></h3>
+<p>要求：<code>__global__ void neg_kernel(...)</code>，逐元素取负。配 host wrapper <code>cuda_neg</code> 和注册。</p>
+<p>??? 解答 ???</p>
+<div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">neg_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">a</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">c</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">TensorImplPtr</span><span class="w"> </span><span class="n">cuda_neg</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">-&gt;</span><span class="n">numel</span><span class="p">());</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="o">-&gt;</span><span class="n">to_vector</span><span class="p">();</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">hc</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">));</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">da</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">dc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="w">    </span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="w">    </span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">ha</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">threads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span><span class="w"> </span><span class="n">blocks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threads</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">threads</span><span class="p">;</span>
+<span class="w">    </span><span class="n">neg_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span><span class="w"> </span><span class="n">threads</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">da</span><span class="p">,</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">hc</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">dc</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cudaFree</span><span class="p">(</span><span class="n">da</span><span class="p">);</span><span class="w"> </span><span class="n">cudaFree</span><span class="p">(</span><span class="n">dc</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">make_tensor</span><span class="p">(</span><span class="n">hc</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="o">-&gt;</span><span class="n">shape</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="c1">// 注册</span>
+<span class="n">d</span><span class="p">.</span><span class="n">register_kernel</span><span class="p">(</span><span class="s">"neg"</span><span class="p">,</span><span class="w"> </span><span class="n">DispatchKey</span><span class="o">::</span><span class="n">CUDA</span><span class="p">,</span>
+<span class="w">    </span><span class="n">unary_kernel</span><span class="p">([](</span><span class="k">const</span><span class="w"> </span><span class="n">TensorImplPtr</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">cuda_neg</span><span class="p">(</span><span class="n">a</span><span class="p">);</span><span class="w"> </span><span class="p">}));</span>
+</code></pre></div>
+<h3 id="2-add_kernel-__syncthreads">练习 2：解释为什么 <code>add_kernel</code> 不需要 <code>__syncthreads</code><a class="headerlink" href="#2-add_kernel-__syncthreads" title="Permanent link">&para;</a></h3>
+<p>要求：<code>add_kernel</code> 里没有 <code>__syncthreads()</code>，为什么是对的？什么算子必须加？</p>
+<p>??? 解答 ???</p>
+<p><code>add_kernel</code> 是<strong>逐元素</strong>操作：每个 thread 只读 <code>a[i]</code>、<code>b[i]</code>，只写 <code>c[i]</code>，不依赖别的 thread 的结果。thread 间无数据依赖，无需同步。</p>
+<p>必须加 <code>__syncthreads</code> 的场景：<strong>thread 间有数据依赖</strong>，如 reduction（每轮归约要等上一轮所有 thread 写完）、scan（前缀和）、合作搬运（先把数据从 global 拉到 shared，再用 shared 算）。只要"thread A 要读 thread B 写的 shared/global 数据"，就必须在 B 写完、A 读之前同步。</p>
+<h3 id="3launch">练习 3：launch 配置计算<a class="headerlink" href="#3launch" title="Permanent link">&para;</a></h3>
+<p>要求：<code>n = 1000000</code>，<code>threads = 256</code>，算 <code>blocks</code>。如果 <code>blocks</code> 用 <code>n / threads</code>（整除）会怎样？</p>
+<p>??? 解答 ???</p>
+<p><code>blocks = (n + threads - 1) / threads = (1000000 + 255) / 256 = 3907</code>（向上取整）。</p>
+<p>thread 总数 = <code>blocks * threads = 3907 * 256 = 1000192</code>，比 n 多 192 个。多出的 thread 在 kernel 里被 <code>if (i &lt; n)</code> 守卫跳过。</p>
+<p>如果用 <code>blocks = n / threads = 3906</code>（整除），thread 总数 = <code>3906 * 256 = 999936</code>，少 64 个元素没人算——结果末尾 64 个是未初始化垃圾。这是常见的 off-by-one bug。</p>
+<h3 id="4dispatcher">练习 4：dispatcher 为什么不用虚函数<a class="headerlink" href="#4dispatcher" title="Permanent link">&para;</a></h3>
+<p>要求：解释"算子按 device 路由"为什么用 dispatch table 而不是给 TensorImpl 加虚方法 <code>virtual TensorImplPtr add(other)</code>。</p>
+<p>??? 解答 ???</p>
+<p>虚函数方案的问题：</p>
+<ol>
+<li><strong>算子是自由函数，不是 TensorImpl 的方法</strong>。<code>add(a, b)</code> 是二元算子，不属于 <code>a</code> 或 <code>b</code> 任一个。硬塞成方法（<code>a.add(b)</code>）语义不对称。</li>
+<li><strong>新增算子要改类</strong>：加个 <code>exp</code> 算子要在 TensorImpl 里加虚方法，所有子类都改。dispatch table 加算子只注册一处。</li>
+<li><strong>多 dispatch</strong>：<code>add(a, b)</code> 的路由取决于 <code>a</code> <strong>和</strong> <code>b</code> 的 device（要一致）。虚函数只看 <code>this</code>（单 dispatch），处理不了双 dispatch。</li>
+<li><strong>dtype/layout/autograd 多维路由</strong>：虚函数只能按一个维度（类型）分派，dispatcher 能按多个 dispatch key 组合分派。</li>
+</ol>
+<p>dispatch table 把"算子"和"类型"正交分解，比虚函数灵活得多。这是为什么 PyTorch 不用虚函数而用 dispatcher。</p>
+<h3 id="5-gpu">练习 5：教学版为什么小张量 GPU 反而慢<a class="headerlink" href="#5-gpu" title="Permanent link">&para;</a></h3>
+<p>要求：解释为什么 1000 元素的 add，教学版 GPU 比 CPU 慢。真实 PyTorch 不会，差在哪？</p>
+<p>??? 解答 ???</p>
+<p>教学版 <code>cuda_add</code> 流程：<code>cudaMalloc</code>×3 + <code>cudaMemcpy</code> H→D×2 + launch + <code>cudaMemcpy</code> D→H + <code>cudaFree</code>×3。</p>
+<p>对小张量（1000 元素 = 8KB）：</p>
+<ul>
+<li><code>cudaMalloc</code>/<code>cudaFree</code> 各几十微秒，6 次就几百微秒。</li>
+<li><code>cudaMemcpy</code> PCIe 延迟约 10 微秒/次，3 次几十微秒。</li>
+<li>kernel launch ~5 微秒，计算本身 &lt; 1 微秒。</li>
+<li>合计几百微秒。</li>
+</ul>
+<p>CPU <code>add</code> 同样数据：C++ 循环 1000 次加法，~1 微秒。所以 GPU 慢几百倍。</p>
+<p>真实 PyTorch 不会，因为：</p>
+<ol>
+<li><strong>caching allocator</strong>：<code>cudaMalloc</code> 只第一次真分配，后续复用缓存块，~1 微秒。</li>
+<li><strong>张量常驻 GPU</strong>：不每次来回拷，数据一直在显存。</li>
+<li><strong>kernel fusion + async</strong>：多个算子合并、异步执行，launch 开销摊薄。</li>
+</ol>
+<p>教学版为了简单每次真分配真拷贝，小张量上开销全在管理而非计算。这正说明"GPU 优化关键在减少管理开销，不在 kernel 本身"。</p>
+<h3 id="6-dispatcher-op">练习 6：给 dispatcher 加一个不存在的 op 调用，看报什么错<a class="headerlink" href="#6-dispatcher-op" title="Permanent link">&para;</a></h3>
+<p>要求：<code>Dispatcher::instance().call("nonexistent_op", {a})</code> 会抛什么异常？错误信息长什么样？为什么这样设计？</p>
+<p>??? 解答 ???</p>
+<p>抛 <code>std::runtime_error("dispatch: unknown op 'nonexistent_op'")</code>（经 pybind11 翻译成 Python <code>RuntimeError</code>）。</p>
+<p>错误信息带 op 名，方便定位是"op 拼错了"还是"忘注册"。如果 op 存在但该 device 没注册，会报 <code>"dispatch: op 'add' has no kernel for device cuda"</code>——区分"op 不存在"和"op 在该 device 没实现"两种情况，调试友好。</p>
+<p>设计要点：错误信息要包含<strong>足够上下文</strong>（op 名、device 名）让用户不用回去翻代码就知道错在哪。这是库 API 设计的基本素养。</p>
+<h3 id="7-sum_kernel-block-size-256-32">练习 7：把 <code>sum_kernel</code> 的 block size 从 256 改成 32，会怎样<a class="headerlink" href="#7-sum_kernel-block-size-256-32" title="Permanent link">&para;</a></h3>
+<p>要求：<code>sum_kernel&lt;&lt;&lt;blocks, 32, 32*sizeof(double)&gt;&gt;&gt;</code>，分析对正确性和性能的影响。</p>
+<p>??? 解答 ???</p>
+<p><strong>正确性</strong>：不变。树形归约对任何 2 的幂 block size 都正确，<code>for (int s = blockDim.x/2; s &gt; 0; s &gt;&gt;= 1)</code> 自动适应。32 是 2 的幂，OK。</p>
+<p><strong>性能</strong>：变差。</p>
+<ul>
+<li>block=32 意味着每个 block 只 32 个 thread（一个 warp）做归约，block 间并行度更高但每个 block 处理的数据少。</li>
+<li>同样 n，block 数变成原来的 8 倍，launch 开销和 partial[] 大小都 8 倍。</li>
+<li>reduction 的树形归约步数从 log2(256)=8 减到 log2(32)=5，但每步处理的 thread 少，总工作量没省。</li>
+<li>占用率：block=32 时每个 SM 能驻更多 block，但 warp 级并行反而可能不如 block=256。</li>
+</ul>
+<p>经验：reduction 的 block size 通常 128 或 256 较优，要 profile。block=32（单 warp）适合"用 warp shuffle 省掉 shared mem 和 syncthreads"的优化版本，但教学版的树形归约用 block=32 没收益。</p>
+<hr />
+<h2 id="1013">10.13 关键测试解读<a class="headerlink" href="#1013" title="Permanent link">&para;</a></h2>
+<p><code>tests/test_cuda.py</code> 验证 dispatcher 和 CUDA 路由。逐个看：</p>
+<h3 id="10131-cpu-dispatcher">10.13.1 CPU dispatcher 测试<a class="headerlink" href="#10131-cpu-dispatcher" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dispatcher_cpu_add</span><span class="p">():</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">]</span>
+</code></pre></div>
+<p>验证 CPU 张量走 CPU kernel，结果正确。这同时验证了 Ch8 算子和 Ch10 dispatcher 的衔接。</p>
+<h3 id="10132-cuda-skip-if-no-cuda">10.13.2 CUDA 测试（skip if no CUDA）<a class="headerlink" href="#10132-cuda-skip-if-no-cuda" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">HAS_CUDA</span> <span class="o">=</span> <span class="n">_has_cuda</span><span class="p">()</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span><span class="ow">not</span> <span class="n">HAS_CUDA</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">"无可用 CUDA 设备"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_cuda_add_matches_cpu</span><span class="p">():</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">cpu_c</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="c1"># cuda_c = _cpp_ext.cuda_add(a, b)</span>
+    <span class="c1"># assert np.allclose(cpu_c.to_vector(), cuda_c.to_vector())</span>
+    <span class="k">assert</span> <span class="n">cpu_c</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">]</span>
+</code></pre></div>
+<p><code>@pytest.mark.skipif(not HAS_CUDA, ...)</code> 让无 GPU 机器跳过。<code>_has_cuda()</code> 检测方式：</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_has_cuda</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MINITORCH_CUDA"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"1"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+</code></pre></div>
+<p>环境变量 <code>MINITORCH_CUDA=1</code> 强制开启，或借 PyTorch 的 <code>torch.cuda.is_available()</code> 检测。有 GPU 时取消注释 <code>cuda_c = ...</code> 两行，验证 CPU vs CUDA 数值一致。</p>
+<h3 id="10133">10.13.3 路由测试<a class="headerlink" href="#10133" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dispatch_routes_by_device</span><span class="p">():</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">TensorImpl</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">_cpp_ext</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">to_vector</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]</span>
+</code></pre></div>
+<p>验证 dispatcher 按 device 路由：CPU 张量 → CPU kernel。CUDA 张量 → CUDA kernel 的测试在有 GPU 时才跑。</p>
+<h3 id="10134">10.13.4 检测函数<a class="headerlink" href="#10134" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_cuda_availability_detection</span><span class="p">():</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">HAS_CUDA</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+</code></pre></div>
+<p>确保 <code>_has_cuda()</code> 不抛异常、返回 bool。这是烟雾测试——检测逻辑本身不能崩。</p>
+<hr />
+<h2 id="1014">10.14 优劣势总结<a class="headerlink" href="#1014" title="Permanent link">&para;</a></h2>
+<h3 id="10141">10.14.1 优势<a class="headerlink" href="#10141" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>异构能力</strong>：同一套算子 API 跑在 CPU 或 GPU，用户代码不变。</li>
+<li><strong>可扩展</strong>：加新 device（MPS/XLA）只需注册新 kernel，调用点零改动。</li>
+<li><strong>解耦</strong>：算子定义、device 实现、调用点三者分离，各自演进。</li>
+<li><strong>与真实 PyTorch 同构</strong>：学完 minitorch dispatcher，看 <code>c10::Dispatcher</code> 没有概念鸿沟。</li>
+<li><strong>教学清晰</strong>：dispatch table 一张表看尽路由逻辑，比 PyTorch 几百个 key 的扁平数组好懂。</li>
+</ol>
+<h3 id="10142">10.14.2 劣势<a class="headerlink" href="#10142" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>教学版性能差</strong>：来回拷贝 + 每次真分配，小张量上 GPU 反而慢。</li>
+<li><strong>只 device 路由</strong>：不支持 dtype/autograd/autocast 等多维 dispatch，离真实 PyTorch 远。</li>
+<li><strong>无 CUDA stream</strong>：只用默认 stream，无并发流水线。</li>
+<li><strong>无 caching allocator</strong>：每次 <code>cudaMalloc</code>/<code>cudaFree</code>，真实场景不可接受。</li>
+<li><strong>依赖 CUDA 工具链</strong>：要 nvcc、CUDA runtime，跨平台编译更复杂。</li>
+</ol>
+<h3 id="10143-gpu">10.14.3 什么时候值得上 GPU<a class="headerlink" href="#10143-gpu" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>大张量 + 计算密集</strong>：矩阵乘、卷积，数据量大到拷贝开销被并行计算摊薄。</li>
+<li><strong>数据常驻 GPU</strong>：一次拷上去，多次算，避免反复拷。</li>
+<li><strong>batch 训练</strong>：一个 batch 几百个样本的 forward/backward，GPU 并行收益大。</li>
+<li><strong>有 cuDNN/cuBLAS</strong>：这些库的 kernel 高度优化，远超自己写的。</li>
+</ul>
+<p>反过来，<strong>小张量、串行逻辑、频繁 host 交互</strong>的场景，GPU 没收益甚至更慢。minitorch 教学版正是用小张量演示"GPU 不总是更快"。</p>
+<hr />
+<h2 id="1015">10.15 本章总结<a class="headerlink" href="#1015" title="Permanent link">&para;</a></h2>
+<p>本章我们给 minitorch 接上了 GPU：</p>
+<ol>
+<li>
+<p><strong>dispatcher</strong>：一张 <code>op_name → (device → kernel)</code> 的表，按张量 device 路由算子。调用点不关心 device，新增 device 只注册不改调用点。这是 PyTorch 异构计算的核心机制。</p>
+</li>
+<li>
+<p><strong>CUDA kernel</strong>：<code>__global__</code> 函数，thread/block/grid 三级并行。逐元素算子（add/relu）每 thread 处理一个元素，配 <code>if (i &lt; n)</code> 边界守卫。reduction（sum）用 shared memory + <code>__syncthreads</code> 做块内归约。</p>
+</li>
+<li>
+<p><strong>host wrapper</strong>：<code>cudaMalloc</code>/<code>cudaMemcpy</code>/launch/同步/<code>cudaFree</code> 的标准流程。教学版每次来回拷贝以复用 Ch8 的 host TensorImpl，真实 PyTorch 张量常驻 GPU。</p>
+</li>
+<li>
+<p><strong>注册</strong>：CPU 和 CUDA 算子用同一套 <code>register_kernel</code> API 注册到 dispatcher，只是 device key 不同。模块 import 时自动注册。</p>
+</li>
+<li>
+<p><strong>陷阱</strong>：异步执行（要同步才等结果）、内存拷贝开销（小张量上 GPU 反而慢）、bank conflict（shared memory 访问模式要避免）、warp divergence（分支会串行）。</p>
+</li>
+<li>
+<p><strong>对照真实 PyTorch</strong>：我们的 dispatch table 是 <code>c10::DispatchTable</code> 的"只 device key"投影；我们的 <code>ops_cuda.cu</code> 是 <code>aten/native/cuda/BinaryOps.cu</code> 的极简版。结构和思想一致，差异在工程优化（caching allocator、warp shuffle、vectorized load、kernel fusion）。</p>
+</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">核心带走</p>
+</div>
+<p>dispatcher 的价值不是"快"，而是"解耦"。它让你能加新 device、新 dtype、新 autograd 模式而不动任何已有代码。这种"开放扩展、封闭修改"的工程能力，是 PyTorch 能支持十几种 backend、几百种算子组合还能维护的根本。minitorch 的两张表（CPU/CUDA）是这套机制的最小可工作示例。</p>
+<p>下一章（Ch11）我们离开计算核心，转向数据流水线——<code>DataLoader</code> 与采样器，讲清怎么把数据集喂进训练循环，处理 batch、shuffle、多进程加载。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.code.tabs", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

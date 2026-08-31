@@ -1,0 +1,3543 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="从零实现迷你版 PyTorch，学习底层原理与设计原则">
+      
+      
+        <meta name="author" content="minitorch contributor">
+      
+      
+      
+        <link rel="prev" href="../ch03-autograd-engine/">
+      
+      
+        <link rel="next" href="../ch05-nn-module/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Ch4 计算图机制 - minitorch</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="minitorch" class="md-header__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            minitorch
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ch4 计算图机制
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../ch01-tensor-storage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段一·纯 Python
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ch08-cpp-core/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段二·C++ 核心
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../appendix/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  附录
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../differences/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  与真实 PyTorch 的差异
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="minitorch" class="md-nav__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    minitorch
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段一·纯 Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段一·纯 Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch01-tensor-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch1 张量与存储
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch02-ops-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch2 算子与分发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch03-autograd-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch3 自动微分引擎
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch4 计算图机制
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch4 计算图机制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 原理铺垫：计算图是什么
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.2 原理铺垫：计算图是什么">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#421" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.1 从数学到数据结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#422" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.2 画一张具体的图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#423-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.3 动态图 vs 静态图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#424" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.4 图的生命周期三阶段
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#425" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.5 为什么默认释放图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#426" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.6 梯度累加语义
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 设计决策与权衡
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 代码逐行实现
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4 代码逐行实现">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#441-node-next_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.1 图的表示：Node 与 next_edges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#442-functionapply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.2 建图：Function.apply 的图生长
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#443-run_backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.3 用图：run_backward 的图遍历
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#444-next_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.4 释放图：next_edges = []
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#445-retain_graph-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.5 retain_graph：保留图用于二次 backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#446-retain_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.6 retain_grad：保留中间梯度用于调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#447-accumulategrad_accumulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.7 梯度累加：AccumulateGrad._accumulate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#448-variablebackward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.8 variable.backward 的入口校验
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 完整示例：图的生命周期可视化
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 常见陷阱
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.6 常见陷阱">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1trying-to-backward-through-the-graph-a-second-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 1：Trying to backward through the graph a second time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 2：忘记 zero_grad 导致梯度累加
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 3：修改叶子值后用旧图 backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4retain_graph-zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 4：retain_graph 但不 zero_grad 导致梯度翻倍
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-no_grad-tensor-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 5：在 no_grad 下创建的 Tensor 不能 backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6retain_grad-retain_graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 6：retain_grad 但不 retain_graph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-tensor-grad_fn-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 7：中间 Tensor 的 grad_fn 在图释放后仍非 None
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#47-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 历史背景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.8 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#481" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.1 动态图的诞生
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#482-retain_graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.2 retain_graph 的演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#483-zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.3 zero_grad 的演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#484-trying-to-backward-through-the-graph-a-second-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.4 "Trying to backward through the graph a second time"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#485-detach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.5 detach 的引入
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#49" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.9 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.9 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-l-x-x-x-xsum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 1：画出 L = ((x * x) + (x * x)).sum() 的完整计算图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-retain_graph-retain_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 2：解释 retain_graph 和 retain_grad 的区别
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-backward_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 3：为什么 backward 累加而非覆盖梯度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-trying-to-backward-a-second-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 4：复现并解决 "Trying to backward a second time" 错误
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-grad_fn-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 5：图释放为什么不清 grad_fn（中间 Tensor 的）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#410" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10 关键测试解读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.10 关键测试解读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#4101-test_graph_freed_after_backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.1 test_graph_freed_after_backward：默认释放
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4102-test_retain_graph_allows_second_backward-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.2 test_retain_graph_allows_second_backward：保留图允许二次 backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4103-test_no_grad_skips_graphno_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.3 test_no_grad_skips_graph：no_grad 不建图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4104-test_retain_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.4 test_retain_grad：保留中间梯度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4105-test_default_no_retain_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.5 test_default_no_retain_grad：默认不保留中间梯度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4106-test_retain_graph_keeps_grad_fnretain_graph-grad_fn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.6 test_retain_graph_keeps_grad_fn：retain_graph 保留 grad_fn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4107-test_gradient_argument" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.7 test_gradient_argument：显式传梯度
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#411" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.11 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.11 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        代价
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        适用场景
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#412" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.12 下一章预告
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch05-nn-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch5 nn.Module 体系
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch06-optimizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch6 优化器系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch07-loss-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch7 损失与训练循环
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch11-dataloader/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch11 数据加载与采样
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch12-serialization-amp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch12 持久化与混合精度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch13-fx-compile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch13 图与编译导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段二·C++ 核心
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段二·C++ 核心
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch08-cpp-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch8 C++ 核心重写
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch09-cpp-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch9 C++ 高级特性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ch10-cuda-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch10 CUDA 与 dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../appendix/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    附录
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a1-distributed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A1 分布式训练
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a2-quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A2 量化导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a3-torchscript-onnx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A3 TorchScript 与 ONNX
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a4-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A4 profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a5-dispatch-key/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A5 dispatch key 链
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix/a6-c-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A6 CPython C-API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../differences/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    与真实 PyTorch 的差异
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 原理铺垫：计算图是什么
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.2 原理铺垫：计算图是什么">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#421" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.1 从数学到数据结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#422" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.2 画一张具体的图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#423-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.3 动态图 vs 静态图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#424" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.4 图的生命周期三阶段
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#425" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.5 为什么默认释放图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#426" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2.6 梯度累加语义
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 设计决策与权衡
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 代码逐行实现
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4 代码逐行实现">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#441-node-next_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.1 图的表示：Node 与 next_edges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#442-functionapply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.2 建图：Function.apply 的图生长
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#443-run_backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.3 用图：run_backward 的图遍历
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#444-next_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.4 释放图：next_edges = []
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#445-retain_graph-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.5 retain_graph：保留图用于二次 backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#446-retain_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.6 retain_grad：保留中间梯度用于调试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#447-accumulategrad_accumulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.7 梯度累加：AccumulateGrad._accumulate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#448-variablebackward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.8 variable.backward 的入口校验
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 完整示例：图的生命周期可视化
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 常见陷阱
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.6 常见陷阱">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1trying-to-backward-through-the-graph-a-second-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 1：Trying to backward through the graph a second time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 2：忘记 zero_grad 导致梯度累加
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 3：修改叶子值后用旧图 backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4retain_graph-zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 4：retain_graph 但不 zero_grad 导致梯度翻倍
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-no_grad-tensor-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 5：在 no_grad 下创建的 Tensor 不能 backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6retain_grad-retain_graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 6：retain_grad 但不 retain_graph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-tensor-grad_fn-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        陷阱 7：中间 Tensor 的 grad_fn 在图释放后仍非 None
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#47-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 历史背景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.8 历史背景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#481" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.1 动态图的诞生
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#482-retain_graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.2 retain_graph 的演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#483-zero_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.3 zero_grad 的演化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#484-trying-to-backward-through-the-graph-a-second-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.4 "Trying to backward through the graph a second time"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#485-detach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8.5 detach 的引入
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#49" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.9 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.9 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-l-x-x-x-xsum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 1：画出 L = ((x * x) + (x * x)).sum() 的完整计算图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-retain_graph-retain_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 2：解释 retain_graph 和 retain_grad 的区别
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-backward_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 3：为什么 backward 累加而非覆盖梯度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-trying-to-backward-a-second-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 4：复现并解决 "Trying to backward a second time" 错误
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-grad_fn-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        练习 5：图释放为什么不清 grad_fn（中间 Tensor 的）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#410" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10 关键测试解读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.10 关键测试解读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#4101-test_graph_freed_after_backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.1 test_graph_freed_after_backward：默认释放
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4102-test_retain_graph_allows_second_backward-backward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.2 test_retain_graph_allows_second_backward：保留图允许二次 backward
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4103-test_no_grad_skips_graphno_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.3 test_no_grad_skips_graph：no_grad 不建图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4104-test_retain_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.4 test_retain_grad：保留中间梯度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4105-test_default_no_retain_grad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.5 test_default_no_retain_grad：默认不保留中间梯度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4106-test_retain_graph_keeps_grad_fnretain_graph-grad_fn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.6 test_retain_graph_keeps_grad_fn：retain_graph 保留 grad_fn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4107-test_gradient_argument" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10.7 test_gradient_argument：显式传梯度
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#411" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.11 优劣势总结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.11 优劣势总结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        优势
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        代价
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        适用场景
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#412" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.12 下一章预告
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="_1">第四章 计算图机制：生命周期、释放策略与梯度累加语义<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>前两章我们解决了"建图"和"反向走图"。本章聚焦图本身：
+它在内存里长什么样？什么时候建、什么时候释放？为什么 <code>backward</code> 默认累加梯度？
+那个让初学者头疼的 "Trying to backward through the graph a second time" 错误又是怎么来的？
+这些都是计算图机制的核心问题。</p>
+</blockquote>
+<hr />
+<h2 id="41">4.1 本章目标<a class="headerlink" href="#41" title="Permanent link">&para;</a></h2>
+<p>读完本章后，你应当能够：</p>
+<ol>
+<li>画出 <code>z = (x * x) + (x * x)</code> 的完整计算图，标出每个 <code>Node</code> 的 <code>next_edges</code> 邻接表。</li>
+<li>描述动态图的生命周期：建图（前向）→ 用图（反向）→ 释放图（默认）三个阶段各发生什么。</li>
+<li>解释 <code>retain_graph=True</code> 为什么允许二次 backward，并说出它的典型应用场景（RNN truncated BPTT）。</li>
+<li>区分 <code>retain_graph</code> 和 <code>retain_grad</code>：前者保留图结构，后者保留中间梯度，两者用途不同。</li>
+<li>用代码证明"backward 累加而非覆盖梯度"的语义，并解释这与 <code>optimizer.zero_grad()</code> 的关系。</li>
+<li>说明图释放策略"清空 <code>next_edges</code> 但不清 <code>grad_fn</code>"的设计理由。</li>
+<li>复现 "Trying to backward through the graph a second time" 错误，并给出三种解决方案。</li>
+<li>读懂 <code>tests/test_graph.py</code> 里的每一行断言，知道它们在防御哪一类图生命周期 bug。</li>
+</ol>
+<hr />
+<h2 id="42">4.2 原理铺垫：计算图是什么<a class="headerlink" href="#42" title="Permanent link">&para;</a></h2>
+<h3 id="421">4.2.1 从数学到数据结构<a class="headerlink" href="#421" title="Permanent link">&para;</a></h3>
+<p>数学上，计算图是一个有向无环图（DAG）：</p>
+<ul>
+<li><strong>节点</strong>：每个算子调用是一个节点（<code>Mul</code>、<code>Add</code>、<code>Sum</code>...）。</li>
+<li><strong>边</strong>：如果算子 A 的输出是算子 B 的输入，就有一条边 A → B。</li>
+<li><strong>叶子</strong>：用户创建的张量，不是任何算子的输出，没有入边。</li>
+<li><strong>根</strong>：反向传播的起点（通常是 loss），没有出边。</li>
+</ul>
+<p>数据结构上，minitorch 用<strong>邻接表</strong>表示：</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
+    <span class="n">backward_fn</span><span class="p">:</span> <span class="n">Callable</span>          <span class="c1"># 这个节点怎么算反向</span>
+    <span class="n">next_edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Node</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># 指向输入的 grad_fn（前驱节点）</span>
+    <span class="n">output</span><span class="p">:</span> <span class="n">Tensor</span> <span class="o">|</span> <span class="kc">None</span>          <span class="c1"># 这个节点的输出张量</span>
+</code></pre></div>
+<p><code>next_edges</code> 是"指向前驱"的邻接表。注意方向：<strong>边从输出指向输入</strong>（反向图的方向），
+这样反向引擎直接沿 <code>next_edges</code> 走就是反向传播方向。</p>
+<h3 id="422">4.2.2 画一张具体的图<a class="headerlink" href="#422" title="Permanent link">&para;</a></h3>
+<p>考虑：</p>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>          <span class="c1"># Mul</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">y</span>          <span class="c1"># Add</span>
+<span class="n">L</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>        <span class="c1"># Sum</span>
+</code></pre></div>
+<p>计算图（用 <code>next_edges</code> 表示）：</p>
+<div class="highlight"><pre><span></span><code>L.grad_fn = Sum
+  └─ next_edges: [z.grad_fn]
+
+z.grad_fn = Add
+  ├─ next_edges[0]: y.grad_fn (Mul)
+  └─ next_edges[1]: y.grad_fn (Mul)   ← 同一个对象，两次出现
+
+y.grad_fn = Mul
+  ├─ next_edges[0]: AccumulateGrad(x) 实例 A
+  └─ next_edges[1]: AccumulateGrad(x) 实例 B   ← 两个不同对象
+
+A.next_edges = []   ← 叶子没有前驱
+B.next_edges = []
+A.variable = x
+B.variable = x
+</code></pre></div>
+<p>注意三个关键现象：</p>
+<ol>
+<li><strong><code>z.grad_fn.next_edges</code> 里 <code>y.grad_fn</code> 出现两次，是同一个对象</strong>。
+   因为 <code>Add.apply(y, y)</code> 第 5 步对中间节点 <code>y</code> 复用 <code>y.grad_fn</code>。</li>
+<li><strong><code>y.grad_fn.next_edges</code> 里是两个不同的 <code>AccumulateGrad(x)</code> 实例</strong>。
+   因为 <code>Mul.apply(x, x)</code> 第 5 步对叶子 <code>x</code> 每次新建 <code>AccumulateGrad</code>。</li>
+<li><strong><code>A.variable is B.variable is x</code></strong>：两个 AccumulateGrad 指向同一个叶子张量。</li>
+</ol>
+<h3 id="423-vs">4.2.3 动态图 vs 静态图<a class="headerlink" href="#423-vs" title="Permanent link">&para;</a></h3>
+<div class="admonition tip">
+<p class="admonition-title">核心区别</p>
+</div>
+<p><strong>静态图</strong>（TF1/Theano）：先编译一张图，反复执行同一张图。
+<strong>动态图</strong>（PyTorch/minitorch）：每次前向<strong>新建一张图</strong>，反向后<strong>丢弃</strong>。</p>
+<p>动态图的含义：</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># 每次前向都建一张新图</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>        <span class="c1"># 反向走这张图</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="c1"># 图在 backward 后被释放，下一轮前向建新图</span>
+</code></pre></div>
+<p>每个 batch 都是一张全新的图。如果模型里有 <code>if pred &gt; 0:</code> 这种控制流，
+不同 batch 的图结构可能不同——动态图天然支持，静态图要 <code>tf.cond</code> 等特殊 API。</p>
+<p>代价是：动态图无法做跨 batch 的全局优化（如算子融合），每次前向都有建图开销。
+<code>torch.compile</code> 就是想"把动态图静态化"以获得优化机会。</p>
+<h3 id="424">4.2.4 图的生命周期三阶段<a class="headerlink" href="#424" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>阶段 1：建图（前向）
+  每次 Function.apply 都新建 Node，挂到输出.grad_fn
+  图随前向计算逐层生长
+
+阶段 2：用图（反向）
+  run_backward 沿图走一遍，把梯度填到叶子.grad
+  中间节点的梯度默认不保留（retain_grad=False）
+
+阶段 3：释放图
+  默认 retain_graph=False：
+    清空所有 node.next_edges（切断引用链）
+    清入口 tensor.grad_fn
+  图被 GC 回收，下一次前向建新图
+</code></pre></div>
+<h3 id="425">4.2.5 为什么默认释放图<a class="headerlink" href="#425" title="Permanent link">&para;</a></h3>
+<p>三个理由：</p>
+<ol>
+<li><strong>内存</strong>：图持有所有中间张量（<code>saved_tensors</code>），大模型反向后这些中间值不再需要，留着会 OOM。</li>
+<li><strong>正确性</strong>：动态图每个 batch 应该独立，留着旧图容易误用（如改了叶子值后用旧图 backward）。</li>
+<li><strong>性能</strong>：GC 回收中间张量，下一个 batch 能复用内存。</li>
+</ol>
+<p>代价是：如果想二次 backward（如高阶导数、RNN truncated BPTT），必须显式 <code>retain_graph=True</code>。</p>
+<h3 id="426">4.2.6 梯度累加语义<a class="headerlink" href="#426" title="Permanent link">&para;</a></h3>
+<p><code>backward</code> 默认<strong>累加</strong>到 <code>x.grad</code>，而非覆盖：</p>
+<div class="highlight"><pre><span></span><code><span class="n">x</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">grad</span> <span class="o">+</span> <span class="n">new_grad</span>   <span class="c1"># 而非 x.grad = new_grad</span>
+</code></pre></div>
+<p>为什么？两个场景：</p>
+<p><strong>场景 1：单次反向内的累加</strong>
+<code>y = x * x</code> 反向时，两个 <code>AccumulateGrad(x)</code> 各加一次，<code>x.grad</code> 累加成 <span class="arithmatex">\(2x\)</span>。
+这是单次 backward 内部的正确性要求。</p>
+<p><strong>场景 2：多次反向间的累加</strong>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">batch_i</span><span class="p">)</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>    <span class="c1"># 不 zero_grad 的话，x.grad 会累加三个 batch 的梯度</span>
+</code></pre></div>
+这对应"<strong>梯度累加</strong>"技巧：小显存时用小 batch 多次 backward，等价于大 batch 的梯度。
+要清零就 <code>optimizer.zero_grad()</code>（或 <code>x.grad = None</code>）。</p>
+<p>PyTorch/minitorch 选择累加语义，让"梯度累加"技巧零成本可用。
+代价是：用户必须记得 <code>zero_grad()</code>，否则梯度会越累越大。</p>
+<hr />
+<h2 id="43">4.3 设计决策与权衡<a class="headerlink" href="#43" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>决策</th>
+<th>选择</th>
+<th>理由</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>图的表示</td>
+<td><code>Node.next_edges</code> 邻接表</td>
+<td>反向引擎直接沿 edges 走，无需反向建图</td>
+<td>查"某节点的所有后继"要遍历全图（但反向不需要这个）</td>
+</tr>
+<tr>
+<td>动态图 vs 静态图</td>
+<td>动态图</td>
+<td>控制流天然支持，调试友好</td>
+<td>无跨 batch 全局优化，每次前向有建图开销</td>
+</tr>
+<tr>
+<td>默认是否保留图</td>
+<td>不保留（<code>retain_graph=False</code>）</td>
+<td>内存安全，符合动态图"用完即弃"哲学</td>
+<td>二次 backward 要显式 <code>retain_graph=True</code></td>
+</tr>
+<tr>
+<td>默认是否保留中间梯度</td>
+<td>不保留（<code>retain_grad=False</code>）</td>
+<td>中间梯度通常不需要，省内存</td>
+<td>调试可视化时要显式打开</td>
+</tr>
+<tr>
+<td>梯度语义</td>
+<td>累加（<code>x.grad = x.grad + new</code>）</td>
+<td>支持梯度累加技巧；单次反向内多后继累加也靠它</td>
+<td>用户必须 <code>zero_grad()</code>，否则跨 batch 累加</td>
+</tr>
+<tr>
+<td>图释放策略</td>
+<td>清 <code>next_edges</code>，不清 <code>grad_fn</code></td>
+<td>切断引用让 GC 回收；保留 <code>grad_fn</code> 让二次 backward 报明确错误</td>
+<td>用户强引用旧 Tensor 仍可能持有悬挂 Node</td>
+</tr>
+<tr>
+<td>二次 backward 错误</td>
+<td><code>grad_fn is None</code> 抛 RuntimeError</td>
+<td>提前失败，避免引擎里 NPE</td>
+<td>错误信息要解释清楚原因</td>
+</tr>
+<tr>
+<td><code>retain_graph</code> 保留什么</td>
+<td>保留 <code>next_edges</code> 和 <code>saved_tensors</code></td>
+<td>二次 backward 需要完整的图结构和中间值</td>
+<td>内存占用持续高</td>
+</tr>
+<tr>
+<td><code>retain_grad</code> 保留什么</td>
+<td>保留 <code>node.output.grad</code></td>
+<td>调试时查看中间梯度分布</td>
+<td>不影响图结构，可独立开关</td>
+</tr>
+<tr>
+<td>叶子 <code>grad</code> 初值</td>
+<td><code>None</code>，第一次累加时赋值</td>
+<td>区分"没反向过"和"反向得 0"</td>
+<td>用户要判 <code>if x.grad is not None</code></td>
+</tr>
+<tr>
+<td><code>zero_grad</code> 实现</td>
+<td><code>x.grad = None</code>（PyTorch 1.7+）</td>
+<td>比 <code>x.grad = 0</code> 省 内存</td>
+<td>minitorch 没内置 optimizer，用户手动清</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="44">4.4 代码逐行实现<a class="headerlink" href="#44" title="Permanent link">&para;</a></h2>
+<h3 id="441-node-next_edges">4.4.1 图的表示：<code>Node</code> 与 <code>next_edges</code><a class="headerlink" href="#441-node-next_edges" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backward_fn</span><span class="p">,</span> <span class="n">next_edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backward_fn</span> <span class="o">=</span> <span class="n">backward_fn</span>   <span class="c1"># 反向函数</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_edges</span> <span class="o">=</span> <span class="n">next_edges</span>     <span class="c1"># 邻接表：指向前驱的 grad_fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">:</span> <span class="n">Tensor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 输出张量，retain_grad 用</span>
+</code></pre></div>
+<p><code>next_edges</code> 是图的<strong>全部结构信息</strong>。反向引擎靠它做拓扑遍历，
+图释放就是清空它，<code>retain_graph</code> 就是保留它。</p>
+<p><code>output</code> 字段在默认反向里不参与，只有 <code>retain_grad=True</code> 时才用：
+把中间梯度写回 <code>node.output.grad</code>，让用户能查看 <code>y.grad</code> 等中间梯度。</p>
+<h3 id="442-functionapply">4.4.2 建图：<code>Function.apply</code> 的图生长<a class="headerlink" href="#442-functionapply" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_grad_enabled</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="n">needs_grad</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">requires_grad</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">needs_grad</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="n">next_edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Node</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">grad_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">next_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">)</span>           <span class="c1"># 复用中间节点的 grad_fn</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">next_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AccumulateGrad</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>   <span class="c1"># 叶子新建 AccumulateGrad</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">next_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">backward_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="o">*</span><span class="n">grads</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="o">*</span><span class="n">grads</span><span class="p">),</span>
+        <span class="n">next_edges</span><span class="o">=</span><span class="n">next_edges</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">node</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">result</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">grad_fn</span> <span class="o">=</span> <span class="n">node</span>                               <span class="c1"># 把新 node 挂到输出</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+<p>每次 <code>apply</code> 都<strong>新建一个 Node</strong>，挂到输出张量。这就是"图随前向逐层生长"。</p>
+<p>关键点回顾：</p>
+<ul>
+<li><strong>复用中间 <code>grad_fn</code></strong>：<code>next_edges.append(a.grad_fn)</code> 让"同一中间张量多次使用"产生多条 edge 指向同一 node。</li>
+<li><strong>新建 <code>AccumulateGrad</code></strong>：<code>next_edges.append(AccumulateGrad(a))</code> 让"同一叶子多次使用"产生多个 AccumulateGrad 实例。</li>
+<li><strong><code>node.output = result</code></strong>：保留输出张量引用，供 <code>retain_grad</code> 用。这也意味着<strong>只要 node 活着，输出张量就不会被 GC</strong>——这是 <code>retain_graph</code> 占内存的根源。</li>
+</ul>
+<h3 id="443-run_backward">4.4.3 用图：<code>run_backward</code> 的图遍历<a class="headerlink" href="#443-run_backward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run_backward</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">root_grad</span><span class="p">,</span> <span class="n">retain_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">retain_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">topo</span> <span class="o">=</span> <span class="n">_topological_sort</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+        <span class="n">grad_map</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">(</span><span class="n">root</span><span class="p">):</span> <span class="n">root_grad</span><span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">topo</span><span class="p">):</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">grad_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">AccumulateGrad</span><span class="p">):</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">backward_fn</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>                 <span class="c1"># 累加到 variable.grad</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">retain_grad</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>           <span class="c1"># 保留中间梯度</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span> <span class="o">+</span> <span class="n">grad</span>
+
+            <span class="n">grads</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">backward_fn</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grads</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">grads</span> <span class="o">=</span> <span class="p">(</span><span class="n">grads</span><span class="p">,)</span>
+
+            <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">next_edges</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">edge</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">g</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="n">grad_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
+                <span class="n">grad_map</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">edge</span><span class="p">)]</span> <span class="o">=</span> <span class="n">g</span> <span class="k">if</span> <span class="n">prev</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">prev</span> <span class="o">+</span> <span class="n">g</span>   <span class="c1"># 多后继累加</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">retain_graph</span><span class="p">:</span>                           <span class="c1"># 释放图</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">topo</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">next_edges</span> <span class="o">=</span> <span class="p">[]</span>
+</code></pre></div>
+<p><code>retain_grad</code> 那段是 Ch4 的重点：</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">retain_grad</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span> <span class="o">+</span> <span class="n">grad</span>
+</code></pre></div>
+<ul>
+<li><strong>默认 <code>retain_grad=False</code></strong>：跳过这段，中间张量的 <code>.grad</code> 保持 <code>None</code>，省内存。</li>
+<li><strong>打开后</strong>：把当前节点的梯度写到 <code>node.output.grad</code>，让用户能 <code>print(y.grad)</code> 查看中间梯度。</li>
+<li><strong>累加语义</strong>：和叶子的累加一致，多次 backward 时中间梯度也累加。</li>
+</ul>
+<h3 id="444-next_edges">4.4.4 释放图：<code>next_edges = []</code><a class="headerlink" href="#444-next_edges" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="ow">not</span> <span class="n">retain_graph</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">topo</span><span class="p">:</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">next_edges</span> <span class="o">=</span> <span class="p">[]</span>
+</code></pre></div>
+<p>为什么清 <code>next_edges</code> 而不清 <code>grad_fn</code> 或 <code>backward_fn</code>？</p>
+<ul>
+<li><strong>清 <code>next_edges</code></strong>：切断 node 对前驱的引用。前驱 node 如果没有别的引用，就可被 GC。
+  这递归地释放整张图（除了被外部强引用的 Tensor）。</li>
+<li><strong>不清 <code>backward_fn</code></strong>：它是闭包，捕获了 <code>ctx</code> 和 <code>cls</code>。清它也能释放 <code>ctx.saved_tensors</code>，
+  但 <code>next_edges</code> 已切断图结构，<code>backward_fn</code> 留着也不会被调用（引擎不会再走到这个 node）。</li>
+<li><strong>不清 <code>grad_fn</code>（挂在 Tensor 上的）</strong>：保留它，让 <code>tensor.grad_fn is not None</code> 仍成立，
+  下次 <code>backward</code> 时由 <code>variable.py</code> 入口抛"no grad_fn"错误——等等，这看似矛盾？</li>
+</ul>
+<p>看 <code>variable.py</code>：</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">gradient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retain_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">retain_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">run_backward</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">retain_graph</span><span class="p">:</span>
+        <span class="n">tensor</span><span class="o">.</span><span class="n">grad_fn</span> <span class="o">=</span> <span class="kc">None</span>          <span class="c1"># 入口的 grad_fn 在这里清</span>
+</code></pre></div>
+<p>所以<strong>入口张量的 <code>grad_fn</code> 在 <code>variable.backward</code> 里清</strong>，而<strong>中间 node 的 <code>next_edges</code> 在 <code>run_backward</code> 里清</strong>。
+两者分工：</p>
+<ul>
+<li>中间 node 的 <code>next_edges</code> 清了，图结构断了，但中间 Tensor 的 <code>grad_fn</code> 字段还指向那个 node（悬挂 node）。</li>
+<li>入口 Tensor 的 <code>grad_fn</code> 显式清 None，让 <code>tensor.backward()</code> 第二次调用时立即报错。</li>
+</ul>
+<p>中间 Tensor 的 <code>grad_fn</code> 为什么不清？因为引擎拿不到所有中间 Tensor 的列表——它只有 node 列表。
+要清中间 Tensor 的 <code>grad_fn</code>，得在 node 上记 <code>output</code> 字段然后清 <code>node.output.grad_fn</code>，
+但这会破坏 <code>retain_graph</code> 的语义（保留图就包括保留 <code>grad_fn</code>）。
+PyTorch 的做法是：中间 Tensor 的 <code>grad_fn</code> 在图释放后仍指向悬挂 node，
+但悬挂 node 的 <code>next_edges</code> 已空，二次 backward 会走到那个 node 但没有前驱，结果错误。
+所以 PyTorch 抛 "Trying to backward through the graph a second time" 在更早的位置——
+检测到 <code>next_edges</code> 已空就报错。minitorch 简化为只在入口检查 <code>grad_fn</code>。</p>
+<h3 id="445-retain_graph-backward">4.4.5 <code>retain_graph</code>：保留图用于二次 backward<a class="headerlink" href="#445-retain_graph-backward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># 保留图</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>                    <span class="c1"># 可以再次 backward</span>
+</code></pre></div>
+<p><code>retain_graph=True</code> 时，<code>run_backward</code> 跳过最后那段清 <code>next_edges</code>，
+<code>variable.backward</code> 也跳过 <code>tensor.grad_fn = None</code>。
+图完整保留，可以再次 backward。</p>
+<p><strong>典型场景：RNN truncated BPTT</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seq_len</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># 保留图，下一步要接着反向</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">%</span> <span class="n">truncate</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># 每 truncate 步释放一次图，避免无限增长</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+</code></pre></div>
+<p>RNN 的反向要跨时间步传播，每步 backward 都要保留图给下一步用。
+但图不能无限保留（内存爆炸），所以定期 <code>detach()</code> 切断。</p>
+<h3 id="446-retain_grad">4.4.6 <code>retain_grad</code>：保留中间梯度用于调试<a class="headerlink" href="#446-retain_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span>   <span class="c1"># Tensor([1.0]) —— 中间梯度被保留</span>
+</code></pre></div>
+<p>默认 <code>y.grad is None</code>（中间梯度不保留）。
+<code>retain_grad=True</code> 让引擎把中间节点的梯度写到 <code>node.output.grad</code>。</p>
+<p><strong>典型场景：调试梯度消失/爆炸</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">())</span>   <span class="c1"># 查看每层梯度</span>
+<span class="c1"># 也能查看中间激活的梯度</span>
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">())</span>  <span class="c1"># 看梯度沿网络深度的变化</span>
+</code></pre></div>
+<p><code>retain_grad</code> 不影响图结构，可以和 <code>retain_graph</code> 独立开关。</p>
+<h3 id="447-accumulategrad_accumulate">4.4.7 梯度累加：<code>AccumulateGrad._accumulate</code><a class="headerlink" href="#447-accumulategrad_accumulate" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AccumulateGrad</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_accumulate</span><span class="p">,</span> <span class="p">[],</span> <span class="n">name</span><span class="o">=</span><span class="s2">"AccumulateGrad"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_accumulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grad</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span>                  <span class="c1"># 第一次：赋值</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">grad</span> <span class="o">+</span> <span class="n">grad</span>  <span class="c1"># 后续：累加</span>
+</code></pre></div>
+<p>累加语义的两层：</p>
+<ol>
+<li><strong>单次 backward 内</strong>：同一叶子多次出现（如 <code>x * x</code>），多个 <code>AccumulateGrad</code> 各加一次。</li>
+<li><strong>多次 backward 间</strong>：用户连续调 <code>loss.backward()</code> 不 <code>zero_grad</code>，梯度跨调用累加。</li>
+</ol>
+<p>两层都用同一个 <code>_accumulate</code> 方法，逻辑统一。</p>
+<p><strong>与 <code>zero_grad</code> 的关系</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 假装是 optimizer.zero_grad()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">zero_grad</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>    <span class="c1"># 或 p.grad = 0</span>
+</code></pre></div>
+<p>因为 backward 累加，所以每个 batch 开始前要 <code>zero_grad</code> 清零，
+否则 <code>x.grad</code> 会包含历史 batch 的梯度，更新方向错误。
+PyTorch 1.7+ 把 <code>zero_grad</code> 从 <code>p.grad = 0</code> 改成 <code>p.grad = None</code>，省内存且让下次 backward 走"赋值"分支。</p>
+<h3 id="448-variablebackward">4.4.8 <code>variable.backward</code> 的入口校验<a class="headerlink" href="#448-variablebackward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">gradient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retain_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">retain_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">tensor</span><span class="o">.</span><span class="n">grad_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">"backward() called on a tensor with no grad_fn "</span>
+            <span class="s2">"(is it a non-leaf or created without requires_grad?)"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">gradient</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tensor</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"grad can be implicitly created only for scalar outputs"</span><span class="p">)</span>
+        <span class="n">gradient</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tensor</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+    <span class="n">run_backward</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">retain_graph</span><span class="o">=</span><span class="n">retain_graph</span><span class="p">,</span> <span class="n">retain_grad</span><span class="o">=</span><span class="n">retain_grad</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">retain_graph</span><span class="p">:</span>
+        <span class="n">tensor</span><span class="o">.</span><span class="n">grad_fn</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
+<p>两个校验：</p>
+<ol>
+<li><strong><code>grad_fn is None</code></strong>：tensor 没有 grad_fn，不能 backward。</li>
+<li>可能是叶子（用户创建的，没经过算子）。</li>
+<li>可能是 <code>no_grad</code> 下创建的。</li>
+<li>
+<p>可能是已经 backward 过且没 <code>retain_graph</code>（<code>grad_fn</code> 被清了）。
+   错误信息提示用户检查这三种情况。</p>
+</li>
+<li>
+<p><strong>非标量且未传 gradient</strong>：标量 loss 的默认梯度是 1，非标量没默认值。
+   强制用户传 <code>gradient</code>，避免静默错误。</p>
+</li>
+</ol>
+<p>最后 <code>if not retain_graph: tensor.grad_fn = None</code>：清入口的 grad_fn，
+让二次 backward 立即在第 1 个校验报错。</p>
+<hr />
+<h2 id="45">4.5 完整示例：图的生命周期可视化<a class="headerlink" href="#45" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+
+<span class="c1"># === 阶段 1：建图 ===</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]))</span>
+<span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"建图前: x.grad_fn ="</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">)</span>             <span class="c1"># None（叶子）</span>
+
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"建图后: y.grad_fn ="</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">)</span>             <span class="c1"># Node(Mul)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"         y.grad_fn.next_edges ="</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">grad_fn</span><span class="o">.</span><span class="n">next_edges</span><span class="p">)</span>
+<span class="c1"># [Node(AccumulateGrad), Node(AccumulateGrad)]</span>
+
+<span class="c1"># === 阶段 2：用图（反向）===</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"反向后: x.grad ="</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>          <span class="c1"># [4.0]</span>
+
+<span class="c1"># === 阶段 3：释放图（默认）===</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"释放后: y.grad_fn ="</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">)</span>             <span class="c1"># None（被清了）</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"         x.grad 仍保留 ="</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>  <span class="c1"># [4.0]（叶子的 grad 不清）</span>
+
+<span class="c1"># === 二次 backward 失败 ===</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"二次 backward 报错:"</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+    <span class="c1"># backward() called on a tensor with no grad_fn ...</span>
+
+<span class="c1"># === retain_graph=True 的对比 ===</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x2</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="n">x2</span> <span class="o">*</span> <span class="n">x2</span>
+<span class="n">y2</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"retain_graph 后: y2.grad_fn ="</span><span class="p">,</span> <span class="n">y2</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">)</span>  <span class="c1"># Node(Mul)（仍保留）</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"                  x2.grad ="</span><span class="p">,</span> <span class="n">x2</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>  <span class="c1"># [4.0]</span>
+
+<span class="c1"># 再次 backward：梯度累加！</span>
+<span class="n">y2</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"再次 backward 后 x2.grad ="</span><span class="p">,</span> <span class="n">x2</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>  <span class="c1"># [8.0]（4 + 4）</span>
+
+<span class="c1"># === retain_grad=True 的对比 ===</span>
+<span class="n">x3</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x3</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y3</span> <span class="o">=</span> <span class="n">x3</span> <span class="o">*</span> <span class="n">x3</span>
+<span class="n">y3</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"retain_grad 后: y3.grad ="</span><span class="p">,</span> <span class="n">y3</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>  <span class="c1"># [1.0]（中间梯度保留）</span>
+
+<span class="c1"># 对比：默认不 retain_grad</span>
+<span class="n">x4</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x4</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y4</span> <span class="o">=</span> <span class="n">x4</span> <span class="o">*</span> <span class="n">x4</span>
+<span class="n">y4</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"默认 retain_grad: y4.grad ="</span><span class="p">,</span> <span class="n">y4</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span>         <span class="c1"># None</span>
+</code></pre></div>
+<p>预期输出：</p>
+<div class="highlight"><pre><span></span><code>建图前: x.grad_fn = None
+建图后: y.grad_fn = Node(Mul)
+         y.grad_fn.next_edges = [Node(AccumulateGrad), Node(AccumulateGrad)]
+反向后: x.grad = [4.0]
+释放后: y.grad_fn = None
+         x.grad 仍保留 = [4.0]
+二次 backward 报错: backward() called on a tensor with no grad_fn ...
+retain_graph 后: y2.grad_fn = Node(Mul)
+                  x2.grad = [4.0]
+再次 backward 后 x2.grad = [8.0]
+retain_grad 后: y3.grad = [1.0]
+默认 retain_grad: y4.grad = None
+</code></pre></div>
+<hr />
+<h2 id="46">4.6 常见陷阱<a class="headerlink" href="#46" title="Permanent link">&para;</a></h2>
+<h3 id="1trying-to-backward-through-the-graph-a-second-time">陷阱 1：Trying to backward through the graph a second time<a class="headerlink" href="#1trying-to-backward-through-the-graph-a-second-time" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>   <span class="c1"># RuntimeError: backward() called on a tensor with no grad_fn</span>
+</code></pre></div>
+<p><strong>原因</strong>：第一次 backward 默认 <code>retain_graph=False</code>，图被释放，<code>y.grad_fn</code> 被清 None。
+<strong>解决方案</strong>（三选一）：</p>
+<ol>
+<li>第一次用 <code>retain_graph=True</code>：
+   <div class="highlight"><pre><span></span><code><span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>   <span class="c1"># OK，但注意梯度会累加！</span>
+</code></pre></div></li>
+<li>重新前向建图：
+   <div class="highlight"><pre><span></span><code><span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>       <span class="c1"># 重新建图</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+</code></pre></div></li>
+<li>用 <code>detach()</code> 切断梯度流（如果不需要二次反向）：
+   <div class="highlight"><pre><span></span><code><span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+<span class="c1"># y 不再连到 x，可任意用</span>
+</code></pre></div></li>
+</ol>
+<h3 id="2-zero_grad">陷阱 2：忘记 <code>zero_grad</code> 导致梯度累加<a class="headerlink" href="#2-zero_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>   <span class="c1"># [2.0], [4.0], [6.0] —— 累加！</span>
+</code></pre></div>
+<p><strong>原因</strong>：<code>backward</code> 累加语义，每次都往 <code>x.grad</code> 加。
+<strong>解决</strong>：每个 batch 开始前 <code>x.grad = None</code>（或用未来的 <code>optimizer.zero_grad()</code>）。</p>
+<h3 id="3-backward">陷阱 3：修改叶子值后用旧图 backward<a class="headerlink" href="#3-backward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="n">x</span><span class="o">.</span><span class="n">_storage</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">999.0</span>   <span class="c1"># 原地改 storage</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>                  <span class="c1"># 梯度用的是新 x 值（999），但图结构是旧的</span>
+</code></pre></div>
+<p><strong>原因</strong>：动态图的 <code>saved_tensors</code> 是引用，改 storage 影响反向结果，但图不会自动重建。
+<strong>解决</strong>：不要原地改叶子；要改就重新前向。PyTorch 对叶子原地操作会抛错，minitorch 暂未防御。</p>
+<h3 id="4retain_graph-zero_grad">陷阱 4：<code>retain_graph</code> 但不 <code>zero_grad</code> 导致梯度翻倍<a class="headerlink" href="#4retain_graph-zero_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># x.grad = [4.0]</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>                    <span class="c1"># x.grad = [8.0]（累加！）</span>
+</code></pre></div>
+<p><strong>原因</strong>：<code>retain_graph</code> 保留图是为了<strong>再次反向</strong>，但累加语义让第二次的结果加到第一次上。
+<strong>解决</strong>：如果想要"独立的第二次反向"，先 <code>x.grad = None</code>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="5-no_grad-tensor-backward">陷阱 5：在 <code>no_grad</code> 下创建的 Tensor 不能 backward<a class="headerlink" href="#5-no_grad-tensor-backward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">with</span> <span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>   <span class="c1"># RuntimeError: no grad_fn</span>
+</code></pre></div>
+<p><strong>原因</strong>：<code>no_grad</code> 下 <code>apply</code> 跳过建图，<code>y.grad_fn is None</code>。
+<strong>解决</strong>：要建图就别用 <code>no_grad</code>。<code>no_grad</code> 用于推理或反向内部。</p>
+<h3 id="6retain_grad-retain_graph">陷阱 6：<code>retain_grad</code> 但不 <code>retain_graph</code><a class="headerlink" href="#6retain_grad-retain_graph" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># y.grad 保留了，但图已释放</span>
+<span class="c1"># 如果想用 y.grad 做后续运算，没问题</span>
+<span class="c1"># 但如果想再次 backward，仍会失败</span>
+</code></pre></div>
+<p><code>retain_grad</code> 只保留中间梯度，不保留图。两者独立。混淆会导致"我以为保留了图"的意外。</p>
+<h3 id="7-tensor-grad_fn-none">陷阱 7：中间 Tensor 的 <code>grad_fn</code> 在图释放后仍非 None<a class="headerlink" href="#7-tensor-grad_fn-none" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]);</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">z</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">)</span>   <span class="c1"># 可能仍非 None（中间 node 的 grad_fn 没被显式清）</span>
+</code></pre></div>
+<p><strong>原因</strong>：<code>run_backward</code> 只清 <code>node.next_edges</code>，不清 <code>node.output.grad_fn</code>。
+<strong>影响</strong>：<code>y.grad_fn</code> 指向悬挂 node（<code>next_edges</code> 已空），二次 backward 会走到它但无前驱。
+<strong>解决</strong>：不要依赖中间 Tensor 的 <code>grad_fn</code> 判断图是否存活；只信入口 Tensor 的 <code>grad_fn</code>。</p>
+<hr />
+<h2 id="47-pytorch">4.7 与真实 PyTorch 对照<a class="headerlink" href="#47-pytorch" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>minitorch 概念</th>
+<th>PyTorch 对应</th>
+<th>关键差异</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Node.next_edges</code> 邻接表</td>
+<td><code>Node::next_edges_</code> (function.h)</td>
+<td>一致；PyTorch 用 <code>edge_list</code> C++ 容器</td>
+</tr>
+<tr>
+<td>动态图</td>
+<td>动态图（define-by-run）</td>
+<td>完全一致；PyTorch 2.0 的 torch.compile 可选静态化</td>
+</tr>
+<tr>
+<td><code>retain_graph=False</code> 默认释放</td>
+<td>同</td>
+<td>一致</td>
+</tr>
+<tr>
+<td>清 <code>next_edges</code> 释放图</td>
+<td><code>clear_graph</code> 清 <code>next_edges_</code> 和 <code>saved_tensors_</code></td>
+<td>PyTorch 更彻底，minitorch 留 <code>backward_fn</code> 闭包</td>
+</tr>
+<tr>
+<td><code>retain_graph=True</code></td>
+<td>同</td>
+<td>一致；PyTorch 还区分 <code>create_graph</code>（建反向图用于高阶导）</td>
+</tr>
+<tr>
+<td><code>retain_grad=False</code> 默认</td>
+<td>同</td>
+<td>一致；PyTorch 用 <code>y.retain_grad()</code> 方法而非参数</td>
+</tr>
+<tr>
+<td>梯度累加语义</td>
+<td>同</td>
+<td>完全一致；PyTorch 1.7+ <code>zero_grad</code> 设 None 而非 0</td>
+</tr>
+<tr>
+<td>二次 backward 报错</td>
+<td>"Trying to backward through the graph a second time"</td>
+<td>minitorch 信息更朴素，PyTorch 信息更具体</td>
+</tr>
+<tr>
+<td><code>AccumulateGrad._accumulate</code></td>
+<td><code>AccumulateGrad::apply</code></td>
+<td>PyTorch 有原地加法 <code>at::add_</code>，minitorch 新建 Tensor</td>
+</tr>
+<tr>
+<td>中间 Tensor <code>grad_fn</code> 释放后</td>
+<td>仍指向悬挂 Node，但访问会触发错误</td>
+<td>minitorch 不主动报错，PyTorch 在 backward 入口检测</td>
+</tr>
+<tr>
+<td><code>detach()</code></td>
+<td><code>Tensor::detach</code></td>
+<td>minitorch 暂未实现（可手动 <code>Tensor.from_numpy(t.numpy())</code> 切断）</td>
+</tr>
+<tr>
+<td>叶子原地操作检测</td>
+<td>抛 "a leaf Variable that requires grad is being used in an in-place operation"</td>
+<td>minitorch 不检测，允许但结果可能错</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">PyTorch 的 <code>create_graph</code> vs <code>retain_graph</code></p>
+</div>
+<p>PyTorch 的 <code>backward(create_graph=True)</code> 会在反向过程中<strong>为反向图本身建图</strong>，
+这样就能对梯度再求梯度（高阶导数）。
+<code>retain_graph=True</code> 只是保留前向图，不建反向图。
+两者正交：<code>retain_graph</code> 控制"前向图留不留"，<code>create_graph</code> 控制"反向图建不建"。
+minitorch 暂不支持 <code>create_graph</code>，反向固定在 <code>no_grad</code> 下。</p>
+<hr />
+<h2 id="48">4.8 历史背景<a class="headerlink" href="#48" title="Permanent link">&para;</a></h2>
+<h3 id="481">4.8.1 动态图的诞生<a class="headerlink" href="#481" title="Permanent link">&para;</a></h3>
+<p>PyTorch 之前，TensorFlow 1.x 和 Theano 用静态图：先 <code>tf.Graph()</code> 编译，再 <code>session.run()</code> 反复执行。
+调试时不能在图中间 <code>print</code>，控制流要 <code>tf.cond</code> / <code>tf.while_loop</code>，体验很差。</p>
+<p>PyTorch（2016）受 Chainer 和 HIPS/autograd 启发，选择动态图：
+每次前向实时建图，反向后丢弃。<code>print</code>、<code>if</code>、<code>for</code> 都按 Python 原生语义工作，
+调试体验接近纯 Python，迅速赢得研究者青睐。</p>
+<p>代价是：无法做跨 batch 的全局优化（算子融合、常量折叠），性能不如静态图。
+PyTorch 2.0 的 <code>torch.compile</code> 就是想"动态图静态化"——用 Dynamo 捕获 Python 控制流，
+Inductor 做算子融合，兼顾动态图体验和静态图性能。</p>
+<h3 id="482-retain_graph">4.8.2 <code>retain_graph</code> 的演化<a class="headerlink" href="#482-retain_graph" title="Permanent link">&para;</a></h3>
+<p>早期 PyTorch（0.1）每次 backward 都保留图（<code>retain_graph=True</code> 是默认）。
+这导致内存泄漏：用户不显式释放，图一直留着。
+0.2 改成默认释放（<code>retain_graph=False</code>），让"用完即弃"成为默认哲学。
+<code>retain_graph=True</code> 退化为高级用法，用于 RNN truncated BPTT、高阶导数等场景。</p>
+<h3 id="483-zero_grad">4.8.3 <code>zero_grad</code> 的演化<a class="headerlink" href="#483-zero_grad" title="Permanent link">&para;</a></h3>
+<p>PyTorch 1.6 之前，<code>optimizer.zero_grad()</code> 把 <code>p.grad</code> 设为全 0 张量。
+1.7+ 改成 <code>p.grad = None</code>，下次 backward 时 <code>AccumulateGrad</code> 走"赋值"分支而非"加 0"分支，省一次无意义的加法。
+minitorch 的 <code>_accumulate</code> 已经是这个新形态：<code>if self.variable.grad is None: self.variable.grad = grad</code>。</p>
+<h3 id="484-trying-to-backward-through-the-graph-a-second-time">4.8.4 "Trying to backward through the graph a second time"<a class="headerlink" href="#484-trying-to-backward-through-the-graph-a-second-time" title="Permanent link">&para;</a></h3>
+<p>这个经典错误信息从 PyTorch 0.2 就有，是动态图"用完即弃"哲学的必然产物。
+错误信息几经修改，从早期的 "Trying to backward through the graph a second time, but the buffers have been freed"
+到现在的 "Trying to backward through the graph a second time (or directly access saved tensors after they have already been freed)"，
+越来越精确地告诉用户原因和解决方案。</p>
+<p>minitorch 的信息更朴素："backward() called on a tensor with no grad_fn"，
+教学上更直白，但不如 PyTorch 信息 actionable。</p>
+<h3 id="485-detach">4.8.5 <code>detach</code> 的引入<a class="headerlink" href="#485-detach" title="Permanent link">&para;</a></h3>
+<p><code>detach()</code> 在 PyTorch 0.4 引入，用于"切断梯度流"——返回一个新 Tensor，共享数据但 <code>grad_fn=None</code>。
+典型用途：</p>
+<ul>
+<li>RNN truncated BPTT：<code>h = h.detach()</code> 切断历史梯度。</li>
+<li>强化学习的 value function：从 actor 流出的 value 用 <code>detach()</code> 不让 critic 的梯度流回 actor。</li>
+<li>GAN 训练：<code>fake.detach()</code> 让 discriminator 训练时不更新 generator。</li>
+</ul>
+<p>minitorch 暂未实现 <code>detach</code>，可用 <code>Tensor.from_numpy(t.numpy(), requires_grad=False)</code> 等价模拟。</p>
+<hr />
+<h2 id="49">4.9 练习题<a class="headerlink" href="#49" title="Permanent link">&para;</a></h2>
+<h3 id="1-l-x-x-x-xsum">练习 1：画出 <code>L = ((x * x) + (x * x)).sum()</code> 的完整计算图<a class="headerlink" href="#1-l-x-x-x-xsum" title="Permanent link">&para;</a></h3>
+<p>要求：标出每个 Node、next_edges、AccumulateGrad 实例。</p>
+<p>??? 解答 ???</p>
+<div class="highlight"><pre><span></span><code>L.grad_fn = Sum
+  └─ next_edges: [Add]
+
+Add (z = y1 + y2)
+  ├─ next_edges[0]: Mul (y1)
+  └─ next_edges[1]: Mul (y2)
+
+Mul (y1 = x * x)
+  ├─ next_edges[0]: AccumulateGrad_A (variable=x)
+  └─ next_edges[1]: AccumulateGrad_B (variable=x)
+
+Mul (y2 = x * x)
+  ├─ next_edges[0]: AccumulateGrad_C (variable=x)
+  └─ next_edges[1]: AccumulateGrad_D (variable=x)
+
+A, B, C, D 是四个不同的 AccumulateGrad 实例，但 .variable 都 is x
+</code></pre></div>
+<p>反向时四个 AccumulateGrad 各加一次，<code>x.grad</code> 累加四次。
+每次贡献 <span class="arithmatex">\(x \cdot \text{grad}\)</span>，总和 <span class="arithmatex">\(4x\)</span>，与 <span class="arithmatex">\(\frac{d(2x^2)}{dx} = 4x\)</span> 吻合。</p>
+<h3 id="2-retain_graph-retain_grad">练习 2：解释 <code>retain_graph</code> 和 <code>retain_grad</code> 的区别<a class="headerlink" href="#2-retain_graph-retain_grad" title="Permanent link">&para;</a></h3>
+<p>要求：各举一个典型用例。</p>
+<p>??? 解答 ???</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>保留什么</th>
+<th>用途</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>retain_graph</code></td>
+<td>图结构（<code>next_edges</code>、<code>saved_tensors</code>）</td>
+<td>允许再次 backward</td>
+<td>RNN truncated BPTT、高阶导数</td>
+</tr>
+<tr>
+<td><code>retain_grad</code></td>
+<td>中间张量的 <code>.grad</code> 字段</td>
+<td>查看中间梯度分布</td>
+<td>调试梯度消失/爆炸</td>
+</tr>
+</tbody>
+</table>
+<p>两者正交：</p>
+<ul>
+<li><code>retain_graph=True, retain_grad=False</code>：能再次 backward，但中间 <code>.grad</code> 不保留。</li>
+<li><code>retain_graph=False, retain_grad=True</code>：不能再次 backward，但本次的中间 <code>.grad</code> 保留。</li>
+<li>两者都 True：图和中间梯度都保留，内存占用最大。</li>
+</ul>
+<h3 id="3-backward_1">练习 3：为什么 <code>backward</code> 累加而非覆盖梯度<a class="headerlink" href="#3-backward_1" title="Permanent link">&para;</a></h3>
+<p>要求：从单次反向和多次反向两个角度解释。</p>
+<p>??? 解答 ???</p>
+<p><strong>单次反向内</strong>：<code>y = x * x</code> 反向时，两个 <code>AccumulateGrad(x)</code> 各加一次。
+如果覆盖，第二次会覆盖第一次，<code>x.grad</code> 只剩一份，结果错。
+累加让两个贡献相加，得到正确的 <span class="arithmatex">\(2x\)</span>。</p>
+<p><strong>多次反向间</strong>：梯度累加技巧——小显存时用小 batch 多次 backward，等价于大 batch：</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">micro_batch</span> <span class="ow">in</span> <span class="n">big_batch</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">micro_size</span><span class="p">):</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">micro_batch</span><span class="p">)</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>   <span class="c1"># 不 zero_grad，梯度累加</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>      <span class="c1"># 等价于大 batch 一步</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+</code></pre></div>
+<p>如果 backward 覆盖，这个技巧就不成立，每次 backward 都要立即 step，无法累积。</p>
+<p>代价：用户必须记得 <code>zero_grad()</code>，否则跨 batch 累加导致更新方向错误。
+这是 PyTorch 选择累加语义的代价——让高级技巧零成本可用，初学者多一个必做步骤。</p>
+<h3 id="4-trying-to-backward-a-second-time">练习 4：复现并解决 "Trying to backward a second time" 错误<a class="headerlink" href="#4-trying-to-backward-a-second-time" title="Permanent link">&para;</a></h3>
+<p>要求：写代码复现错误，给出三种解决方案。</p>
+<p>??? 解答 ???</p>
+<p><strong>复现</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>   <span class="c1"># RuntimeError: backward() called on a tensor with no grad_fn</span>
+</code></pre></div>
+<p><strong>方案 1：retain_graph</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>   <span class="c1"># OK，x.grad = [8.0]（累加）</span>
+</code></pre></div>
+<p><strong>方案 2：重新前向建图</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>       <span class="c1"># 重新建图</span>
+<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>    <span class="c1"># OK，x.grad = [8.0]（累加）</span>
+</code></pre></div>
+<p><strong>方案 3：detach 切断</strong>（如果不需要二次反向）</p>
+<div class="highlight"><pre><span></span><code><span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>   <span class="c1"># minitorch 暂无 detach，用 Tensor.from_numpy(y.numpy()) 模拟</span>
+<span class="c1"># y 不再连到 x，可任意用，但 backward 不会有梯度流到 x</span>
+</code></pre></div>
+<h3 id="5-grad_fn-tensor">练习 5：图释放为什么不清 <code>grad_fn</code>（中间 Tensor 的）<a class="headerlink" href="#5-grad_fn-tensor" title="Permanent link">&para;</a></h3>
+<p>要求：解释设计理由和潜在问题。</p>
+<p>??? 解答 ???</p>
+<p><strong>为什么不清</strong>：</p>
+<ol>
+<li><strong>引擎拿不到中间 Tensor 列表</strong>：<code>run_backward</code> 只有 node 列表，要清中间 Tensor 的 <code>grad_fn</code> 得遍历 <code>node.output.grad_fn = None</code>，但 <code>node.output</code> 可能为 None（如 AccumulateGrad）。</li>
+<li><strong><code>retain_graph</code> 的语义</strong>：保留图就包括保留 <code>grad_fn</code>，清了就破坏语义。默认 <code>retain_graph=False</code> 时清 <code>next_edges</code> 已足够切断图结构。</li>
+<li><strong>检测二次 backward 的责任在入口</strong>：<code>variable.backward</code> 检查入口 Tensor 的 <code>grad_fn</code>，中间 Tensor 的 <code>grad_fn</code> 不参与检测。</li>
+</ol>
+<p><strong>潜在问题</strong>：中间 Tensor 的 <code>grad_fn</code> 仍指向悬挂 node（<code>next_edges</code> 已空）。
+如果用户拿着中间 Tensor 试图 backward，会走到悬挂 node 但无前驱，结果错误或报错。
+PyTorch 在更深层次检测并报 "Trying to backward through the graph a second time"；
+minitorch 简化，只在入口检查，中间 Tensor 的二次 backward 可能静默错误。</p>
+<p><strong>实践建议</strong>：不要依赖中间 Tensor 的 <code>grad_fn</code> 判断图是否存活；只信入口 Tensor 的 <code>grad_fn</code>。</p>
+<hr />
+<h2 id="410">4.10 关键测试解读<a class="headerlink" href="#410" title="Permanent link">&para;</a></h2>
+<h3 id="4101-test_graph_freed_after_backward">4.10.1 <code>test_graph_freed_after_backward</code>：默认释放<a class="headerlink" href="#4101-test_graph_freed_after_backward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_graph_freed_after_backward</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">y</span><span class="o">.</span><span class="n">grad_fn</span> <span class="ow">is</span> <span class="kc">None</span>
+</code></pre></div>
+<p>验证默认 <code>retain_graph=False</code>：backward 后入口 Tensor 的 <code>grad_fn</code> 被清 None。
+这是"用完即弃"哲学的核心断言。</p>
+<h3 id="4102-test_retain_graph_allows_second_backward-backward">4.10.2 <code>test_retain_graph_allows_second_backward</code>：保留图允许二次 backward<a class="headerlink" href="#4102-test_retain_graph_allows_second_backward-backward" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_retain_graph_allows_second_backward</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">]</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">8.0</span><span class="p">]</span>    <span class="c1"># 累加！4 + 4</span>
+</code></pre></div>
+<p>验证 <code>retain_graph=True</code> 保留图，可再次 backward。
+<strong>关键</strong>：第二次 backward 的梯度<strong>累加</strong>到第一次的结果上（<code>4 + 4 = 8</code>），
+而非覆盖。这同时测了 <code>retain_graph</code> 和累加语义。</p>
+<h3 id="4103-test_no_grad_skips_graphno_grad">4.10.3 <code>test_no_grad_skips_graph</code>：no_grad 不建图<a class="headerlink" href="#4103-test_no_grad_skips_graphno_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_no_grad_skips_graph</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]));</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">with</span> <span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">y</span><span class="o">.</span><span class="n">grad_fn</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">y</span><span class="o">.</span><span class="n">requires_grad</span>
+</code></pre></div>
+<p>验证 <code>no_grad</code> 上下文里 <code>apply</code> 跳过建图：<code>y.grad_fn is None</code> 且 <code>y.requires_grad is False</code>。
+这是推理场景和反向内部的基础保证。</p>
+<h3 id="4104-test_retain_grad">4.10.4 <code>test_retain_grad</code>：保留中间梯度<a class="headerlink" href="#4104-test_retain_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_retain_grad</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">y</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">==</span> <span class="mf">1.0</span>
+</code></pre></div>
+<p>验证 <code>retain_grad=True</code> 让中间 Tensor <code>y</code> 保留梯度。
+<code>y.grad == 1.0</code> 因为 <code>y</code> 是反向的入口（标量默认梯度 1），它的"梯度"就是 root_grad。</p>
+<h3 id="4105-test_default_no_retain_grad">4.10.5 <code>test_default_no_retain_grad</code>：默认不保留中间梯度<a class="headerlink" href="#4105-test_default_no_retain_grad" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_default_no_retain_grad</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">y</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span>
+</code></pre></div>
+<p>验证默认 <code>retain_grad=False</code>：中间 Tensor 的 <code>grad</code> 保持 None，省内存。
+与 <code>test_retain_grad</code> 对照，确认默认行为。</p>
+<h3 id="4106-test_retain_graph_keeps_grad_fnretain_graph-grad_fn">4.10.6 <code>test_retain_graph_keeps_grad_fn</code>：retain_graph 保留 grad_fn<a class="headerlink" href="#4106-test_retain_graph_keeps_grad_fnretain_graph-grad_fn" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_retain_graph_keeps_grad_fn</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">]));</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">y</span><span class="o">.</span><span class="n">grad_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</code></pre></div>
+<p>验证 <code>retain_graph=True</code> 不清入口 Tensor 的 <code>grad_fn</code>，与 <code>test_graph_freed_after_backward</code> 对照。
+这是"允许二次 backward"的前提——<code>grad_fn</code> 还在，下次 backward 入口校验能通过。</p>
+<h3 id="4107-test_gradient_argument">4.10.7 <code>test_gradient_argument</code>：显式传梯度<a class="headerlink" href="#4107-test_gradient_argument" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_gradient_argument</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">]));</span> <span class="n">x</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]))</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+</code></pre></div>
+<p>验证非标量 backward 显式传梯度：<code>g = [1, 0, 0]</code> 表示只对 <code>y[0]</code> 求梯度。
+结果 <code>x.grad = 2x * g = [2*1*1, 2*2*0, 2*3*0] = [2, 0, 0]</code>。
+这测了 <code>variable.backward</code> 的 <code>gradient</code> 参数处理和 <code>Mul.backward</code> 的逐元素乘法。</p>
+<hr />
+<h2 id="411">4.11 优劣势总结<a class="headerlink" href="#411" title="Permanent link">&para;</a></h2>
+<h3 id="_2">优势<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>动态图体验</strong>：控制流天然支持，调试友好，与 Python 心智模型一致。</li>
+<li><strong>内存安全</strong>：默认释放图，大模型训练不会因图累积 OOM。</li>
+<li><strong>梯度累加零成本</strong>：小 batch 训练技巧无需额外 API。</li>
+<li><strong><code>retain_graph</code> / <code>retain_grad</code> 灵活</strong>：高级场景（RNN BPTT、调试）可选保留。</li>
+</ul>
+<h3 id="_3">代价<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>无跨 batch 优化</strong>：每个 batch 独立建图，无法算子融合、常量折叠。</li>
+<li><strong>建图开销</strong>：每次前向都有建图成本，小模型上显著。</li>
+<li><strong>二次 backward 易错</strong>：默认释放导致用户频繁遇到 "second time" 错误。</li>
+<li><strong>中间 Tensor <code>grad_fn</code> 悬挂</strong>：释放后仍非 None，可能误导用户。</li>
+<li><strong>无 <code>create_graph</code></strong>：不支持高阶导数。</li>
+<li><strong>无 <code>detach</code></strong>：不能方便地切断梯度流（RNN、GAN 场景受限）。</li>
+</ul>
+<h3 id="_4">适用场景<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>教学与小规模实验：动态图体验最佳。</li>
+<li>研究：控制流、动态结构友好。</li>
+<li>不适用：生产高性能训练（用 PyTorch + torch.compile）、需要高阶导数（用 <code>torch.func</code>）。</li>
+</ul>
+<hr />
+<h2 id="412">4.12 下一章预告<a class="headerlink" href="#412" title="Permanent link">&para;</a></h2>
+<p>本章我们讲清了计算图的生命周期。至此，自动微分的三章（建图 / 反向 / 图管理）闭环：</p>
+<ul>
+<li><strong>Ch2</strong>：算子怎么建图（<code>Function.apply</code> 贴面单）。</li>
+<li><strong>Ch3</strong>：反向引擎怎么走图（<code>run_backward</code> 拓扑 + 累加）。</li>
+<li><strong>Ch4</strong>：图本身的生命周期（建 / 用 / 释放 / 保留）。</li>
+</ul>
+<p>下一章将进入<strong>神经网络模块层</strong>：</p>
+<ol>
+<li><code>nn.Module</code>：所有模型的基类，<code>__call__</code> → <code>forward</code> 的转发，<code>parameters()</code> 递归收集。</li>
+<li><code>nn.Parameter</code>：特殊的叶子 Tensor，自动 <code>requires_grad=True</code>，被 Module 注册。</li>
+<li><code>nn.Linear</code>：第一个具体层，权重 + 偏置 + 前向。</li>
+<li><code>nn.Sequential</code>：容器，串联多个层。</li>
+<li><code>optim.SGD</code> / <code>optim.Adam</code>：优化器，用 <code>.grad</code> 更新 <code>.data</code>。</li>
+<li>训练循环：<code>zero_grad</code> → <code>forward</code> → <code>loss</code> → <code>backward</code> → <code>step</code> 的完整流程。</li>
+</ol>
+<p>读完下一章，你就能用 minitorch 训练你的第一个神经网络。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.code.tabs", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

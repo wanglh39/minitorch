@@ -1,0 +1,3453 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="从零实现迷你版 PyTorch，学习底层原理与设计原则">
+      
+      
+        <meta name="author" content="minitorch contributor">
+      
+      
+      
+        <link rel="prev" href="../a2-quantization/">
+      
+      
+        <link rel="next" href="../a4-profiler/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>A3 TorchScript 与 ONNX - minitorch</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#a3-torchscript-onnx-export" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="minitorch" class="md-header__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            minitorch
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              A3 TorchScript 与 ONNX
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ch01-tensor-storage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段一·纯 Python
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ch08-cpp-core/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  阶段二·C++ 核心
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  附录
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../differences/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  与真实 PyTorch 的差异
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="minitorch" class="md-nav__button md-logo" aria-label="minitorch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    minitorch
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wanglh39/minitorch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wanglh39/minitorch
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段一·纯 Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段一·纯 Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch01-tensor-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch1 张量与存储
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch02-ops-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch2 算子与分发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch03-autograd-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch3 自动微分引擎
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch04-computation-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch4 计算图机制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch05-nn-module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch5 nn.Module 体系
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch06-optimizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch6 优化器系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch07-loss-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch7 损失与训练循环
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch11-dataloader/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch11 数据加载与采样
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch12-serialization-amp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch12 持久化与混合精度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch13-fx-compile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch13 图与编译导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阶段二·C++ 核心
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阶段二·C++ 核心
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch08-cpp-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch8 C++ 核心重写
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch09-cpp-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch9 C++ 高级特性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ch10-cuda-dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ch10 CUDA 与 dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    附录
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a1-distributed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A1 分布式训练
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a2-quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A2 量化导论
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A3 TorchScript 与 ONNX
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A3 TorchScript 与 ONNX
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a31-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1 TorchScript：把动态模型变静态
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.1 TorchScript：把动态模型变静态">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a311-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.1 为什么需要 TorchScript
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a312" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.2 两种编译方式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a313-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.3 Tracing 的控制流问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a314-tracing-vs-scripting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.4 Tracing vs Scripting 的选择
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a315-scriptmodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.5 ScriptModule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a316-torchscript-ir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.6 TorchScript IR 细节
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a317-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.7 TorchScript 的子集限制
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a318-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.8 TorchScript 的图优化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a32-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.2 TorchScript 的衰落
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.2 TorchScript 的衰落">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a321-torchcompile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.2.1 为什么被 torch.compile 取代
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a322-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.2.2 TorchScript 的遗产
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a33-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3 ONNX：跨框架模型交换
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.3 ONNX：跨框架模型交换">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a331-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.1 什么是 ONNX
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a332-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.2 ONNX 的结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a333-pytorch-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.3 PyTorch 导出 ONNX
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a334-trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.4 导出原理：trace + 翻译
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a335" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.5 算子映射表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a336" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.6 自定义算子导出
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a337" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.7 动态轴
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a338-opset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.8 Opset 版本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a339-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.9 ONNX 控制流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a3310-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.10 ONNX 模型检查
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a34-onnx-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.4 ONNX Runtime 推理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.4 ONNX Runtime 推理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a341-ort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.4.1 ORT 的图优化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a342-ort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.4.2 ORT 性能调优
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a35-onnx-vs-torchscript-vs-torchcompile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.5 ONNX vs TorchScript vs torch.compile
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.5 ONNX vs TorchScript vs torch.compile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a351" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.5.1 选择建议
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a36-torchexport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.6 torch.export：新一代导出
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.6 torch.export：新一代导出">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a361-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.6.1 动态 shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a362-torchexport-ir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.6.2 torch.export 的 IR
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a37-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.7 导出 troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.7 导出 troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a371" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.7.1 常见导出错误
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a372" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.7.2 导出验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a373" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.7.3 简化模型
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a38-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.8 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a39-minitorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.9 minitorch 的图与导出
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a310-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.10 TensorRT 与边缘部署
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.10 TensorRT 与边缘部署">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a3101-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.10.1 TensorRT 工作流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a3102-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.10.2 TensorRT 的优化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a3103" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.10.3 其他推理引擎
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a311-torchscript-mobile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.11 TorchScript Mobile
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a312_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.12 小结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a4-profiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A4 profiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a5-dispatch-key/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A5 dispatch key 链
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../a6-c-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A6 CPython C-API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../differences/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    与真实 PyTorch 的差异
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a31-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1 TorchScript：把动态模型变静态
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.1 TorchScript：把动态模型变静态">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a311-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.1 为什么需要 TorchScript
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a312" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.2 两种编译方式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a313-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.3 Tracing 的控制流问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a314-tracing-vs-scripting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.4 Tracing vs Scripting 的选择
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a315-scriptmodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.5 ScriptModule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a316-torchscript-ir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.6 TorchScript IR 细节
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a317-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.7 TorchScript 的子集限制
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a318-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.1.8 TorchScript 的图优化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a32-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.2 TorchScript 的衰落
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.2 TorchScript 的衰落">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a321-torchcompile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.2.1 为什么被 torch.compile 取代
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a322-torchscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.2.2 TorchScript 的遗产
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a33-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3 ONNX：跨框架模型交换
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.3 ONNX：跨框架模型交换">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a331-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.1 什么是 ONNX
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a332-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.2 ONNX 的结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a333-pytorch-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.3 PyTorch 导出 ONNX
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a334-trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.4 导出原理：trace + 翻译
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a335" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.5 算子映射表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a336" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.6 自定义算子导出
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a337" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.7 动态轴
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a338-opset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.8 Opset 版本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a339-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.9 ONNX 控制流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a3310-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.3.10 ONNX 模型检查
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a34-onnx-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.4 ONNX Runtime 推理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.4 ONNX Runtime 推理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a341-ort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.4.1 ORT 的图优化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a342-ort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.4.2 ORT 性能调优
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a35-onnx-vs-torchscript-vs-torchcompile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.5 ONNX vs TorchScript vs torch.compile
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.5 ONNX vs TorchScript vs torch.compile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a351" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.5.1 选择建议
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a36-torchexport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.6 torch.export：新一代导出
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.6 torch.export：新一代导出">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a361-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.6.1 动态 shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a362-torchexport-ir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.6.2 torch.export 的 IR
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a37-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.7 导出 troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.7 导出 troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a371" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.7.1 常见导出错误
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a372" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.7.2 导出验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a373" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.7.3 简化模型
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a38-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.8 与真实 PyTorch 对照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a39-minitorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.9 minitorch 的图与导出
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a310-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.10 TensorRT 与边缘部署
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A3.10 TensorRT 与边缘部署">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a3101-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.10.1 TensorRT 工作流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a3102-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.10.2 TensorRT 的优化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a3103" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.10.3 其他推理引擎
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a311-torchscript-mobile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.11 TorchScript Mobile
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a312_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3.12 小结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="a3-torchscript-onnx-export">A3 TorchScript 与 ONNX export<a class="headerlink" href="#a3-torchscript-onnx-export" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>本附录对应主线 Ch13（图与编译导论）。TorchScript 是 PyTorch 的第一代图编译方案，已被 <code>torch.compile</code> 取代；ONNX 是跨框架模型交换格式，至今广泛使用。</p>
+</blockquote>
+<hr />
+<h2 id="a31-torchscript">A3.1 TorchScript：把动态模型变静态<a class="headerlink" href="#a31-torchscript" title="Permanent link">&para;</a></h2>
+<h3 id="a311-torchscript">A3.1.1 为什么需要 TorchScript<a class="headerlink" href="#a311-torchscript" title="Permanent link">&para;</a></h3>
+<p>PyTorch 模型是 Python 代码——部署到 C++ 环境（如手机、嵌入式、服务器 C++ 后端）时，没有 Python 解释器。TorchScript 把 Python 模型<strong>编译成一个可序列化的图</strong>，脱离 Python 运行。</p>
+<div class="highlight"><pre><span></span><code>Python 模型 → TorchScript 编译 → ScriptModule → 序列化 → C++ 加载执行
+</code></pre></div>
+<p><strong>部署场景</strong>：
+- C++ 服务器后端（libtorch）
+- 移动端（PyTorch Mobile）
+- 嵌入式设备（无 Python 解释器）
+- 需要序列化 + 版本化的生产环境</p>
+<h3 id="a312">A3.1.2 两种编译方式<a class="headerlink" href="#a312" title="Permanent link">&para;</a></h3>
+<p><strong>Tracing（追踪）</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="n">example_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)</span>
+<span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">example_input</span><span class="p">)</span>
+</code></pre></div>
+<p>用示例输入跑一次前向，<strong>记录所有算子调用</strong>，构建图。</p>
+<ul>
+<li>优点：简单，不需要改代码</li>
+<li>缺点：<strong>控制流被固化</strong>——if/for 按示例输入的路径走，另一条路径丢失</li>
+</ul>
+<p><strong>Scripting（脚本化）</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>分析 Python 源码</strong>，把控制流（if/for/while）翻译成图节点。</p>
+<ul>
+<li>优点：保留完整控制流</li>
+<li>缺点：需要代码符合 TorchScript 子集（类型注解、无动态属性等）</li>
+</ul>
+<h3 id="a313-tracing">A3.1.3 Tracing 的控制流问题<a class="headerlink" href="#a313-tracing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>      <span class="c1"># ← data-dependent control flow</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span>
+
+<span class="c1"># trace 时如果 example_input.sum() &gt; 0</span>
+<span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">example_input</span><span class="p">)</span>
+<span class="c1"># → 图里只有 "add"，else 分支丢失！</span>
+<span class="c1"># 推理时遇到 sum &lt; 0 的输入，结果错误</span>
+</code></pre></div>
+<p><strong>解决</strong>：用 <code>torch.jit.script</code> 保留 if/else：</p>
+<div class="highlight"><pre><span></span><code><span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="c1"># → 图里有 "if" 节点，两条路径都在</span>
+</code></pre></div>
+<h3 id="a314-tracing-vs-scripting">A3.1.4 Tracing vs Scripting 的选择<a class="headerlink" href="#a314-tracing-vs-scripting" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>情况</th>
+<th>推荐</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无控制流（纯算子序列）</td>
+<td>trace</td>
+<td>简单，无需改代码</td>
+</tr>
+<tr>
+<td>控制流依赖输入值</td>
+<td>script</td>
+<td>trace 会丢分支</td>
+</tr>
+<tr>
+<td>控制流依赖 shape（非值）</td>
+<td>trace</td>
+<td>shape 在 trace 时已知，不是 data-dependent</td>
+</tr>
+<tr>
+<td>复杂 Python 语法</td>
+<td>trace</td>
+<td>script 可能不支持</td>
+</tr>
+<tr>
+<td>需要精确控制图</td>
+<td>script</td>
+<td>可手动优化图</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="c1"># shape-dependent control flow → trace 安全</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>          <span class="c1"># ← shape-dependent, trace OK</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># data-dependent control flow → 必须 script</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>        <span class="c1"># ← data-dependent, trace 危险</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_a</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_b</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="a315-scriptmodule">A3.1.5 ScriptModule<a class="headerlink" href="#a315-scriptmodule" title="Permanent link">&para;</a></h3>
+<p>TorchScript 编译后得到 <code>ScriptModule</code>，它是一个<strong>图结构</strong>而非 Python 代码：</p>
+<div class="highlight"><pre><span></span><code><span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># 查看图</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">scripted</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+<span class="c1"># graph(%self : __torch__.MyModule, %x.1 : Tensor):</span>
+<span class="c1">#   %1 : Tensor = aten::sum(%x.1)</span>
+<span class="c1">#   %2 : bool = aten::gt(%1, 0)</span>
+<span class="c1">#   %3 : Tensor = prim::If(%2)</span>
+<span class="c1">#     block0():</span>
+<span class="c1">#       %4 : Tensor = aten::add(%x.1, 1)</span>
+<span class="c1">#       -&gt; (%4)</span>
+<span class="c1">#     block1():</span>
+<span class="c1">#       %5 : Tensor = aten::sub(%x.1, 1)</span>
+<span class="c1">#       -&gt; (%5)</span>
+<span class="c1">#   return (%3)</span>
+
+<span class="c1"># 序列化（脱离 Python）</span>
+<span class="n">scripted</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"model.pt"</span><span class="p">)</span>
+
+<span class="c1"># C++ 端加载</span>
+<span class="c1"># auto module = torch::jit::load("model.pt");</span>
+<span class="c1"># auto output = module.forward({input});</span>
+</code></pre></div>
+<h3 id="a316-torchscript-ir">A3.1.6 TorchScript IR 细节<a class="headerlink" href="#a316-torchscript-ir" title="Permanent link">&para;</a></h3>
+<p>TorchScript IR 是一个<strong>SSA（静态单赋值）图</strong>：</p>
+<div class="highlight"><pre><span></span><code>graph(%self : __torch__.MyModule, %x.1 : Tensor):
+  # %self, %x.1 是输入值（SSA 变量，% 前缀）
+  # 类型注解: Tensor, __torch__.MyModule
+
+  %1 : Tensor = aten::sum(%x.1)
+  # %1 是新 SSA 变量，由 aten::sum 算子计算
+
+  %2 : bool = aten::gt(%1, 0)
+  # 常量 0 自动提升为 Tensor
+
+  %3 : Tensor = prim::If(%2)
+  # prim::If 是控制流节点，包含两个 block
+    block0():           # true 分支
+      %4 : Tensor = aten::add(%x.1, 1)
+      -&gt; (%4)           # block 返回值
+    block1():           # false 分支
+      %5 : Tensor = aten::sub(%x.1, 1)
+      -&gt; (%5)
+
+  return (%3)
+</code></pre></div>
+<p><strong>IR 元素</strong>：
+- <strong>Value</strong>：SSA 变量，<code>%name : Type</code>
+- <strong>Node</strong>：算子调用，<code>%output = op(%inputs)</code>
+- <strong>Block</strong>：控制流体（if 的分支、loop 的循环体）
+- <strong>Graph</strong>：顶层图，包含所有 Node</p>
+<p><strong>算子命名空间</strong>：
+- <code>aten::</code>：ATen 算子（<code>add</code>, <code>mul</code>, <code>conv2d</code>...）
+- <code>prim::</code>：原语（<code>If</code>, <code>Loop</code>, <code>Constant</code>, <code>GetAttr</code>...）
+- <code>__torch__.</code>：用户定义的 Module</p>
+<h3 id="a317-torchscript">A3.1.7 TorchScript 的子集限制<a class="headerlink" href="#a317-torchscript" title="Permanent link">&para;</a></h3>
+<p>TorchScript 不支持所有 Python 语法：</p>
+<table>
+<thead>
+<tr>
+<th>支持</th>
+<th>不支持</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>if/for/while（静态可分析）</td>
+<td>动态类定义、exec/eval</td>
+</tr>
+<tr>
+<td>标准类型（int, float, str, List, Dict）</td>
+<td>任意 Python 对象</td>
+</tr>
+<tr>
+<td>Tensor 算子</td>
+<td>第三方库调用（numpy 等）</td>
+</tr>
+<tr>
+<td>nn.Module 子类</td>
+<td>多继承、元类</td>
+</tr>
+<tr>
+<td>类型注解的函数</td>
+<td>可变参数 <em>args/</em>*kwargs（部分支持）</td>
+</tr>
+<tr>
+<td>List[Tensor] 等容器</td>
+<td>容器内混合类型</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="c1"># TorchScript 要求类型注解</span>
+<span class="nd">@torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_fn</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>       <span class="c1"># ← n 必须是 int，不能是 Tensor</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">+</span> <span class="n">x</span> <span class="o">*</span> <span class="n">i</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+<p><strong>常见报错与修复</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 报错: "Unsupported statement type"</span>
+<span class="c1"># 原因: 用了 TorchScript 不支持的语法（如 try/except）</span>
+<span class="c1"># 修复: 把逻辑移到 @torch.jit.script 外面</span>
+
+<span class="c1"># 报错: "Expected a value of type 'Tensor' but got 'Optional[Tensor]'"</span>
+<span class="c1"># 原因: 类型推导失败，可能为 None</span>
+<span class="c1"># 修复: 显式类型断言</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maybe_none</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 返回 Optional[Tensor]</span>
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">y</span>
+    <span class="k">return</span> <span class="n">x</span>  <span class="c1"># TorchScript 能推导，但有时需 torch.jit.annotate</span>
+
+<span class="c1"># 报错: "unknown attribute"</span>
+<span class="c1"># 原因: 动态添加属性</span>
+<span class="c1"># 修复: 在 __init__ 中声明所有属性</span>
+
+<span class="c1"># 报错: "torch.jit.script does not support ..."</span>
+<span class="c1"># 原因: 用了不支持的 Python 特性</span>
+<span class="c1"># 修复: 重写为 TorchScript 兼容代码，或改用 torch.jit.trace</span>
+</code></pre></div>
+<h3 id="a318-torchscript">A3.1.8 TorchScript 的图优化<a class="headerlink" href="#a318-torchscript" title="Permanent link">&para;</a></h3>
+<p>TorchScript 支持图级优化（在 ScriptModule 上）：</p>
+<div class="highlight"><pre><span></span><code><span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># 常量折叠</span>
+<span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">freeze</span><span class="p">(</span><span class="n">scripted</span><span class="p">)</span>
+<span class="c1"># → 把运行时不变的属性折叠成常量，消除 GetAttr 节点</span>
+
+<span class="c1"># 内联</span>
+<span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">_pass_manager</span><span class="o">.</span><span class="n">inline</span><span class="p">(</span><span class="n">scripted</span><span class="p">)</span>
+<span class="c1"># → 把子 Module 调用展开到主图</span>
+
+<span class="c1"># 死代码消除</span>
+<span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">_pass_manager</span><span class="o">.</span><span class="n">dce</span><span class="p">(</span><span class="n">scripted</span><span class="p">)</span>
+<span class="c1"># → 删除不影响输出的节点</span>
+
+<span class="c1"># 查看优化后的图</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">scripted</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+<span class="c1"># 优化后: 更少节点，更直的数据流</span>
+</code></pre></div>
+<p><strong>freeze 的效果</strong>：</p>
+<div class="highlight"><pre><span></span><code>优化前:
+  %weight = prim::GetAttr(%self, "weight")  # 运行时查找属性
+  %bias = prim::GetAttr(%self, "bias")
+  %1 = aten::linear(%x, %weight, %bias)
+
+优化后 (freeze):
+  %weight = prim::Constant(value=...)  # 编译时内联权重
+  %bias = prim::Constant(value=...)
+  %1 = aten::linear(%x, %weight, %bias)
+  → 消除了 GetAttr 开销
+</code></pre></div>
+<hr />
+<h2 id="a32-torchscript">A3.2 TorchScript 的衰落<a class="headerlink" href="#a32-torchscript" title="Permanent link">&para;</a></h2>
+<h3 id="a321-torchcompile">A3.2.1 为什么被 torch.compile 取代<a class="headerlink" href="#a321-torchcompile" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>TorchScript</th>
+<th>torch.compile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>控制流</td>
+<td>需要手写符合子集的代码</td>
+<td>自动处理（Dynamo 字节码追踪）</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>仅图执行，无 kernel 融合</td>
+<td>Inductor 自动融合 + Triton codegen</td>
+</tr>
+<tr>
+<td>易用性</td>
+<td>需改代码、处理报错</td>
+<td><code>model = torch.compile(model)</code> 一行</td>
+</tr>
+<tr>
+<td>动态 shape</td>
+<td>需重新 trace</td>
+<td>Guard 自动切分</td>
+</tr>
+</tbody>
+</table>
+<p><strong>结论</strong>：PyTorch 2.0+ 后 TorchScript 进入维护模式，新项目用 <code>torch.compile</code>。</p>
+<h3 id="a322-torchscript">A3.2.2 TorchScript 的遗产<a class="headerlink" href="#a322-torchscript" title="Permanent link">&para;</a></h3>
+<p>TorchScript 虽然被取代，但留下了重要遗产：</p>
+<ul>
+<li><strong>IR 设计</strong>：TorchScript IR（<code>torch::jit::Graph</code>）影响了 FX Graph 和 Dynamo 的设计</li>
+<li><strong>C++ 序列化</strong>：<code>.pt</code> 格式的 C++ 加载能力仍被使用</li>
+<li><strong>类型系统</strong>：TorchScript 的类型推导思想延续到 <code>torch.jit.annotate</code></li>
+<li><strong>Mobile 部署</strong>：TorchScript Mobile 至今仍是 PyTorch 移动端方案</li>
+</ul>
+<hr />
+<h2 id="a33-onnx">A3.3 ONNX：跨框架模型交换<a class="headerlink" href="#a33-onnx" title="Permanent link">&para;</a></h2>
+<h3 id="a331-onnx">A3.3.1 什么是 ONNX<a class="headerlink" href="#a331-onnx" title="Permanent link">&para;</a></h3>
+<p>ONNX（Open Neural Network Exchange）是一个<strong>开放的模型表示格式</strong>。不同框架（PyTorch、TensorFlow、MXNet）都能导出 ONNX，不同推理引擎（ONNX Runtime、TensorRT、OpenVINO）都能加载 ONNX。</p>
+<div class="highlight"><pre><span></span><code>PyTorch ─┐
+TensorFlow ─┼──→ ONNX ──→ ONNX Runtime / TensorRT / OpenVINO
+MXNet ──┘
+</code></pre></div>
+<p><strong>ONNX 的价值</strong>：
+- 框架无关：训练用 PyTorch，推理用 TensorRT（不用重写模型）
+- 引擎竞争：多个推理引擎支持同一格式，用户选最优的
+- 标准化：算子语义统一定义，避免各框架差异</p>
+<h3 id="a332-onnx">A3.3.2 ONNX 的结构<a class="headerlink" href="#a332-onnx" title="Permanent link">&para;</a></h3>
+<p>ONNX 模型是一个<strong>有向无环图（DAG）</strong>，用 protobuf 序列化：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// ONNX 模型结构（简化）</span>
+<span class="n">ModelProto</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">GraphProto</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">NodeProto</span><span class="p">[]</span><span class="w"> </span><span class="n">nodes</span><span class="w">     </span><span class="c1">// 算子节点</span>
+<span class="w">    </span><span class="n">ValueInfoProto</span><span class="p">[]</span><span class="w"> </span><span class="n">inputs</span><span class="w">   </span><span class="c1">// 输入</span>
+<span class="w">    </span><span class="n">ValueInfoProto</span><span class="p">[]</span><span class="w"> </span><span class="n">outputs</span><span class="w">  </span><span class="c1">// 输出</span>
+<span class="w">    </span><span class="n">TensorProto</span><span class="p">[]</span><span class="w"> </span><span class="n">initializers</span><span class="w">  </span><span class="c1">// 权重</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">OpSetImport</span><span class="p">[]</span><span class="w"> </span><span class="n">opset_import</span><span class="w">  </span><span class="c1">// 算子集版本</span>
+<span class="p">}</span>
+
+<span class="c1">// 节点示例</span>
+<span class="n">NodeProto</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">op_type</span><span class="o">:</span><span class="w"> </span><span class="s">"Conv"</span>
+<span class="w">  </span><span class="n">inputs</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s">"x"</span><span class="p">,</span><span class="w"> </span><span class="s">"W"</span><span class="p">,</span><span class="w"> </span><span class="s">"b"</span><span class="p">]</span>
+<span class="w">  </span><span class="n">outputs</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s">"y"</span><span class="p">]</span>
+<span class="w">  </span><span class="n">attributes</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">kernel_shape</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]</span>
+<span class="w">    </span><span class="n">strides</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span>
+<span class="w">    </span><span class="n">pads</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>protobuf 的优势</strong>：
+- 跨语言（Python/C++/Java/Go 都能读写）
+- 向后兼容（新增字段不破坏旧解析器）
+- 紧凑的二进制格式（比 JSON 小）</p>
+<h3 id="a333-pytorch-onnx">A3.3.3 PyTorch 导出 ONNX<a class="headerlink" href="#a333-pytorch-onnx" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="n">example_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)</span>
+
+<span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">example_input</span><span class="p">,</span>
+    <span class="s2">"model.onnx"</span><span class="p">,</span>
+    <span class="n">opset_version</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>        <span class="c1"># ONNX 算子集版本</span>
+    <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"input"</span><span class="p">],</span>
+    <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"output"</span><span class="p">],</span>
+    <span class="n">dynamic_axes</span><span class="o">=</span><span class="p">{</span>           <span class="c1"># 支持动态 batch</span>
+        <span class="s2">"input"</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">"batch"</span><span class="p">},</span>
+        <span class="s2">"output"</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">"batch"</span><span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="a334-trace">A3.3.4 导出原理：trace + 翻译<a class="headerlink" href="#a334-trace" title="Permanent link">&para;</a></h3>
+<p>ONNX export 的流程与 TorchScript trace 类似：</p>
+<div class="highlight"><pre><span></span><code>1. 用 example_input 跑前向 → 记录算子调用序列
+2. 把 PyTorch 算子翻译成 ONNX 算子:
+   aten::conv2d  → onnx::Conv
+   aten::relu    → onnx::Relu
+   aten::matmul  → onnx::MatMul
+   aten::add     → onnx::Add
+3. 序列化为 protobuf 格式 → model.onnx
+</code></pre></div>
+<p><strong>详细流程</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># torch.onnx.export 内部:</span>
+<span class="c1"># 1. 创建 "tracer" 模式，拦截所有 aten:: 算子调用</span>
+<span class="c1"># 2. 执行 model(example_input) → 记录算子序列</span>
+<span class="c1"># 3. 对每个算子，查 symbolic_opset{N}.py 找到对应的 ONNX 符号函数</span>
+<span class="c1"># 4. 符号函数把 aten 算子翻译成 ONNX NodeProto</span>
+<span class="c1"># 5. 把所有 NodeProto 组装成 GraphProto → ModelProto</span>
+<span class="c1"># 6. protobuf 序列化 → model.onnx</span>
+
+<span class="c1"># 符号函数示例 (torch/onnx/symbolic_opset17.py):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">alpha</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">other</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Mul"</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Constant"</span><span class="p">,</span> <span class="n">value_t</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">alpha</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Add"</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+<span class="c1"># → 把 aten::add(alpha) 翻译成 ONNX Mul + Add</span>
+</code></pre></div>
+<h3 id="a335">A3.3.5 算子映射表<a class="headerlink" href="#a335" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>PyTorch 算子</th>
+<th>ONNX 算子</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>torch.conv2d</code></td>
+<td><code>Conv</code></td>
+<td>直接映射</td>
+</tr>
+<tr>
+<td><code>torch.relu</code></td>
+<td><code>Relu</code></td>
+<td>直接映射</td>
+</tr>
+<tr>
+<td><code>torch.matmul</code></td>
+<td><code>MatMul</code></td>
+<td>直接映射</td>
+</tr>
+<tr>
+<td><code>torch.add</code></td>
+<td><code>Add</code></td>
+<td>直接映射</td>
+</tr>
+<tr>
+<td><code>torch.softmax</code></td>
+<td><code>Softmax</code></td>
+<td>opset 1+</td>
+</tr>
+<tr>
+<td><code>torch.layer_norm</code></td>
+<td><code>LayerNormalization</code></td>
+<td>opset 17+</td>
+</tr>
+<tr>
+<td><code>torch.einsum</code></td>
+<td>无直接对应</td>
+<td>需拆分成 MatMul + Transpose</td>
+</tr>
+<tr>
+<td><code>torch.flip</code></td>
+<td><code>Slice</code></td>
+<td>用 Slice 实现</td>
+</tr>
+<tr>
+<td><code>torch.where</code></td>
+<td><code>Where</code></td>
+<td>opset 9+</td>
+</tr>
+<tr>
+<td><code>torch.gather</code></td>
+<td><code>Gather</code></td>
+<td>opset 1+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>问题</strong>：不是所有 PyTorch 算子都有 ONNX 对应。遇到不支持的算子，需要：
+1. 注册自定义 ONNX 算子（<code>torch.onnx.register_custom_op</code>）
+2. 或用 <code>torch.jit.script</code> 替代 trace（保留控制流，但 ONNX 对控制流支持有限）</p>
+<h3 id="a336">A3.3.6 自定义算子导出<a class="headerlink" href="#a336" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 自定义算子: my_hardswish(x) = x * relu6(x+3) / 6</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">HardSwish</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span>
+
+<span class="c1"># 注册 ONNX 符号函数</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hardswish_symbolic</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="c1"># 用已有 ONNX 算子组合实现</span>
+    <span class="n">three</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Constant"</span><span class="p">,</span> <span class="n">value_t</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.0</span><span class="p">))</span>
+    <span class="n">six</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Constant"</span><span class="p">,</span> <span class="n">value_t</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">6.0</span><span class="p">))</span>
+    <span class="n">x_plus_3</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Add"</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">three</span><span class="p">)</span>
+    <span class="n">clamped</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Clip"</span><span class="p">,</span> <span class="n">x_plus_3</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Constant"</span><span class="p">,</span> <span class="n">value_t</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)),</span>
+                   <span class="n">six</span><span class="p">)</span>
+    <span class="n">mul</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Mul"</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">clamped</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">g</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">"Div"</span><span class="p">,</span> <span class="n">mul</span><span class="p">,</span> <span class="n">six</span><span class="p">)</span>
+
+<span class="c1"># 注册</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.onnx</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_custom_op_symbolic</span>
+<span class="n">register_custom_op_symbolic</span><span class="p">(</span><span class="s2">"my_ops::hardswish"</span><span class="p">,</span> <span class="n">hardswish_symbolic</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># 现在导出时会用 hardswish_symbolic 翻译</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">model_with_hardswish</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="s2">"model.onnx"</span><span class="p">,</span> <span class="n">opset_version</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="a337">A3.3.7 动态轴<a class="headerlink" href="#a337" title="Permanent link">&para;</a></h3>
+<p>默认 ONNX export 固化 batch size（trace 时的 batch）。<code>dynamic_axes</code> 允许指定维度为动态：</p>
+<div class="highlight"><pre><span></span><code><span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="s2">"model.onnx"</span><span class="p">,</span>
+    <span class="n">dynamic_axes</span><span class="o">=</span><span class="p">{</span><span class="s2">"input"</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">"batch"</span><span class="p">}}</span>  <span class="c1"># 第 0 维动态</span>
+<span class="p">)</span>
+<span class="c1"># 导出的模型支持任意 batch size</span>
+</code></pre></div>
+<p><strong>动态轴的限制</strong>：
+- 只能指定<strong>整维</strong>为动态（不能"维度 1 是 3 或 4"）
+- 动态维度影响推理引擎优化（固定 shape 更好优化）
+- 某些算子（如 reshape 到固定 shape）与动态轴冲突</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 常见动态轴设置</span>
+<span class="n">dynamic_axes</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"input"</span><span class="p">:</span>  <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">"batch"</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">"height"</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s2">"width"</span><span class="p">},</span>  <span class="c1"># 动态 batch + 分辨率</span>
+    <span class="s2">"output"</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">"batch"</span><span class="p">},</span>
+<span class="p">}</span>
+
+<span class="c1"># 生产建议: 如果 batch 固定，不要设动态 → 推理引擎优化更好</span>
+</code></pre></div>
+<h3 id="a338-opset">A3.3.8 Opset 版本<a class="headerlink" href="#a338-opset" title="Permanent link">&para;</a></h3>
+<p>ONNX 算子集（OpSet）有版本演进，新版本增加算子或修改语义：</p>
+<table>
+<thead>
+<tr>
+<th>OpSet</th>
+<th>关键新增</th>
+<th>PyTorch 支持</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9</td>
+<td><code>Where</code>, <code>NonZero</code></td>
+<td>PyTorch 1.x</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>DynamicQuantizeLinear</code>, <code>Pad</code> 修改</td>
+<td>PyTorch 1.6+</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>Squeeze</code>/<code>Unsqueeze</code> 改用 axes 输入</td>
+<td>PyTorch 1.10+</td>
+</tr>
+<tr>
+<td>17</td>
+<td><code>LayerNormalization</code>, <code>Resize</code> 修改</td>
+<td>PyTorch 1.13+</td>
+</tr>
+<tr>
+<td>18</td>
+<td><code>DynamicQuantizeLinear</code> 增强</td>
+<td>PyTorch 2.0+</td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>Attention</code>, <code>GroupNormalization</code></td>
+<td>PyTorch 2.1+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="c1"># 选择 opset 版本</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="s2">"model.onnx"</span><span class="p">,</span> <span class="n">opset_version</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+<span class="c1"># → 用 opset 17 的算子定义</span>
+<span class="c1"># → 推理引擎必须支持 opset 17</span>
+
+<span class="c1"># 查看模型用的 opset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">onnx</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">onnx</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">opset_import</span><span class="p">)</span>  <span class="c1"># [opset: domain="ai.onnx.ml", version=1, ...]</span>
+</code></pre></div>
+<p><strong>选择建议</strong>：用推理引擎支持的最高版本（新 opset 算子更丰富，导出成功率高）。</p>
+<h3 id="a339-onnx">A3.3.9 ONNX 控制流<a class="headerlink" href="#a339-onnx" title="Permanent link">&para;</a></h3>
+<p>ONNX 从 opset 11 起支持控制流算子：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// If 算子</span>
+<span class="n">NodeProto</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">op_type</span><span class="o">:</span><span class="w"> </span><span class="s">"If"</span>
+<span class="w">  </span><span class="n">inputs</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s">"cond"</span><span class="p">]</span><span class="w">           </span><span class="c1">// bool 条件</span>
+<span class="w">  </span><span class="n">attributes</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">then_branch</span><span class="o">:</span><span class="w"> </span><span class="n">GraphProto</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1">// true 分支（子图）</span>
+<span class="w">    </span><span class="n">else_branch</span><span class="o">:</span><span class="w"> </span><span class="n">GraphProto</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1">// false 分支（子图）</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Loop 算子</span>
+<span class="n">NodeProto</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">op_type</span><span class="o">:</span><span class="w"> </span><span class="s">"Loop"</span>
+<span class="w">  </span><span class="n">inputs</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s">"max_iter"</span><span class="p">,</span><span class="w"> </span><span class="s">"cond"</span><span class="p">,</span><span class="w"> </span><span class="s">"initial_state"</span><span class="p">]</span>
+<span class="w">  </span><span class="n">attributes</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">body</span><span class="o">:</span><span class="w"> </span><span class="n">GraphProto</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// 循环体（子图）</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>限制</strong>：
+- 控制流用子图表示，比 TorchScript 的 <code>prim::If</code> 更重
+- 不是所有推理引擎都支持 ONNX 控制流（ORT 支持，TensorRT 部分支持）
+- 导出 data-dependent 控制流仍需 <code>torch.jit.script</code>（trace 无法捕获）</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 带控制流的模型导出</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>           <span class="c1"># data-dependent</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># 方法 1: script + export（推荐）</span>
+<span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">Model</span><span class="p">())</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">scripted</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="s2">"model.onnx"</span><span class="p">,</span> <span class="n">opset_version</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+<span class="c1"># → 导出包含 If 算子的 ONNX</span>
+
+<span class="c1"># 方法 2: 直接 export（trace，会丢控制流——危险）</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">Model</span><span class="p">(),</span> <span class="n">x</span><span class="p">,</span> <span class="s2">"model.onnx"</span><span class="p">,</span> <span class="n">opset_version</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+<span class="c1"># → 只导出 trace 时走的分支，另一分支丢失</span>
+</code></pre></div>
+<h3 id="a3310-onnx">A3.3.10 ONNX 模型检查<a class="headerlink" href="#a3310-onnx" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">onnx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">onnx.shape_inference</span>
+
+<span class="c1"># 加载</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">onnx</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">)</span>
+
+<span class="c1"># 1. 合法性检查</span>
+<span class="n">onnx</span><span class="o">.</span><span class="n">checker</span><span class="o">.</span><span class="n">check_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># 2. shape 推导（填充中间 shape 信息）</span>
+<span class="n">model_with_shapes</span> <span class="o">=</span> <span class="n">onnx</span><span class="o">.</span><span class="n">shape_inference</span><span class="o">.</span><span class="n">infer_shapes</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># 3. 打印模型信息</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"IR version: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">ir_version</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Opset: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">opset_import</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Inputs: </span><span class="si">{</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">input</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Outputs: </span><span class="si">{</span><span class="p">[</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">o</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Nodes: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Initializers (weights): </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">initializer</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># 4. 打印所有算子</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">op_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">input</span><span class="p">)</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="a34-onnx-runtime">A3.4 ONNX Runtime 推理<a class="headerlink" href="#a34-onnx-runtime" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">onnxruntime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ort</span>
+
+<span class="c1"># 加载 ONNX 模型</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">InferenceSession</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">)</span>
+
+<span class="c1"># 推理</span>
+<span class="n">input_name</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get_inputs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="n">input_name</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">numpy</span><span class="p">()})</span>
+
+<span class="c1"># 性能优化：指定 provider</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">InferenceSession</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">,</span> <span class="n">providers</span><span class="o">=</span><span class="p">[</span>
+    <span class="s2">"CUDAExecutionProvider"</span><span class="p">,</span>   <span class="c1"># GPU</span>
+    <span class="s2">"CPUExecutionProvider"</span><span class="p">,</span>    <span class="c1"># CPU fallback</span>
+<span class="p">])</span>
+</code></pre></div>
+<p>ONNX Runtime 的图优化（融合、常量折叠、内存规划）与 <code>torch.compile</code> 的 Inductor 类似，但作用在 ONNX IR 上。</p>
+<h3 id="a341-ort">A3.4.1 ORT 的图优化<a class="headerlink" href="#a341-ort" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 启用所有优化</span>
+<span class="n">sess_options</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">SessionOptions</span><span class="p">()</span>
+<span class="n">sess_options</span><span class="o">.</span><span class="n">graph_optimization_level</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">GraphOptimizationLevel</span><span class="o">.</span><span class="n">ORT_ENABLE_ALL</span>
+<span class="n">sess_options</span><span class="o">.</span><span class="n">optimized_model_file</span> <span class="o">=</span> <span class="s2">"model_optimized.onnx"</span>  <span class="c1"># 保存优化后的图</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">InferenceSession</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">,</span> <span class="n">sess_options</span><span class="p">,</span> <span class="n">providers</span><span class="o">=</span><span class="p">[</span><span class="s2">"CPUExecutionProvider"</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>优化级别</strong>：
+- <code>ORT_DISABLE_ALL</code>：无优化
+- <code>ORT_ENABLE_BASIC</code>：常量折叠、冗余算子消除
+- <code>ORT_ENABLE_EXTENDED</code>：算子融合（Conv+BN+ReLU → ConvFusion）
+- <code>ORT_ENABLE_ALL</code>：+ 布局转换、内存规划</p>
+<h3 id="a342-ort">A3.4.2 ORT 性能调优<a class="headerlink" href="#a342-ort" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">sess_options</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">SessionOptions</span><span class="p">()</span>
+<span class="n">sess_options</span><span class="o">.</span><span class="n">intra_op_num_threads</span> <span class="o">=</span> <span class="mi">4</span>      <span class="c1"># 算子内并行（多线程算子）</span>
+<span class="n">sess_options</span><span class="o">.</span><span class="n">inter_op_num_threads</span> <span class="o">=</span> <span class="mi">1</span>      <span class="c1"># 算子间并行（通常 1）</span>
+<span class="n">sess_options</span><span class="o">.</span><span class="n">execution_mode</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">ExecutionMode</span><span class="o">.</span><span class="n">ORT_SEQUENTIAL</span>  <span class="c1"># 顺序执行</span>
+<span class="c1"># sess_options.execution_mode = ort.ExecutionMode.ORT_PARALLEL  # 并行执行独立算子</span>
+
+<span class="c1"># 内存 arena（减少分配开销）</span>
+<span class="n">sess_options</span><span class="o">.</span><span class="n">enable_mem_pattern</span> <span class="o">=</span> <span class="kc">True</span>     <span class="c1"># 启用内存模式</span>
+<span class="n">sess_options</span><span class="o">.</span><span class="n">enable_cpu_mem_arena</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># CPU 内存 arena</span>
+</code></pre></div>
+<hr />
+<h2 id="a35-onnx-vs-torchscript-vs-torchcompile">A3.5 ONNX vs TorchScript vs torch.compile<a class="headerlink" href="#a35-onnx-vs-torchscript-vs-torchcompile" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>TorchScript</th>
+<th>ONNX</th>
+<th>torch.compile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标</td>
+<td>脱离 Python 部署</td>
+<td>跨框架交换</td>
+<td>训练 + 推理加速</td>
+</tr>
+<tr>
+<td>IR</td>
+<td>TorchScript IR</td>
+<td>ONNX IR</td>
+<td>FX Graph / Dynamo IR</td>
+</tr>
+<tr>
+<td>控制流</td>
+<td>script 支持</td>
+<td>有限支持（If/Loop 算子）</td>
+<td>自动（Dynamo）</td>
+</tr>
+<tr>
+<td>序列化</td>
+<td><code>.pt</code> (pickle)</td>
+<td><code>.onnx</code> (protobuf)</td>
+<td>不序列化（JIT 编译）</td>
+</tr>
+<tr>
+<td>推理引擎</td>
+<td>libtorch C++</td>
+<td>ORT / TensorRT / OpenVINO</td>
+<td>PyTorch 自身</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>维护模式</td>
+<td>活跃</td>
+<td>活跃（未来方向）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a351">A3.5.1 选择建议<a class="headerlink" href="#a351" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>训练加速</td>
+<td><code>torch.compile</code></td>
+</tr>
+<tr>
+<td>C++ 部署（libtorch）</td>
+<td>TorchScript（或 torch.export）</td>
+</tr>
+<tr>
+<td>跨框架/第三方推理引擎</td>
+<td>ONNX</td>
+</tr>
+<tr>
+<td>边缘设备（TensorRT/OpenVINO）</td>
+<td>ONNX</td>
+</tr>
+<tr>
+<td>生产推理服务</td>
+<td>ONNX Runtime</td>
+</tr>
+<tr>
+<td>移动端</td>
+<td>TorchScript Mobile / torch.export</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a36-torchexport">A3.6 torch.export：新一代导出<a class="headerlink" href="#a36-torchexport" title="Permanent link">&para;</a></h2>
+<p>PyTorch 2.1+ 引入 <code>torch.export</code>，替代 TorchScript 的导出功能：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 新方式</span>
+<span class="n">exported</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">export</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">(</span><span class="n">example_input</span><span class="p">,))</span>
+<span class="n">exported</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"model.pt2"</span><span class="p">)</span>
+
+<span class="c1"># C++ 加载</span>
+<span class="c1"># auto module = torch::inductor::load("model.pt2");</span>
+</code></pre></div>
+<p>优势：
+- 不需要 TorchScript 子集限制
+- 支持 dynamic shapes（<code>torch.export.Dim</code>）
+- 与 <code>torch.compile</code> 共用 IR</p>
+<h3 id="a361-shape">A3.6.1 动态 shape<a class="headerlink" href="#a361-shape" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 声明动态维度</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">export</span><span class="o">.</span><span class="n">Dim</span><span class="p">(</span><span class="s2">"batch"</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
+<span class="n">exported</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">export</span><span class="o">.</span><span class="n">export</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">),),</span>
+    <span class="n">dynamic_shapes</span><span class="o">=</span><span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">batch</span><span class="p">}},</span>
+<span class="p">)</span>
+<span class="c1"># → 导出的模型支持 batch=1 到 256</span>
+</code></pre></div>
+<h3 id="a362-torchexport-ir">A3.6.2 torch.export 的 IR<a class="headerlink" href="#a362-torchexport-ir" title="Permanent link">&para;</a></h3>
+<p><code>torch.export</code> 用 <strong>ExportedProgram</strong>，基于 FX Graph + ATen 算子：</p>
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">exported</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+<span class="c1"># graph():</span>
+<span class="c1">#   %x : Tensor [batch, 3, 224, 224]</span>
+<span class="c1">#   %weight_1 : Tensor [16, 3, 3, 3]  # 常量权重</span>
+<span class="c1">#   %conv_out = aten.conv2d(%x, %weight_1, ...)</span>
+<span class="c1">#   %relu_out = aten.relu(%conv_out)</span>
+<span class="c1">#   return (%relu_out)</span>
+
+<span class="c1"># 特点:</span>
+<span class="c1"># - 纯 ATen 算子（无 prim::If，控制流已展开或用 higher-order op）</span>
+<span class="c1"># - 显式 shape 符号（batch 是符号，不是固定值）</span>
+<span class="c1"># - 权重作为 graph 输入（不是 attribute），方便共享</span>
+</code></pre></div>
+<hr />
+<h2 id="a37-troubleshooting">A3.7 导出 troubleshooting<a class="headerlink" href="#a37-troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="a371">A3.7.1 常见导出错误<a class="headerlink" href="#a371" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 错误 1: "Unsupported operand"</span>
+<span class="c1"># 原因: 用了 ONNX 不支持的算子</span>
+<span class="c1"># 诊断: torch.onnx.export(..., verbose=True) 看哪个算子失败</span>
+<span class="c1"># 修复: 用等价的支持算子替换，或注册自定义算子</span>
+
+<span class="c1"># 错误 2: "Tracer encountered unsupported operation"</span>
+<span class="c1"># 原因: 控制流或动态操作</span>
+<span class="c1"># 修复: 用 torch.jit.script 先转 ScriptModule，再导出</span>
+
+<span class="c1"># 错误 3: "dynamic_axes specified but dimension is fixed"</span>
+<span class="c1"># 原因: 某操作固化了维度（如 reshape 到固定 shape）</span>
+<span class="c1"># 修复: 检查 reshape/view 操作，确保与动态轴兼容</span>
+
+<span class="c1"># 错误 4: "opset version too low"</span>
+<span class="c1"># 原因: 算子需要更高 opset</span>
+<span class="c1"># 修复: 提高 opset_version</span>
+</code></pre></div>
+<h3 id="a372">A3.7.2 导出验证<a class="headerlink" href="#a372" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">onnx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">onnxruntime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ort</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># 1. 检查 ONNX 模型合法性</span>
+<span class="n">onnx_model</span> <span class="o">=</span> <span class="n">onnx</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">)</span>
+<span class="n">onnx</span><span class="o">.</span><span class="n">checker</span><span class="o">.</span><span class="n">check_model</span><span class="p">(</span><span class="n">onnx_model</span><span class="p">)</span>  <span class="c1"># 不报错 = 合法</span>
+
+<span class="c1"># 2. 对比 PyTorch 和 ONNX Runtime 输出</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">pt_output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">example_input</span><span class="p">)</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">InferenceSession</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">)</span>
+<span class="n">onnx_output</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="n">input_name</span><span class="p">:</span> <span class="n">example_input</span><span class="o">.</span><span class="n">numpy</span><span class="p">()})[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># 3. 数值对比</span>
+<span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span>
+    <span class="n">pt_output</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">onnx_output</span><span class="p">,</span>
+    <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-5</span>  <span class="c1"># ONNX 用 fp32，误差应很小</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"导出验证通过！"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="a373">A3.7.3 简化模型<a class="headerlink" href="#a373" title="Permanent link">&para;</a></h3>
+<p>导出的 ONNX 模型可能有冗余算子，用 <code>onnxsim</code> 简化：</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">onnxsim</span>
+
+<span class="c1"># 简化（常量折叠 + 死代码消除）</span>
+<span class="n">model_simplified</span><span class="p">,</span> <span class="n">check</span> <span class="o">=</span> <span class="n">onnxsim</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">)</span>
+<span class="n">onnx</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model_simplified</span><span class="p">,</span> <span class="s2">"model_sim.onnx"</span><span class="p">)</span>
+
+<span class="c1"># 通常能减少 10-30% 算子数，推理更快</span>
+</code></pre></div>
+<hr />
+<h2 id="a38-pytorch">A3.8 与真实 PyTorch 对照<a class="headerlink" href="#a38-pytorch" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>PyTorch</th>
+<th>文件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TorchScript trace</td>
+<td><code>torch.jit.trace</code></td>
+<td><code>torch/jit/_trace.py</code></td>
+</tr>
+<tr>
+<td>TorchScript script</td>
+<td><code>torch.jit.script</code></td>
+<td><code>torch/jit/_script.py</code></td>
+</tr>
+<tr>
+<td>ScriptModule</td>
+<td><code>torch.jit.ScriptModule</code></td>
+<td><code>torch/jit/_script.py</code></td>
+</tr>
+<tr>
+<td>TorchScript IR</td>
+<td><code>torch::jit::Graph</code></td>
+<td><code>torch/csrc/jit/ir/graph.h</code></td>
+</tr>
+<tr>
+<td>ONNX export</td>
+<td><code>torch.onnx.export</code></td>
+<td><code>torch/onnx/utils.py</code></td>
+</tr>
+<tr>
+<td>ONNX 算子映射</td>
+<td><code>torch.onnx.symbolic_opset*.py</code></td>
+<td><code>torch/onnx/symbolic_opset17.py</code></td>
+</tr>
+<tr>
+<td>torch.export</td>
+<td><code>torch.export.export</code></td>
+<td><code>torch/export/</code></td>
+</tr>
+<tr>
+<td>ExportedProgram</td>
+<td><code>torch.export.ExportedProgram</code></td>
+<td><code>torch/export/exported_program.py</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a39-minitorch">A3.9 minitorch 的图与导出<a class="headerlink" href="#a39-minitorch" title="Permanent link">&para;</a></h2>
+<p>minitorch 在 Ch13 实现了 FX 风格的图捕获（<code>fx</code> 模块），可对照理解导出原理：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># minitorch 的图捕获 (Ch13)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minitorch.fx</span><span class="w"> </span><span class="kn">import</span> <span class="n">symbolic_trace</span>
+
+<span class="c1"># 把 minitorch 模型变成图</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">symbolic_trace</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+<span class="c1"># Graph:</span>
+<span class="c1">#   %x = placeholder</span>
+<span class="c1">#   %1 = conv2d(%x, weight=...)</span>
+<span class="c1">#   %2 = relu(%1)</span>
+<span class="c1">#   %3 = linear(%2, weight=...)</span>
+<span class="c1">#   return %3</span>
+
+<span class="c1"># 与 ONNX export 的关系:</span>
+<span class="c1"># - minitorch fx: 捕获图用于优化/编译（类似 torch.compile）</span>
+<span class="c1"># - ONNX export: 捕获图 + 翻译成 ONNX 算子</span>
+<span class="c1"># - 共同点: 都是 "trace 前向 → 记录算子 → 构建图"</span>
+</code></pre></div>
+<p><strong>minitorch 未实现 ONNX 导出</strong>（教学范围外），但 fx 模块展示了"图捕获"的核心思想，这是所有导出方案的基础。</p>
+<hr />
+<h2 id="a310-tensorrt">A3.10 TensorRT 与边缘部署<a class="headerlink" href="#a310-tensorrt" title="Permanent link">&para;</a></h2>
+<h3 id="a3101-tensorrt">A3.10.1 TensorRT 工作流<a class="headerlink" href="#a3101-tensorrt" title="Permanent link">&para;</a></h3>
+<p>TensorRT 是 NVIDIA 的高性能推理引擎，从 ONNX 构建：</p>
+<div class="highlight"><pre><span></span><code>ONNX 模型 → TensorRT Builder → 优化引擎 → 序列化 .engine → 部署
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">tensorrt</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">trt</span>
+
+<span class="c1"># 1. 创建 builder</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">trt</span><span class="o">.</span><span class="n">Logger</span><span class="p">(</span><span class="n">trt</span><span class="o">.</span><span class="n">Logger</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+<span class="n">builder</span> <span class="o">=</span> <span class="n">trt</span><span class="o">.</span><span class="n">Builder</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+
+<span class="c1"># 2. 解析 ONNX</span>
+<span class="n">network</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">create_network</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="nb">int</span><span class="p">(</span><span class="n">trt</span><span class="o">.</span><span class="n">NetworkDefinitionCreationFlag</span><span class="o">.</span><span class="n">EXPLICIT_BATCH</span><span class="p">))</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">trt</span><span class="o">.</span><span class="n">OnnxParser</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"model.onnx"</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+<span class="c1"># 3. 配置优化</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">create_builder_config</span><span class="p">()</span>
+<span class="n">config</span><span class="o">.</span><span class="n">set_memory_pool_limit</span><span class="p">(</span><span class="n">trt</span><span class="o">.</span><span class="n">MemoryPoolType</span><span class="o">.</span><span class="n">WORKSPACE</span><span class="p">,</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">30</span><span class="p">)</span>  <span class="c1"># 1GB workspace</span>
+
+<span class="c1"># 4. 构建（耗时，一次性）</span>
+<span class="n">serialized</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_serialized_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+<span class="c1"># 5. 保存引擎</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"model.engine"</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">serialized</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="a3102-tensorrt">A3.10.2 TensorRT 的优化<a class="headerlink" href="#a3102-tensorrt" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>优化</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>算子融合</td>
+<td>Conv+BN+ReLU → 1 个 kernel</td>
+</tr>
+<tr>
+<td>精度校准</td>
+<td>fp32 → int8（用 ONNX 范围校准）</td>
+</tr>
+<tr>
+<td>Kernel auto-tuning</td>
+<td>选最优 kernel（针对当前 GPU）</td>
+</tr>
+<tr>
+<td>内存规划</td>
+<td>复用 buffer，减少分配</td>
+</tr>
+<tr>
+<td>Layer fusion</td>
+<td>横向融合（同层独立算子并行）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>性能</strong>：TensorRT 通常比 ONNX Runtime（CUDA）快 2-5×，因为做了 GPU 特定优化。</p>
+<h3 id="a3103">A3.10.3 其他推理引擎<a class="headerlink" href="#a3103" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>引擎</th>
+<th>平台</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ONNX Runtime</td>
+<td>CPU/GPU</td>
+<td>通用，易用</td>
+</tr>
+<tr>
+<td>TensorRT</td>
+<td>NVIDIA GPU</td>
+<td>最快，NVIDIA 专属</td>
+</tr>
+<tr>
+<td>OpenVINO</td>
+<td>Intel CPU/NPU</td>
+<td>Intel 硬件优化</td>
+</tr>
+<tr>
+<td>CoreML</td>
+<td>Apple</td>
+<td>Apple Neural Engine</td>
+</tr>
+<tr>
+<td>TFLite</td>
+<td>移动端</td>
+<td>ARM 优化</td>
+</tr>
+<tr>
+<td>TVM</td>
+<td>跨平台</td>
+<td>自动 kernel 生成</td>
+</tr>
+</tbody>
+</table>
+<p><strong>选择</strong>：目标硬件有什么，就用对应的引擎。ONNX 是它们共同的输入格式。</p>
+<hr />
+<h2 id="a311-torchscript-mobile">A3.11 TorchScript Mobile<a class="headerlink" href="#a311-torchscript-mobile" title="Permanent link">&para;</a></h2>
+<p>TorchScript 的一个仍活跃的用例是移动端部署：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 导出移动端模型</span>
+<span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="n">scripted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">freeze</span><span class="p">(</span><span class="n">scripted</span><span class="p">)</span>  <span class="c1"># 消除可变属性</span>
+<span class="n">scripted</span><span class="o">.</span><span class="n">_save_for_lite_interpreter</span><span class="p">(</span><span class="s2">"model_lite.pt"</span><span class="p">)</span>
+
+<span class="c1"># 移动端加载 (C++)</span>
+<span class="c1"># auto module = torch::jit::load("model_lite.pt");</span>
+<span class="o">//</span> <span class="n">Lite</span> <span class="n">Interpreter</span> <span class="n">比</span> <span class="n">full</span> <span class="n">TorchScript</span> <span class="n">轻量</span> <span class="mi">10</span><span class="err">×</span>
+</code></pre></div>
+<p><strong>移动端优化</strong>：
+- <code>torch.jit.freeze</code>：消除运行时属性查找
+- Lite Interpreter：精简的字节码解释器
+- 量化：int8 进一步减小模型体积
+- 算子白名单：只编译用到的算子，减小二进制体积</p>
+<hr />
+<h2 id="a312_1">A3.12 小结<a class="headerlink" href="#a312_1" title="Permanent link">&para;</a></h2>
+<p><strong>TorchScript</strong> 是 PyTorch 第一代"脱离 Python"方案，已被 <code>torch.compile</code> / <code>torch.export</code> 取代，但它的 IR 设计影响了后续方案。</p>
+<p><strong>ONNX</strong> 是跨框架模型交换标准，至今活跃。导出流程是 trace + 算子翻译，推理用 ONNX Runtime / TensorRT 等专用引擎。</p>
+<p><strong>torch.export</strong> 是新一代导出，支持动态 shape，与 torch.compile 共用 IR，是未来方向。</p>
+<p>三者的共同思想：<strong>把动态 Python 模型变成静态图</strong>——这正是 Ch13 讲的"图与编译"的核心动机。</p>
+<p><strong>关键工程实践</strong>：
+- 导出前先 <code>model.eval()</code>，固定 BN/Dropout 行为
+- 用 <code>onnx.checker.check_model</code> 验证导出合法性
+- 用 <code>np.testing.assert_allclose</code> 对比 PyTorch 和 ONNX 输出
+- 用 <code>onnxsim</code> 简化模型，减少冗余算子
+- 选推理引擎支持的最高 opset 版本
+- 动态轴只在需要时设（固定 shape 推理更快）</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.code.tabs", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
