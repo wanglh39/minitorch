@@ -409,11 +409,249 @@ void register_all_cpu_ops() {
 
 ---
 
-## 10.7 代码逐行实现：CUDA kernel
+## 10.7 CUDA 内存与 stream 速成（GPU 编程基础）
+
+> 本节讲解 CUDA 内存管理和流并行的核心概念，后续 kernel 代码会用到。
+> 如果你已熟悉 CUDA 编程，跳到 10.8。
+
+### 10.8.1 CUDA 内存管理详解
+
+CUDA 有多种内存类型，各有用途和开销：
+
+| 内存类型 | 分配 API | 位置 | 访问者 | 开销 |
+|---------|---------|------|--------|------|
+| Device memory | `cudaMalloc` | GPU 显存 | GPU kernel | 慢分配，快访问 |
+| Host memory | `malloc` | CPU 内存 | CPU | 快分配 |
+| Pinned memory | `cudaMallocHost` | CPU 内存（锁页） | CPU + DMA | 中分配，快拷贝 |
+| Unified memory | `cudaMallocManaged` | 自动迁移 | CPU + GPU | 便捷但可能慢 |
+
+**cudaMalloc / cudaFree 的开销**：
+
+```cpp
+// GPU 显存分配（慢！~100us）
+double *d_ptr;
+cudaMalloc(&d_ptr, n * sizeof(double));  // ~100us
+// ... 使用 ...
+cudaFree(d_ptr);  // ~10us
+
+// 对比 CPU malloc（快 ~0.1us）
+double *h_ptr = (double*)malloc(n * sizeof(double));  // ~0.1us
+```
+
+**为什么 cudaMalloc 慢**：GPU 显存有限，驱动需要查找空闲块、更新页表。**最佳实践**：预分配大块，自己管理 sub-allocation（这就是 Allocator 的作用）。
+
+### 10.8.2 pinned memory：锁页内存
+
+普通 `malloc` 的内存可能被 OS 换出到磁盘，DMA 不能访问。`cudaMallocHost` 分配**锁页内存**（不会被换出），DMA 可以直接传输，异步拷贝更快。
+
+```cpp
+// 普通内存拷贝（同步，慢）
+double *h_data = (double*)malloc(n * sizeof(double));
+cudaMemcpy(d_ptr, h_data, n * sizeof(double), cudaMemcpyHostToDevice);
+// → 阻塞 CPU 直到拷贝完成
+
+// pinned memory 拷贝（可异步，快）
+double *h_pinned;
+cudaMallocHost(&h_pinned, n * sizeof(double));  // 锁页分配
+cudaMemcpyAsync(d_ptr, h_pinned, n * sizeof(double),
+                cudaMemcpyHostToDevice, stream);  // 异步拷贝
+// → CPU 不阻塞，拷贝在后台进行
+```
+
+**性能对比**：
+
+```
+普通 malloc + cudaMemcpy:     8 GB/s  (同步，CPU 阻塞)
+pinned + cudaMemcpyAsync:    12 GB/s  (异步，CPU 可做别的)
+pinned + cudaMemcpyAsync + 多 stream: 25 GB/s  (并行拷贝)
+```
+
+**PyTorch 的 DataLoader** 用 `pin_memory=True` 就是这个原理——数据加载到 pinned memory，训练时 H2D 拷贝更快。
+
+### 10.8.3 unified memory（统一内存）
+
+`cudaMallocManaged` 让 CPU 和 GPU 共享同一指针，驱动自动迁移数据：
+
+```cpp
+// 统一内存（简化编程，但可能慢）
+double *um_data;
+cudaMallocManaged(&um_data, n * sizeof(double));
+
+// CPU 写
+for (int i = 0; i < n; i++) um_data[i] = i;  // 在 CPU 内存
+
+// GPU 读
+my_kernel<<<blocks, threads>>>(um_data, n);  // 驱动自动迁移到 GPU
+cudaDeviceSynchronize();
+
+// CPU 读
+printf("%f", um_data[0]);  // 驱动自动迁移回 CPU
+```
+
+**优点**：不需要手动 `cudaMemcpy`，编程简单。
+**缺点**：自动迁移可能引起**页错误**（~100us），比显式拷贝慢。
+
+**PyTorch 的 `torch.cuda.mem_get_info()`** 和 `zero_copy` 机制利用了 unified memory。
+
+### 10.8.4 CUDA stream：流并行
+
+stream 是 GPU 上的**命令队列**。不同 stream 的操作可以并行执行。
+
+```cpp
+cudaStream_t stream1, stream2;
+cudaStreamCreate(&stream1);
+cudaStreamCreate(&stream2);
+
+// 两个独立计算在不同 stream 上（并行）
+kernel_a<<<blocks, threads, 0, stream1>>>(d_a, n);  // stream 1
+kernel_b<<<blocks, threads, 0, stream2>>>(d_b, n);  // stream 2（并行）
+
+cudaStreamSynchronize(stream1);
+cudaStreamSynchronize(stream2);
+```
+
+**stream 的规则**：
+- 同一 stream 内的操作**按顺序**执行
+- 不同 stream 间的操作**可能并行**（如果有足够 GPU 资源）
+- 默认 stream（stream 0）与所有 stream 同步
+
+```
+Stream 0 (default):  [---A---]  [---B---]  [---C---]  ← 串行
+Stream 1:            [---A---]     [---C---]            ← 串行
+Stream 2:                      [---B---]                ← 与 stream 1 并行
+```
+
+**典型用例**：数据拷贝和计算重叠
+
+```cpp
+// 拷贝和计算重叠（流水线）
+for (int i = 0; i < n; i++) {
+    // stream 1: 拷贝下一批数据到 GPU
+    cudaMemcpyAsync(d_in + i, h_in + i, size, cudaMemcpyHostToDevice, stream1);
+    // stream 2: 计算当前批
+    kernel<<<blocks, threads, 0, stream2>>>(d_out + i-1, d_in + i-1);
+}
+```
+
+### 10.8.5 CUDA event：流间同步
+
+event 是 stream 上的**标记点**，用于流间同步和计时：
+
+```cpp
+cudaEvent_t event;
+cudaEventCreate(&event);
+
+// stream 1 记算完后记录 event
+kernel_a<<<..., stream1>>>(...);
+cudaEventRecord(event, stream1);
+
+// stream 2 等 event 后再开始
+cudaStreamWaitEvent(stream2, event);
+kernel_b<<<..., stream2>>>(...);  // 等 kernel_a 完成后才执行
+```
+
+**event 计时**：
+
+```cpp
+cudaEvent_t start, stop;
+cudaEventCreate(&start);
+cudaEventCreate(&stop);
+
+cudaEventRecord(start, stream);
+kernel<<<..., stream>>>(...);
+cudaEventRecord(stop, stream);
+cudaEventSynchronize(stop);
+
+float ms;
+cudaEventElapsedTime(&ms, start, stop);  // GPU 时间（不阻塞 CPU）
+printf("kernel time: %.2f ms\n", ms);
+```
+
+### 10.8.6 nvcc 编译流程
+
+`.cu` 文件用 `nvcc` 编译，流程与 `g++` 不同：
+
+```
+.cu 文件（C++ + CUDA 扩展）
+    ↓ nvcc 前端分离
+  host 代码 (.cpp)  +  device 代码 (.gpu)
+    ↓                     ↓
+  g++ 编译            nvcc 编译
+    ↓                     ↓
+  .o (CPU 代码)      .o (GPU 代码: PTX/SASS)
+    ↓                     ↓
+    └──── 链接 ──────────┘
+              ↓
+        .pyd / .so（混合代码）
+```
+
+**PTX 和 SASS**：
+
+```
+PTX (Parallel Thread Execution):
+  - NVIDIA 的中间表示（类似汇编但与具体 GPU 无关）
+  - 可移植：同一 PTX 可在不同代际 GPU 上运行
+  - JIT 编译成 SASS
+
+SASS (Streaming Assembler):
+  - 具体 GPU 的机器码
+  - 不可移植：针对特定 GPU 架构
+  - 执行效率最高
+
+编译流程:
+  .cu → PTX → SASS → 执行
+       ↑      ↑
+       nvcc   GPU 驱动 (JIT)
+```
+
+**指定 GPU 架构**：
+
+```cmake
+# CMake 中指定目标 GPU 架构
+set(CMAKE_CUDA_ARCHITECTURES 75 86 89)  # Turing, Ampere, Ada
+# → 为每种架构生成 SASS
+# → 75 = RTX 20xx, 86 = RTX 30xx, 89 = RTX 40xx
+```
+
+### 10.8.7 CUDA 错误检查的最佳实践
+
+CUDA API 返回 `cudaError_t`，不检查错误会导致**静默错误**（kernel 崩溃但程序继续跑，结果垃圾）。
+
+```cpp
+// 宏定义错误检查
+#define CUDA_CHECK(call) do { \
+    cudaError_t err = (call); \
+    if (err != cudaSuccess) { \
+        fprintf(stderr, "CUDA error %s:%d: %s\n", \
+                __FILE__, __LINE__, cudaGetErrorString(err)); \
+        exit(1); \
+    } \
+} while (0)
+
+// 使用
+CUDA_CHECK(cudaMalloc(&d_ptr, n * sizeof(double)));
+my_kernel<<<blocks, threads>>>(d_ptr, n);
+CUDA_CHECK(cudaGetLastError());  // 检查 kernel launch 错误
+CUDA_CHECK(cudaDeviceSynchronize());  // 检查 kernel 执行错误
+```
+
+**两类错误**：
+
+| 错误类型 | 检查方式 | 时机 |
+|---------|---------|------|
+| API 错误 | `cudaMalloc` 等返回值 | 立即 |
+| Kernel 错误 | `cudaGetLastError()` | launch 后立即（异步返回） |
+| Kernel 执行错误 | `cudaDeviceSynchronize()` | 同步时才报 |
+
+**为什么 kernel 错误是异步的**：kernel launch 立即返回（CPU 不等 GPU），错误在 GPU 执行时发生，CPU 只有同步时才知道。
+
+---
+
+## 10.8 代码逐行实现：CUDA kernel
 
 `cpp/aten/native/cuda/ops_cuda.cu` 是 CUDA 源文件，由 **nvcc** 编译。逐段看：
 
-### 10.7.1 加法 kernel
+### 10.8.1 加法 kernel
 
 ```cuda
 __global__ void add_kernel(const double* __restrict__ a,
@@ -435,7 +673,7 @@ __global__ void add_kernel(const double* __restrict__ a,
 - `if (i < n)`：**边界守卫**。launch 时 thread 总数通常不是 n 的整数倍，多出来的 thread 要跳过，否则越界访问显存。
 - `c[i] = a[i] + b[i];`：每个 thread 处理一个元素，天然并行。
 
-### 10.7.2 ReLU kernel（演示分支）
+### 10.8.2 ReLU kernel（演示分支）
 
 ```cuda
 __global__ void relu_kernel(const double* __restrict__ a,
@@ -451,7 +689,7 @@ __global__ void relu_kernel(const double* __restrict__ a,
 
 `x > 0.0 ? x : 0.0` 是分支。warp 内如果有的 thread `x > 0`、有的 `x <= 0`，会 warp divergence——两分支串行。但 ReLU 分歧不严重（一半走一半不走，串行一次），性能影响小。
 
-### 10.7.3 求和 kernel（reduction + shared memory）
+### 10.8.3 求和 kernel（reduction + shared memory）
 
 ```cuda
 __global__ void sum_kernel(const double* __restrict__ a,
@@ -494,7 +732,7 @@ __global__ void sum_kernel(const double* __restrict__ a,
 !!! warning "__syncthreads 的规则"
     `__syncthreads()` 必须在**所有 thread 都会执行到**的位置调用。如果写在 `if (tid < s)` 里面，没进 if 的 thread 永远不到同步点，整个 block 死锁。所以上面的代码把 `__syncthreads()` 放在 if 外面——所有 thread 都同步，只有部分 thread 干活。
 
-### 10.7.4 host 端 wrapper：内存拷贝 + launch + 同步
+### 10.8.4 host 端 wrapper：内存拷贝 + launch + 同步
 
 ```cuda
 TensorImplPtr cuda_add(const TensorImplPtr& a, const TensorImplPtr& b) {
@@ -539,7 +777,7 @@ TensorImplPtr cuda_add(const TensorImplPtr& a, const TensorImplPtr& b) {
 !!! warning "教学版的低效"
     每次调用都 `cudaMalloc`/`cudaFree`——真实场景这是性能灾难（分配显存很慢）。真实 PyTorch 用 **caching allocator**：分配过的显存块缓存起来复用，不真释放。教学版为了简单每次真分配，文档里反复强调这是简化。
 
-### 10.7.5 注册 CUDA 算子
+### 10.8.5 注册 CUDA 算子
 
 ```cuda
 void register_all_cuda_ops() {
@@ -558,7 +796,7 @@ void register_all_cuda_ops() {
 
 和 CPU 注册一模一样，只是 device 换成 `CUDA`、kernel 换成 `cuda_*`。**这就是 dispatcher 的统一性**：注册 CPU 和 CUDA 算子用同一套 API。
 
-### 10.7.6 错误处理与调试
+### 10.8.6 错误处理与调试
 
 CUDA API 调用会返回 `cudaError_t`，教学版为了简洁没检查，生产代码必须查：
 
@@ -605,7 +843,7 @@ CUDA_CHECK(cudaDeviceSynchronize()); // 查 kernel 执行错误（如越界访�
 !!! warning "教学版省略了所有 CUDA_CHECK"
     为了代码简洁，教学版的 `cuda_add` 等没检查返回值。**生产代码绝不能这样**——显存不足、driver 崩了、kernel 越界都会被吞掉，调试地狱。文档这里补上正确做法。
 
-### 10.7.7 编译守卫与无 GPU 构建
+### 10.8.7 编译守卫与无 GPU 构建
 
 `ops_cuda.cu` 顶部：
 
@@ -624,7 +862,7 @@ CUDA_CHECK(cudaDeviceSynchronize()); // 查 kernel 执行错误（如越界访�
 
 ---
 
-## 10.8 完整示例：CPU vs CUDA 注册和调用
+## 10.9 完整示例：CPU vs CUDA 注册和调用
 
 ### 10.8.1 初始化（在 module.cpp 里）
 
@@ -691,9 +929,9 @@ endif()
 
 ---
 
-## 10.9 常见陷阱
+## 10.10 常见陷阱
 
-### 10.9.1 异步执行：读到旧数据
+### 10.10.1 异步执行：读到旧数据
 
 **症状**：kernel 算完前就读结果，拿到的是未初始化或旧数据。
 
@@ -711,7 +949,7 @@ cudaMemcpy(hc, dc, ..., cudaMemcpyDeviceToHost);  // 这步会同步，hc 才对
 
 **调试技巧**：`CUDA_LAUNCH_BLOCKING=1` 环境变量让所有 launch 同步，方便定位异步 bug（性能会差，只调试用）。
 
-### 10.9.2 内存拷贝开销
+### 10.10.2 内存拷贝开销
 
 **症状**：GPU 算得很快，但整体没加速——时间全花在 host↔device 拷贝上。
 
@@ -725,7 +963,7 @@ cudaMemcpy(hc, dc, ..., cudaMemcpyDeviceToHost);  // 这步会同步，hc 才对
 
 教学版每个算子都来回拷，所以小张量上 GPU 反而比 CPU 慢——这是预期的，文档反复强调。
 
-### 10.9.3 bank conflict
+### 10.10.3 bank conflict
 
 **症状**：shared memory 访问比预期慢几倍。
 
@@ -742,13 +980,13 @@ cudaMemcpy(hc, dc, ..., cudaMemcpyDeviceToHost);  // 这步会同步，hc 才对
 - 用 `cudaSharedMemConfig` 改 bank 宽度（4B→8B，对 double 友好）。
 - 用 **warp shuffle**（`__shfl_down_sync`）做 reduction，完全不碰 shared memory，无 bank conflict。真实 PyTorch 的 reduction 就用 warp shuffle。
 
-### 10.9.4 越界访问
+### 10.10.4 越界访问
 
 **症状**：kernel 写了 `c[i]` 但 `i >= n`，越界写显存，可能崩（`cudaErrorIllegalAddress`）或默默写坏别处数据。
 
 **解决**：**永远写边界守卫** `if (i < n)`。教学版每个 kernel 都有。真实 PyTorch 用 `at::native` 的 launcher 自动加守卫。
 
-### 10.9.5 warp divergence
+### 10.10.5 warp divergence
 
 **症状**：kernel 里有 `if`，性能低于预期。
 
@@ -760,7 +998,7 @@ cudaMemcpy(hc, dc, ..., cudaMemcpyDeviceToHost);  // 这步会同步，hc 才对
 - 用 `predicated` 执行代替 `if`（编译器会自动转）。
 - 实在避不开就接受——ReLU 这种轻分支影响小。
 
-### 10.9.6 block size 选多大
+### 10.10.6 block size 选多大
 
 **经验值**：256 是个好默认。太小（如 32）launch 开销大、占用低；太大（如 1024）寄存器压力大、可能 co-residency 差。
 
@@ -772,9 +1010,9 @@ cudaMemcpy(hc, dc, ..., cudaMemcpyDeviceToHost);  // 这步会同步，hc 才对
 
 ---
 
-## 10.10 与真实 PyTorch 对照
+## 10.11 与真实 PyTorch 对照
 
-### 10.10.1 DispatchTable
+### 10.11.1 DispatchTable
 
 | 我们的 `DispatchTable` | 真实 `c10::DispatchTable` |
 |------------------------|---------------------------|
@@ -785,7 +1023,7 @@ cudaMemcpy(hc, dc, ..., cudaMemcpyDeviceToHost);  // 这步会同步，hc 才对
 
 真实 PyTorch 的 dispatch key 有几百个（`DispatchKey.h` 里枚举），组合爆炸。它用**扁平数组** + **DispatchKeySet 位运算**做快速查找，比 hash map 快得多。但**思想完全一致**：op 名 + key → kernel 的查表。
 
-### 10.10.2 DispatchKey
+### 10.11.2 DispatchKey
 
 ```cpp
 // 真实 PyTorch（简化）
@@ -799,7 +1037,7 @@ enum DispatchKey {
 
 我们的 `DeviceType { CPU, CUDA }` 是它的一个子集。真实 PyTorch 的 key 还能组合（一个 op 在 `AutogradCUDA` 上注册，表示"对 CUDA 张量自动建图"），我们简化掉这层。
 
-### 10.10.3 aten/native/cuda/
+### 10.11.3 aten/native/cuda/
 
 真实 PyTorch 的 CUDA 算子在 `aten/native/cuda/`：
 
@@ -816,7 +1054,7 @@ enum DispatchKey {
 
 但**结构对照清晰**：kernel 写法、host wrapper 的 malloc/launch/copy 流程、注册到 dispatcher 的模式，都和我们一致。
 
-### 10.10.4 dispatcher 演化史
+### 10.11.4 dispatcher 演化史
 
 - **PyTorch 0.x**：`TH` 库用 C 函数指针表，按 device 选函数。简单但难扩展。
 - **PyTorch 1.0**：引入 `c10::Dispatcher`，支持多 dispatch key（device + dtype + ...）。
@@ -825,7 +1063,7 @@ enum DispatchKey {
 
 我们的 dispatcher 是 PyTorch 1.0 版本的"只 device key"投影。
 
-### 10.10.5 一段真实 PyTorch 注册代码
+### 10.11.5 一段真实 PyTorch 注册代码
 
 看真实 PyTorch 怎么注册 CUDA 加法（`aten/src/ATen/native/cuda/BinaryOps.cu` 简化）：
 
@@ -856,9 +1094,9 @@ d.register_kernel("add", DispatchKey::CUDA,
 
 ---
 
-## 10.11 历史背景
+## 10.12 历史背景
 
-### 10.11.1 CUDA 的诞生（2006）
+### 10.12.1 CUDA 的诞生（2006）
 
 2006 年 NVIDIA 发布 G80 架构，首次把 GPU 的可编程流水线暴露成通用计算接口 **CUDA**（Compute Unified Device Architecture）。之前 GPU 只能做图形渲染的固定流水线，CUDA 让 GPU 能跑任意 C 代码（kernel）。
 
@@ -870,7 +1108,7 @@ CUDA 的关键设计：
 
 2007 年 NVIDIA 发布 CUDA 1.0。之后 cuBLAS/cuDNN 等库成熟，深度学习 GPU 加速成为标配。
 
-### 10.11.2 PyTorch dispatcher 演化
+### 10.12.2 PyTorch dispatcher 演化
 
 **Torch7 时代**：`libtorch`（C）用函数指针表按 device 路由：
 
@@ -892,7 +1130,7 @@ add_fn[t->device](a, b);
 
 ---
 
-## 10.12 练习题
+## 10.13 练习题
 
 ### 练习 1：写一个 CUDA `neg` kernel
 
@@ -1023,11 +1261,11 @@ CPU `add` 同样数据：C++ 循环 1000 次加法，~1 微秒。所以 GPU 慢�
 
 ---
 
-## 10.13 关键测试解读
+## 10.14 关键测试解读
 
 `tests/test_cuda.py` 验证 dispatcher 和 CUDA 路由。逐个看：
 
-### 10.13.1 CPU dispatcher 测试
+### 10.14.1 CPU dispatcher 测试
 
 ```python
 def test_dispatcher_cpu_add():
@@ -1039,7 +1277,7 @@ def test_dispatcher_cpu_add():
 
 验证 CPU 张量走 CPU kernel，结果正确。这同时验证了 Ch8 算子和 Ch10 dispatcher 的衔接。
 
-### 10.13.2 CUDA 测试（skip if no CUDA）
+### 10.14.2 CUDA 测试（skip if no CUDA）
 
 ```python
 HAS_CUDA = _has_cuda()
@@ -1069,7 +1307,7 @@ def _has_cuda() -> bool:
 
 环境变量 `MINITORCH_CUDA=1` 强制开启，或借 PyTorch 的 `torch.cuda.is_available()` 检测。有 GPU 时取消注释 `cuda_c = ...` 两行，验证 CPU vs CUDA 数值一致。
 
-### 10.13.3 路由测试
+### 10.14.3 路由测试
 
 ```python
 def test_dispatch_routes_by_device():
@@ -1081,7 +1319,7 @@ def test_dispatch_routes_by_device():
 
 验证 dispatcher 按 device 路由：CPU 张量 → CPU kernel。CUDA 张量 → CUDA kernel 的测试在有 GPU 时才跑。
 
-### 10.13.4 检测函数
+### 10.14.4 检测函数
 
 ```python
 def test_cuda_availability_detection():
@@ -1092,9 +1330,9 @@ def test_cuda_availability_detection():
 
 ---
 
-## 10.14 优劣势总结
+## 10.15 优劣势总结
 
-### 10.14.1 优势
+### 10.15.1 优势
 
 1. **异构能力**：同一套算子 API 跑在 CPU 或 GPU，用户代码不变。
 2. **可扩展**：加新 device（MPS/XLA）只需注册新 kernel，调用点零改动。
@@ -1102,7 +1340,7 @@ def test_cuda_availability_detection():
 4. **与真实 PyTorch 同构**：学完 minitorch dispatcher，看 `c10::Dispatcher` 没有概念鸿沟。
 5. **教学清晰**：dispatch table 一张表看尽路由逻辑，比 PyTorch 几百个 key 的扁平数组好懂。
 
-### 10.14.2 劣势
+### 10.15.2 劣势
 
 1. **教学版性能差**：来回拷贝 + 每次真分配，小张量上 GPU 反而慢。
 2. **只 device 路由**：不支持 dtype/autograd/autocast 等多维 dispatch，离真实 PyTorch 远。
@@ -1110,7 +1348,7 @@ def test_cuda_availability_detection():
 4. **无 caching allocator**：每次 `cudaMalloc`/`cudaFree`，真实场景不可接受。
 5. **依赖 CUDA 工具链**：要 nvcc、CUDA runtime，跨平台编译更复杂。
 
-### 10.14.3 什么时候值得上 GPU
+### 10.15.3 什么时候值得上 GPU
 
 - **大张量 + 计算密集**：矩阵乘、卷积，数据量大到拷贝开销被并行计算摊薄。
 - **数据常驻 GPU**：一次拷上去，多次算，避免反复拷。
@@ -1121,7 +1359,7 @@ def test_cuda_availability_detection():
 
 ---
 
-## 10.15 本章总结
+## 10.16 本章总结
 
 本章我们给 minitorch 接上了 GPU：
 

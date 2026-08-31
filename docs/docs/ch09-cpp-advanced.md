@@ -306,9 +306,275 @@ void run_backward(NodePtr root, TensorImplPtr root_grad,
 
 ---
 
-## 9.3 多线程 Engine
+## 9.3 多线程基础速成（C++ 并发编程入门）
 
-### 9.3.1 为什么要多线程
+> 本节讲解后续多线程 Engine 代码中用到的 C++ 并发原语。
+> 如果你已熟悉 C++ 多线程，跳到 9.4。
+
+### 9.3.1 mutex：互斥锁
+
+多个线程同时修改同一数据会**数据竞争**（data race），结果不可预测。mutex 保证同一时刻只有一个线程访问临界区。
+
+```cpp
+#include <mutex>
+
+std::mutex mtx;
+int shared_counter = 0;
+
+void increment() {
+    mtx.lock();           // 加锁（其他线程会阻塞等待）
+    shared_counter++;     // 临界区：只有一个线程能执行
+    mtx.unlock();         // 解锁
+}
+
+// 问题: 如果中间抛异常，unlock 永远不执行 → 死锁
+// 解决: RAII 封装 → lock_guard
+```
+
+**`std::lock_guard`**（RAII 封装，推荐）：
+
+```cpp
+void increment_safe() {
+    std::lock_guard<std::mutex> lock(mtx);  // 构造时加锁
+    shared_counter++;
+    // 析构时自动解锁，即使抛异常也安全
+}
+```
+
+**`std::unique_lock`**（更灵活，可手动解锁/再加锁）：
+
+```cpp
+void flexible() {
+    std::unique_lock<std::mutex> lock(mtx);  // 加锁
+    do_something();
+    lock.unlock();                           // 手动解锁
+    do_other();                              // 不需要锁
+    lock.lock();                             // 再加锁
+    do_more();
+}
+```
+
+| 锁类型 | 灵活性 | 开销 | 用途 |
+|--------|--------|------|------|
+| `lock_guard` | 低（构造加锁，析构解锁） | 最小 | 简单临界区 |
+| `unique_lock` | 高（可 unlock/lock） | 略大 | 配合 condition_variable |
+| `scoped_lock` | 低（多锁同时） | 小 | 避免死锁的多锁场景 |
+
+### 9.4.2 condition_variable：等待-通知
+
+mutex 只能"互斥"，不能"等待某个条件成立"。`condition_variable` 解决这个问题。
+
+```cpp
+#include <condition_variable>
+
+std::mutex mtx;
+std::condition_variable cv;
+bool ready = false;
+
+// 等待线程
+void waiter() {
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock, [] { return ready; });  // 等待 ready == true
+    // wait 内部: unlock → 阻塞 → 被唤醒 → re-lock
+    std::cout << "proceed!\n";
+}
+
+// 通知线程
+void notifier() {
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        ready = true;  // 设置条件
+    }
+    cv.notify_one();  // 唤醒一个等待线程
+    // cv.notify_all();  // 唤醒所有等待线程
+}
+```
+
+**wait 的内部流程**：
+```
+1. 检查 lambda 条件 → false
+2. unlock mutex → 让其他线程能修改 ready
+3. 阻塞当前线程（不占 CPU）
+4. 被 notify 唤醒
+5. re-lock mutex
+6. 再次检查 lambda → true → 继续
+```
+
+**为什么用 lambda 版 wait**：防止**虚假唤醒**（spurious wakeup）——OS 可能无故唤醒线程，lambda 确保条件真的满足才继续。
+
+**minitorch Engine 中的 cv**：线程池的 worker 等待任务队列非空：
+
+```cpp
+void worker() {
+    while (true) {
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        cv_.wait(lock, [this] { return !queue_.empty() || stop_; });
+        if (stop_ && queue_.empty()) return;
+        auto task = queue_.front();
+        queue_.pop();
+        lock.unlock();
+        task();  // 执行任务
+    }
+}
+```
+
+### 9.4.3 atomic：无锁原子操作
+
+有些简单操作不需要 mutex，用 `atomic` 更高效：
+
+```cpp
+#include <atomic>
+
+std::atomic<int> counter{0};
+
+void increment() {
+    counter++;  // 原子操作，无需 mutex
+    // 或 counter.fetch_add(1);
+}
+
+// 对比 mutex 版（慢 10-50×）
+std::mutex mtx;
+int counter2 = 0;
+void increment_slow() {
+    std::lock_guard<std::mutex> lock(mtx);
+    counter2++;
+}
+```
+
+**atomic 的原理**：CPU 的原子指令（x86 的 `LOCK` 前缀），硬件保证不可中断。
+
+| 操作 | atomic 方法 | 说明 |
+|------|------------|------|
+| 读 | `load()` | 原子读 |
+| 写 | `store(v)` | 原子写 |
+| 加 | `fetch_add(n)` | 原子加，返回旧值 |
+| 比较 | `compare_exchange_strong(expected, desired)` | CAS，无锁核心 |
+
+**minitorch 中的 atomic**：多线程 Engine 的依赖计数 `atomic<int> pending_deps`——每个线程原子递减，无需 mutex。
+
+### 9.4.4 死锁的条件与避免
+
+**死锁的四个必要条件**（Coffman 条件）：
+
+1. **互斥**：资源不能共享
+2. **持有并等待**：拿着 A 锁等 B 锁
+3. **不可剥夺**：不能强制抢锁
+4. **循环等待**：T1 等 T2 的锁，T2 等 T1 的锁
+
+**避免策略**：
+
+```cpp
+// 反模式：锁顺序不一致 → 死锁
+void f() { lock(A); lock(B); ... }
+void g() { lock(B); lock(A); ... }  // 顺序反了！
+// T1 调 f: 持有 A，等 B
+// T2 调 g: 持有 B，等 A → 死锁
+
+// 修复：全局统一的锁顺序
+void f() { lock(A); lock(B); ... }
+void g() { lock(A); lock(B); ... }  // 顺序一致
+
+// 或用 scoped_lock 一次锁多个（避免死锁）
+void f() {
+    std::scoped_lock lock(A, B);  // 原子地获取两把锁
+    ...
+}
+```
+
+### 9.4.5 false sharing 与 cache line
+
+**cache line** 是 CPU 缓存的基本单位（通常 64 字节）。两个线程写同一 cache line 的不同变量会导致**false sharing**——缓存频繁失效，性能暴跌。
+
+```cpp
+// 反模式：两个 atomic 在同一 cache line
+struct Bad {
+    std::atomic<int> a{0};  // 线程 1 写
+    std::atomic<int> b{0};  // 线程 2 写
+    // a 和 b 相邻 → 同一 cache line → false sharing
+};
+
+// 修复：用 alignas 填充到 cache line 大小
+struct Good {
+    alignas(64) std::atomic<int> a{0};  // 独占一个 cache line
+    alignas(64) std::atomic<int> b{0};  // 独占另一个
+};
+```
+
+**影响**：false sharing 可能让多线程比单线程还慢。在性能敏感的多线程代码中，用 `alignas(64)` 对齐热点数据。
+
+### 9.4.6 lambda 表达式
+
+C++11 引入 lambda（匿名函数），类似 Python 的 `lambda` 但更强大：
+
+```cpp
+// Python:   f = lambda x, y: x + y
+// C++:
+auto f = [](int x, int y) { return x + y; };
+f(1, 2);  // → 3
+
+// 捕获外部变量
+int factor = 10;
+auto scale = [factor](int x) { return x * factor; };  // 值捕获
+auto scale_ref = [&factor](int x) { return x * factor; };  // 引用捕获
+
+// 捕获方式
+[=]        // 值捕获所有外部变量
+[&]        // 引用捕获所有外部变量
+[x, &y]    // x 值捕获，y 引用捕获
+[this]     // 捕获 this 指针（成员函数中）
+```
+
+**minitorch 中的 lambda**：
+
+```cpp
+// 算子模板用 lambda 注入操作
+binary_op(a, b, [](double x, double y) { return x + y; });  // add
+binary_op(a, b, [](double x, double y) { return x * y; });  // mul
+
+// 线程池提交 lambda
+pool.submit([this, node, grad] { this->process_node(node, grad); });
+```
+
+### 9.4.7 auto 与类型推导
+
+C++ 的 `auto` 类似 Python 的动态类型，但是**编译时推导**（类型确定后不可变）：
+
+```cpp
+auto x = 42;              // int
+auto y = 3.14;            // double
+auto z = std::vector<int>{1, 2, 3};  // std::vector<int>
+auto& ref = z;            // 引用
+const auto& cref = z;     // const 引用
+
+// 对比 Python（运行时动态）
+x = 42       # int
+x = "hello"  # str（可以变类型）
+// C++ 的 auto 不能变类型
+```
+
+### 9.4.8 std::move 与 std::forward
+
+`std::move` 是 move semantics 的显式触发（Ch8 讲过）。`std::forward` 用于**完美转发**——保持参数的左右值属性：
+
+```cpp
+// std::move: 无条件转右值
+auto moved = std::move(x);  // x 变右值
+
+// std::forward: 条件转发（模板中保持参数属性）
+template<typename T>
+void wrapper(T&& arg) {
+    // std::forward<T>(arg): 如果 arg 原本是左值，转发为左值；否则右值
+    target(std::forward<T>(arg));
+}
+```
+
+**minitorch 中的 move**：`TensorImpl` 构造时 `std::move(data)` 避免拷贝大 vector。
+
+---
+
+## 9.4 多线程 Engine
+
+### 9.4.1 为什么要多线程
 
 计算图中，**无依赖关系的 Node 可以并行执行**。例如：
 
@@ -324,7 +590,7 @@ void run_backward(NodePtr root, TensorImplPtr root_grad,
 
 PyTorch 的 `Engine::execute_with_thread_pool` 正是这么做的：用线程池 + 依赖计数，Node 的所有后继都完成后才调度它。
 
-### 9.3.2 ThreadPool 类
+### 9.4.2 ThreadPool 类
 
 ```cpp
 // c10/thread_pool.h
@@ -392,7 +658,7 @@ private:
 - **worker 线程**：`cv_.wait` 等任务队列非空 → 取任务 → 执行 → `active_--` → 如果全完成则 `done_cv_.notify_all`。
 - **主线程**：`submit` 投任务 → `wait_all` 等 `active_ == 0 && tasks_.empty()`。
 
-### 9.3.3 run_backward_mt：依赖计数调度
+### 9.4.3 run_backward_mt：依赖计数调度
 
 ```cpp
 void run_backward_mt(NodePtr root, TensorImplPtr root_grad,
@@ -493,7 +759,7 @@ void run_backward_mt(NodePtr root, TensorImplPtr root_grad,
 !!! warning "为什么用 vector<atomic> 而不是 unordered_map<atomic>？"
     `std::atomic` 不可拷贝/移动，不能直接放在 `unordered_map` 中。用 `vector<atomic<int>>` + `unordered_map<Node*, size_t>` 做索引，是 C++ 中的标准做法。
 
-### 9.3.4 与 PyTorch Engine 对照
+### 9.4.4 与 PyTorch Engine 对照
 
 | 我们的 `run_backward_mt` | 真实 `torch::autograd::Engine` |
 |--------------------------|-------------------------------|
@@ -507,16 +773,16 @@ PyTorch 的 Engine 更复杂：多设备（CPU + 多 GPU）、CUDA stream 同步
 
 ---
 
-## 9.4 Double Backward：高阶导数
+## 9.5 Double Backward：高阶导数
 
-### 9.4.1 什么是 double backward
+### 9.5.1 什么是 double backward
 
 一阶导：`y = x^2` → `dy/dx = 2x`。
 二阶导：`d²y/dx² = 2`。
 
 在 autograd 中，二阶导 = 对一阶导再 backward 一次。但一阶导 `2x` 本身是一个**计算图**（`x → mul(2, x)`），要对它 backward，这个图必须存在——即 `create_graph=true`。
 
-### 9.4.2 create_graph 参数
+### 9.5.2 create_graph 参数
 
 ```cpp
 // c10/tensor.h
@@ -535,7 +801,7 @@ void backward(TensorImplPtr gradient = nullptr,
 
 这样，反向传播本身产生的新计算（梯度计算）也被记录成图，可以再 backward。
 
-### 9.4.3 MulNode 用 autograd::mul
+### 9.5.3 MulNode 用 autograd::mul
 
 ```cpp
 class MulNode : public Node {
@@ -554,7 +820,7 @@ class MulNode : public Node {
 
 当 `create_graph=false`：`NoGradGuard` 启用 → `is_grad_enabled()=false` → `autograd::mul` 不建图 → `grad_a` 无 `grad_fn` → 不能再 backward（但省内存）。
 
-### 9.4.4 broadcast_to 保留 grad_fn 的 bug
+### 9.5.4 broadcast_to 保留 grad_fn 的 bug
 
 **问题**：`y = x * w`（x 是 `[3]`，w 是 `[1]` 广播到 `[3]`）。backward 时 `grad_x = grad_y * w_broadcast`。但 `w_broadcast` 是广播张量，它的 `grad_fn` 为空、`is_leaf=false`。`collect_edges` 为它创建 `AccumulateGrad(w_broadcast)`，梯度累加到 `w_broadcast` 而非原始 `w`——**w 的梯度丢失**。
 
@@ -575,7 +841,7 @@ TensorImplPtr broadcast_to(const TensorImplPtr& a,
 
 这样 `w_broadcast->grad_fn()` 返回 `w` 的 `grad_fn`（或空，表示叶子），`collect_edges` 正确找到原始 `w` 的 `AccumulateGrad`。
 
-### 9.4.5 端到端示例
+### 9.5.5 端到端示例
 
 ```python
 import minitorch as mt
@@ -600,9 +866,9 @@ x.grad.backward(mt.Tensor([1.0, 1.0, 1.0]))  # 二阶：d(2x)/dx = 2
 
 ---
 
-## 9.5 自定义 Allocator
+## 9.6 自定义 Allocator
 
-### 9.5.1 为什么需要自定义 Allocator
+### 9.6.1 为什么需要自定义 Allocator
 
 默认 `new`/`delete` 的问题：
 
@@ -612,7 +878,7 @@ x.grad.backward(mt.Tensor([1.0, 1.0, 1.0]))  # 二阶：d(2x)/dx = 2
 
 PyTorch 的 `c10::Allocator` 解决这些：`CPUAllocator`、`CUDAAllocator`、`PinnedMemoryAllocator`... Storage 通过 Allocator 分配内存。
 
-### 9.5.2 Allocator 接口
+### 9.6.2 Allocator 接口
 
 ```cpp
 // c10/allocator.h
@@ -632,7 +898,7 @@ public:
 };
 ```
 
-### 9.5.3 DefaultAllocator：带统计的 malloc/free
+### 9.6.3 DefaultAllocator：带统计的 malloc/free
 
 ```cpp
 class DefaultAllocator : public Allocator {
@@ -666,7 +932,7 @@ private:
 
 `std::atomic<size_t>` 保证多线程下统计正确。`peak_ = std::max(peak_.load(), current_.load())` 不是原子操作，但峰值统计允许偶尔不精确。
 
-### 9.5.4 PoolAllocator：内存池
+### 9.6.4 PoolAllocator：内存池
 
 ```cpp
 class PoolAllocator : public Allocator {
@@ -734,7 +1000,7 @@ private:
 
 **效果**：训练循环中反复创建/释放相同大小的张量（如每步的梯度），`pool_hits_` 远大于 `pool_misses_`，省掉大部分 `new`/`delete` 调用。
 
-### 9.5.5 全局 Allocator 管理
+### 9.6.5 全局 Allocator 管理
 
 ```cpp
 // c10/allocator.cpp
@@ -758,7 +1024,7 @@ _cpp_ext.set_global_allocator(_cpp_ext.PoolAllocator(1024 * 1024))
 # 之后所有 Storage 分配都走内存池
 ```
 
-### 9.5.6 Storage 改用 Allocator
+### 9.6.6 Storage 改用 Allocator
 
 ```cpp
 // c10/storage.cpp
@@ -777,7 +1043,7 @@ Storage::~Storage() {
 
 Storage 不再直接 `new`/`delete`，全部通过 `get_global_allocator()`。切换 allocator 时，Storage 代码一行不改。
 
-### 9.5.7 与 c10::Allocator 对照
+### 9.6.7 与 c10::Allocator 对照
 
 | 我们的 `Allocator` | 真实 `c10::Allocator` |
 |--------------------|------------------------|
@@ -792,9 +1058,9 @@ PyTorch 的 `c10::CUDAAllocator` 更复杂：caching allocator 维护按大小�
 
 ---
 
-## 9.6 Autograd Profiler
+## 9.7 Autograd Profiler
 
-### 9.6.1 为什么需要 Profiler
+### 9.7.1 为什么需要 Profiler
 
 训练大模型时，backward 耗时往往占 60-80%。我们需要知道：
 
@@ -804,7 +1070,7 @@ PyTorch 的 `c10::CUDAAllocator` 更复杂：caching allocator 维护按大小�
 
 PyTorch 提供 `torch.autograd.profiler`，我们在 C++ 层实现一个轻量版。
 
-### 9.6.2 Profiler 设计
+### 9.7.2 Profiler 设计
 
 ```cpp
 // autograd/profiler.h
@@ -832,7 +1098,7 @@ private:
 Profiler& get_global_profiler();
 ```
 
-### 9.6.3 集成到 run_backward
+### 9.7.3 集成到 run_backward
 
 在 `run_backward` 的每个 Node 执行前后记录：
 
@@ -850,7 +1116,7 @@ if (profiler.enabled())
                     get_global_allocator().total_allocated(), 0);
 ```
 
-### 9.6.4 Python 端使用
+### 9.7.4 Python 端使用
 
 ```python
 from minitorch import _cpp_ext
@@ -866,7 +1132,7 @@ for event in _cpp_ext.profiler_events():
           f"mem: {event[2]} → {event[3]} bytes")
 ```
 
-### 9.6.5 与 PyTorch 对照
+### 9.7.5 与 PyTorch 对照
 
 | 我们的实现 | 真实 PyTorch | 文件 |
 |-----------|-------------|------|
@@ -876,9 +1142,9 @@ for event in _cpp_ext.profiler_events():
 
 ---
 
-## 9.7 梯度钩子（Backward Hooks）
+## 9.8 梯度钩子（Backward Hooks）
 
-### 9.7.1 什么是梯度钩子
+### 9.8.1 什么是梯度钩子
 
 `register_hook(fn)` 在叶子张量上注册一个回调，backward 时梯度到达该张量后、累加之前调用 `fn(grad)`。钩子可以：
 
@@ -888,7 +1154,7 @@ for event in _cpp_ext.profiler_events():
 
 对应 PyTorch 的 `tensor.register_hook()`。
 
-### 9.7.2 实现
+### 9.8.2 实现
 
 在 `TensorImpl` 中添加钩子字段：
 
@@ -916,7 +1182,7 @@ std::vector<TensorImplPtr> AccumulateGrad::apply(TensorImplPtr grad) {
 }
 ```
 
-### 9.7.3 Python 端使用
+### 9.8.3 Python 端使用
 
 ```python
 x = _cpp_ext.TensorImpl([1.0, 2.0, 3.0], [3], True)
@@ -931,7 +1197,7 @@ y.backward(_cpp_ext.TensorImpl([1.0, 1.0, 1.0], [3], False))
 # x.grad = 2x * 2 = 4x = [4, 8, 12]
 ```
 
-### 9.7.4 pybind11 绑定
+### 9.8.4 pybind11 绑定
 
 钩子函数从 Python 传入，需用 `py::gil_scoped_acquire` 确保 GIL：
 
@@ -948,9 +1214,9 @@ y.backward(_cpp_ext.TensorImpl([1.0, 1.0, 1.0], [3], False))
 
 ---
 
-## 9.8 Anomaly Detection
+## 9.9 Anomaly Detection
 
-### 9.8.1 什么是 Anomaly Detection
+### 9.9.1 什么是 Anomaly Detection
 
 训练中出现 NaN/Inf 梯度时，默认不会报错——NaN 会静默传播，最终模型权重全部变 NaN，难以定位根因。
 
@@ -958,7 +1224,7 @@ y.backward(_cpp_ext.TensorImpl([1.0, 1.0, 1.0], [3], False))
 
 对应 PyTorch 的 `torch.autograd.detect_anomaly()`。
 
-### 9.8.2 实现
+### 9.9.2 实现
 
 在 `grad_mode.h` 中添加全局标志：
 
@@ -998,7 +1264,7 @@ static void check_anomaly(const TensorImplPtr& grad) {
 
 在 `run_backward` 中，每个梯度生成后调用 `check_anomaly(grad)`。
 
-### 9.8.3 Python 端使用
+### 9.9.3 Python 端使用
 
 ```python
 _cpp_ext.set_anomaly_check_enabled(True)
@@ -1011,15 +1277,15 @@ except RuntimeError as e:
     print(e)  # "Anomaly detected: NaN or Inf in gradient"
 ```
 
-### 9.8.4 与 PyTorch 对照
+### 9.9.4 与 PyTorch 对照
 
 PyTorch 的 `detect_anomaly()` 上下文管理器更复杂：它还会记录前向执行栈，在异常消息中显示产生 NaN 的 Python 代码行。我们的实现只检测+抛异常，不含栈追踪。
 
 ---
 
-## 9.9 Gradient Checkpointing
+## 9.10 Gradient Checkpointing
 
-### 9.9.1 用重计算换内存
+### 9.10.1 用重计算换内存
 
 深层网络训练时，前向产生大量中间激活（每层输出），backward 需要这些激活来计算梯度。激活全部保存在内存中，显存成为瓶颈。
 
@@ -1027,7 +1293,7 @@ PyTorch 的 `detect_anomaly()` 上下文管理器更复杂：它还会记录前�
 
 对应 `torch.utils.checkpoint.checkpoint`。
 
-### 9.9.2 CheckpointNode 设计
+### 9.10.2 CheckpointNode 设计
 
 ```cpp
 // autograd/checkpoint.h
@@ -1043,7 +1309,7 @@ public:
 };
 ```
 
-### 9.9.3 前向：NoGrad 执行
+### 9.10.3 前向：NoGrad 执行
 
 ```cpp
 TensorImplPtr checkpoint(CheckpointFn fn, std::vector<TensorImplPtr> inputs) {
@@ -1070,7 +1336,7 @@ TensorImplPtr checkpoint(CheckpointFn fn, std::vector<TensorImplPtr> inputs) {
 }
 ```
 
-### 9.9.4 Backward：重计算
+### 9.10.4 Backward：重计算
 
 ```cpp
 std::vector<TensorImplPtr> CheckpointNode::apply(TensorImplPtr grad) {
@@ -1102,7 +1368,7 @@ std::vector<TensorImplPtr> CheckpointNode::apply(TensorImplPtr grad) {
 2. **EnableGradGuard**：重计算时需要 grad enabled 以建局部图；之后 `backward` 内部的 `NoGradGuard` 会关闭 grad。
 3. **局部 backward**：在重计算的局部图上反向传播，得到输入梯度，返回给主 Engine 继续传播。
 
-### 9.9.5 Python 端使用
+### 9.10.5 Python 端使用
 
 ```python
 x = _cpp_ext.TensorImpl([1.0, 2.0, 3.0], [3], True)
@@ -1116,7 +1382,7 @@ y.backward(_cpp_ext.TensorImpl([1.0], [1], False))
 # x.grad = 2x = [2, 4, 6]  ← 与不使用 checkpoint 结果一致
 ```
 
-### 9.9.6 内存 vs 计算的权衡
+### 9.10.6 内存 vs 计算的权衡
 
 | 方式 | 前向内存 | backward 内存 | backward 计算 |
 |------|---------|-------------|--------------|
@@ -1125,7 +1391,7 @@ y.backward(_cpp_ext.TensorImpl([1.0], [1], False))
 
 对 N 层网络，每 k 层设一个 checkpoint，内存从 O(N) 降到 O(N/k)，计算量增加约 k/(k+1) 倍。
 
-### 9.9.7 与 PyTorch 对照
+### 9.10.7 与 PyTorch 对照
 
 | 我们的实现 | 真实 PyTorch | 文件 |
 |-----------|-------------|------|
@@ -1137,9 +1403,9 @@ PyTorch 的实现还支持 `use_reentrant` 参数（两种模式）、多输出�
 
 ---
 
-## 9.10 与 PyTorch 对照
+## 9.11 与 PyTorch 对照
 
-### 9.10.1 Autograd 对照
+### 9.11.1 Autograd 对照
 
 | 我们的实现 | 真实 PyTorch | 文件 |
 |-----------|-------------|------|
@@ -1154,7 +1420,7 @@ PyTorch 的实现还支持 `use_reentrant` 参数（两种模式）、多输出�
 | `anomaly_check_enabled` | `detect_anomaly()` | `torch/autograd/anomaly_mode.py` |
 | `checkpoint()` | `torch.utils.checkpoint.checkpoint()` | `torch/utils/checkpoint.py` |
 
-### 9.10.2 Allocator 对照
+### 9.11.2 Allocator 对照
 
 | 我们的实现 | 真实 PyTorch | 文件 |
 |-----------|-------------|------|
@@ -1166,9 +1432,9 @@ PyTorch 的实现还支持 `use_reentrant` 参数（两种模式）、多输出�
 
 ---
 
-## 9.11 关键测试解读
+## 9.12 关键测试解读
 
-### 9.11.1 多线程 backward 正确性
+### 9.12.1 多线程 backward 正确性
 
 ```python
 def test_backward_mt_matches_single_thread():
@@ -1187,7 +1453,7 @@ def test_backward_mt_matches_single_thread():
 
 验证多线程结果与单线程一致。
 
-### 9.11.2 Double backward
+### 9.12.2 Double backward
 
 ```python
 def test_double_backward():
@@ -1202,7 +1468,7 @@ def test_double_backward():
     assert x.grad.data == [2.0, 2.0, 2.0]
 ```
 
-### 9.11.3 Allocator 统计
+### 9.12.3 Allocator 统计
 
 ```python
 def test_allocator_stats():
@@ -1213,7 +1479,7 @@ def test_allocator_stats():
     assert alloc.total_allocated() >= 3
 ```
 
-### 9.11.4 PoolAllocator 命中率
+### 9.12.4 PoolAllocator 命中率
 
 ```python
 def test_pool_allocator_reuse():
@@ -1225,7 +1491,7 @@ def test_pool_allocator_reuse():
     assert alloc.pool_hits() > 0   # 有重用
 ```
 
-### 9.11.5 Profiler 事件记录
+### 9.12.5 Profiler 事件记录
 
 ```python
 def test_profiler_events():
@@ -1240,7 +1506,7 @@ def test_profiler_events():
     assert all(e[1] >= 0 for e in events)  # duration >= 0
 ```
 
-### 9.11.6 梯度钩子
+### 9.12.6 梯度钩子
 
 ```python
 def test_hook_modify_grad():
@@ -1254,7 +1520,7 @@ def test_hook_modify_grad():
     assert x.grad.to_vector() == [4.0, 8.0, 12.0]  # 2x * 2 = 4x
 ```
 
-### 9.11.7 Anomaly Detection
+### 9.12.7 Anomaly Detection
 
 ```python
 def test_anomaly_detect_inf_grad():
@@ -1268,7 +1534,7 @@ def test_anomaly_detect_inf_grad():
         _cpp_ext.set_anomaly_check_enabled(False)
 ```
 
-### 9.11.8 Gradient Checkpointing
+### 9.12.8 Gradient Checkpointing
 
 ```python
 def test_checkpoint_vs_no_checkpoint():
@@ -1290,7 +1556,7 @@ def test_checkpoint_vs_no_checkpoint():
 
 ---
 
-## 9.12 下一章预告
+## 9.13 下一章预告
 
 本章的 C++ 核心只跑在 CPU 上。下一章（Ch10）我们给它接上 **CUDA**——让算子在 GPU 上跑，并引入 **dispatcher** 机制：同一个算子名（`"add"`）按张量的 device 自动路由到 CPU kernel 或 CUDA kernel。
 

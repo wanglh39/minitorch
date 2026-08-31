@@ -26,9 +26,316 @@
 
 ---
 
-## 8.2 原理铺垫：PyTorch 的三层分离
+## 8.2 C++ 基础速成（Python 开发者视角）
 
-### 8.2.1 为什么要分三层
+> 如果你已经熟悉 C++，跳过本节。
+> 本节讲清后续代码中用到的 C++ 核心概念，每个都对照 Python 解释"为什么不一样"。
+
+### 8.2.1 为什么 C++ 比 Python 快
+
+| 维度 | Python | C++ | 影响 |
+|------|--------|-----|------|
+| 类型 | 动态（运行时推导） | 静态（编译时确定） | C++ 编译器能内联、特化 |
+| 执行 | 解释执行（字节码） | 编译执行（机器码） | C++ 无解释器开销 |
+| 内存 | 对象散列在堆上 | 可连续排列 | C++ cache 友好，SIMD 友好 |
+| 循环 | 每次迭代查类型、查虚表 | 编译器展开、向量化 | C++ 循环快 10-100× |
+| 函数调用 | 查 dispatch、装箱参数 | 直接跳转 | C++ 调用开销 ~1ns vs Python ~50ns |
+
+**具体例子**：两个 `[1000000]` 数组相加：
+
+```python
+# Python: 每次迭代 ~100ns（类型检查 + 装箱 + 字节码分派）
+result = [a[i] + b[i] for i in range(1000000)]  # ~100ms
+```
+
+```cpp
+// C++: 每次迭代 ~1ns（直接浮点加法，编译器可能 SIMD 向量化）
+for (int i = 0; i < 1000000; i++)
+    result[i] = a[i] + b[i];  // ~1ms
+```
+
+**100× 差距**就是 PyTorch 要用 C++ 写核心的原因。
+
+### 8.2.2 RAII：资源获取即初始化
+
+RAII 是 C++ 最重要的资源管理范式。Python 用 GC 管内存，C++ 用 RAII 管所有资源（内存、文件、锁、socket）。
+
+**核心思想**：把资源绑定到对象的生命周期——构造函数获取资源，析构函数释放资源。
+
+```cpp
+// RAII 的经典应用：std::vector
+{
+    std::vector<double> v(1000);  // 构造: 分配 1000 个 double
+    v[0] = 42.0;
+    // ... 使用 v ...
+}  // 析构: 自动 free，无需手动释放
+
+// 对比 C 的手动管理（容易忘 free → 泄漏）
+double *arr = malloc(1000 * sizeof(double));  // 必须记得 free
+// ... 使用 ...
+free(arr);  // 忘了就泄漏
+```
+
+**RAII 的威力**——即使中间抛异常，析构也会执行：
+
+```cpp
+void process() {
+    std::vector<double> v(1000000);  // RAII
+    do_something();  // 如果这里抛异常...
+    // v 的析构仍然会执行 → 不泄漏
+}
+
+// 对比 raw pointer（异常时泄漏）
+void process_bad() {
+    double *arr = new double[1000000];
+    do_something();  // 抛异常 → arr 泄漏！
+    delete[] arr;  // 永远到不了
+}
+```
+
+**minitorch 中的 RAII**：`Storage` 析构自动释放 `std::vector`，`grad_mode` 守卫析构自动恢复梯度模式——都是 RAII。
+
+### 8.2.3 智能指针三件套
+
+C++ 没有 Python 的 GC，但有智能指针自动管理引用计数。
+
+**`std::shared_ptr`**（共享所有权）：
+
+```cpp
+#include <memory>
+
+{
+    auto a = std::make_shared<TensorImpl>(...);  // refcnt = 1
+    auto b = a;  // refcnt = 2（b 和 a 共享同一对象）
+
+    a->shape();  // 通过 a 访问
+    b->shape();  // 通过 b 访问（同一个对象）
+
+}  // a 和 b 都析构 → refcnt = 0 → 自动 delete
+
+// 对应 Python: a = TensorImpl(...); b = a; del a; del b
+// Python 的 refcnt 做的事，shared_ptr 也在做
+```
+
+**`std::unique_ptr`**（独占所有权）：
+
+```cpp
+{
+    auto a = std::make_unique<TensorImpl>(...);  // 只有 a 拥有
+    // auto b = a;  // 编译错误！unique_ptr 不能拷贝
+    auto b = std::move(a);  // 转移所有权，a 变成 nullptr
+
+}  // b 析构 → 自动 delete
+```
+
+**`std::weak_ptr`**（弱引用，不增 refcnt）：
+
+```cpp
+auto a = std::make_shared<TensorImpl>(...);  // refcnt = 1
+std::weak_ptr<TensorImpl> w = a;  // refcnt 仍 = 1
+
+a.reset();  // refcnt = 0 → 对象已析构
+auto locked = w.lock();  // 返回空 shared_ptr（对象已不在）
+if (locked) {
+    locked->shape();  // 安全访问
+}
+```
+
+**minitorch 的选择**：`TensorImplPtr = shared_ptr<TensorImpl>`——因为 Python 端和 C++ 端都要持有同一个张量，需要共享所有权。
+
+| 智能指针 | 对应 Python | 用途 |
+|---------|------------|------|
+| `shared_ptr` | 普通引用 | 共享对象（minitorch 用这个） |
+| `unique_ptr` | 无对应（Python 全共享） | 独占对象（更高效） |
+| `weak_ptr` | `weakref` | 缓存、避免循环引用 |
+
+### 8.2.4 move semantics：避免拷贝
+
+C++ 的 `move` 能"偷"资源而不拷贝——Python 没有这个概念（Python 赋值只是增引用）。
+
+```cpp
+std::vector<double> big(1000000, 42.0);  // 8MB
+
+// 拷贝（慢）：复制 8MB
+std::vector<double> copy = big;  // 8MB → 16MB
+
+// move（快）：只偷指针，O(1)
+std::vector<double> moved = std::move(big);  // big 变空，moved 拿走 8MB
+```
+
+**原理**：move 把源对象的内部指针"偷"过来，源对象变成空壳。避免了深拷贝。
+
+**minitorch 中的 move**：
+
+```cpp
+// TensorImpl 构造时 move 传入的 vector
+TensorImpl(std::vector<double> data, ...) {
+    data_ = std::move(data);  // 偷数据，不拷贝
+}
+```
+
+**什么时候触发 move**：
+- `std::move(x)` 显式触发
+- 函数返回值（RVO/NRVO 优化）
+- 临时对象（右值）
+
+### 8.2.5 模板 vs 虚函数：两种多态
+
+C++ 有两种多态，对应 Python 的不同机制：
+
+**虚函数（动态多态）**——运行时分派，类似 Python 的方法重写：
+
+```cpp
+class Node {
+public:
+    virtual ~Node() = default;
+    virtual Tensor apply(const Tensor& grad) = 0;  // 子类重写
+};
+
+class MulNode : public Node {
+public:
+    Tensor apply(const Tensor& grad) override {  // 重写
+        return grad * other_;
+    }
+};
+
+// 运行时通过虚表分派
+Node* node = new MulNode(...);
+node->apply(grad);  // 查虚表 → 调 MulNode::apply
+```
+
+**模板（静态多态）**——编译时确定，类似 Python 的鸭子类型但零开销：
+
+```cpp
+template<typename Op>
+Tensor binary_op(const Tensor& a, const Tensor& b, Op op) {
+    // op 的类型编译时已知 → 内联
+    for (int i = 0; i < n; i++)
+        result[i] = op(a[i], b[i]);  // op 被内联，无调用开销
+}
+
+// 使用
+binary_op(a, b, [](double x, double y) { return x + y; });  // add
+binary_op(a, b, [](double x, double y) { return x * y; });  // mul
+// → 编译器为每种 op 生成特化代码，内联 lambda
+```
+
+**对比**：
+
+| 维度 | 虚函数 | 模板 |
+|------|--------|------|
+| 分派时机 | 运行时（虚表） | 编译时（特化） |
+| 开销 | ~5ns（虚表查找） | 0（内联） |
+| 灵活性 | 可运行时换实现 | 类型必须编译时已知 |
+| 代码大小 | 一份 | 每种类型一份 |
+| Python 对应 | 方法重写 | 鸭子类型 |
+
+**minitorch 的选择**：`Node` 用虚函数（运行时需要分派不同算子的 backward），`binary_op` 用模板（编译时已知操作，内联加速）。
+
+### 8.2.6 头文件设计原则
+
+C++ 的头文件（`.h`）和实现文件（`.cpp`）分离，Python 没有这个概念。
+
+**为什么分头文件和实现**：
+- 头文件是"接口"，实现文件是"实现"
+- 多个 `.cpp` include 同一个 `.h`，只需编译一次实现
+- 隐藏实现细节，减少编译依赖
+
+**include guard**（防止重复包含）：
+
+```cpp
+// storage.h
+#ifndef MINITORCH_STORAGE_H
+#define MINITORCH_STORAGE_H
+
+class Storage { ... };
+
+#endif  // MINITORCH_STORAGE_H
+
+// 或用 #pragma once（更简洁，主流编译器都支持）
+#pragma once
+class Storage { ... };
+```
+
+**forward declaration**（前向声明，减少编译依赖）：
+
+```cpp
+// tensor.h
+class Storage;  // 前向声明：只用名字，不需要完整定义
+
+class TensorImpl {
+    std::shared_ptr<Storage> storage_;  // 只用 Storage 的指针，OK
+    // Storage::size() 不能调（定义不完整）
+};
+```
+
+**minitorch 的头文件组织**：
+
+```
+cpp/c10/storage.h     ← Storage 的接口
+cpp/c10/storage.cpp   ← Storage 的实现
+cpp/c10/tensor.h      ← TensorImpl 的接口（include storage.h）
+cpp/c10/tensor.cpp    ← TensorImpl 的实现
+```
+
+### 8.2.7 编译链接四步曲
+
+C++ 从源码到可执行文件经历四步，理解这四步能排查很多编译问题：
+
+```
+源文件 (.cpp/.h)
+    ↓ 预处理 (g++ -E)
+预处理后的源文件（展开 #include、#define）
+    ↓ 编译 (g++ -S)
+汇编文件 (.s)
+    ↓ 汇编 (g++ -c)
+目标文件 (.o/.obj)
+    ↓ 链接 (g++ 或 ld)
+可执行文件 / 动态库 (.exe / .pyd / .so)
+```
+
+**每步做什么**：
+
+```
+1. 预处理:
+   - 展开 #include（把 .h 内容插入）
+   - 替换 #define 宏
+   - 处理 #if/#ifdef 条件编译
+   → g++ -E storage.cpp -o storage.i  (查看预处理结果)
+
+2. 编译:
+   - 语法分析 → AST
+   - 类型检查
+   - 代码生成 → 汇编
+   → g++ -S storage.cpp -o storage.s
+
+3. 汇编:
+   - 汇编指令 → 机器码
+   → g++ -c storage.cpp -o storage.o
+
+4. 链接:
+   - 合并多个 .o
+   - 解析符号引用（函数调用、全局变量）
+   - 生成 .pyd / .so
+   → g++ storage.o tensor.o ... -o _C_ext.pyd
+```
+
+**常见编译问题**：
+
+| 问题 | 阶段 | 原因 | 解决 |
+|------|------|------|------|
+| `#include` 文件找不到 | 预处理 | include 路径不对 | 加 `-I` 路径 |
+| `undefined reference` | 链接 | 函数声明了但没实现 | 检查 `.cpp` 是否参与编译 |
+| `multiple definition` | 链接 | 同一函数定义了两次 | 头文件只声明，`.cpp` 定义 |
+| `redefinition` | 预处理 | 头文件重复包含 | 加 include guard |
+
+**minitorch 的编译**：CMake 自动管理这四步，用户只需 `cmake --build`。
+
+---
+
+## 8.3 原理铺垫：PyTorch 的三层分离
+
+### 8.3.1 为什么要分三层
 
 先看一个朴素问题：**为什么不全用 Python 写？**
 
@@ -92,9 +399,9 @@ minitorch 选 pybind11 + C++，不是因为它最快，而是因为它**和真�
 
     ---
 
-## 8.3 设计决策与权衡
+## 8.4 设计决策与权衡
 
-### 8.3.1 决策表
+### 8.4.1 决策表
 
 | 决策点 | 选项 | 我们选 | 理由 |
 |--------|------|--------|------|
@@ -107,7 +414,7 @@ minitorch 选 pybind11 + C++，不是因为它最快，而是因为它**和真�
 | 异常 | C++ 异常 / 返回码 / abort | **C++ 异常 → pybind11 翻译成 Python 异常** | 自动、干净 |
 | 算子分发 | 直接调 / dispatch table | **Ch8 直接调，Ch10 引入 dispatch** | 渐进教学：先讲清 C++，再讲异构路由 |
 
-### 8.3.2 为什么用 `shared_ptr` 而不是 `unique_ptr`
+### 8.4.2 为什么用 `shared_ptr` 而不是 `unique_ptr`
 
 `TensorImpl` 持有 `shared_ptr<Storage>`，不是 `unique_ptr<Storage>`。原因是 **view 操作要共享 Storage**：
 
@@ -120,7 +427,7 @@ auto b = a->transpose();   // b 和 a 共享同一块 Storage！
 
 `unique_ptr` 是独占所有权，不能共享，所以不行。真实 PyTorch 用自己的 `c10::intrusive_ptr`（比 `shared_ptr` 省一次原子操作，因为线程模型不同），原理一样。
 
-### 8.3.3 为什么算子返回新张量而不是原地修改
+### 8.4.3 为什么算子返回新张量而不是原地修改
 
 我们的算子签名是 `TensorImplPtr add(a, b)`——返回新张量，不改输入。原因：
 
@@ -132,11 +439,11 @@ auto b = a->transpose();   // b 和 a 共享同一块 Storage！
 
 ---
 
-## 8.4 代码逐行实现：Storage C++ 类
+## 8.5 代码逐行实现：Storage C++ 类
 
 `Storage` 是最底层——一块一维的 `double` 缓冲区。对应阶段一的 `src/minitorch/storage.py`，对应真实 PyTorch 的 `c10::Storage`。
 
-### 8.4.1 头文件 `cpp/c10/storage.h`
+### 8.5.1 头文件 `cpp/c10/storage.h`
 
 ```cpp
 // Storage：一维数据缓冲区（Ch8 C++ 核心重写）
@@ -194,7 +501,7 @@ private:
 - `data()` 返回裸指针：算子层要用连续指针做遍历，这是性能关键路径，不能每次返回 `vector` 拷贝。
 - `operator[]` 带边界检查：教学版要安全；真实 PyTorch 在 release 模式去掉检查换性能。
 
-### 8.4.2 实现 `cpp/c10/storage.cpp`
+### 8.5.2 实现 `cpp/c10/storage.cpp`
 
 ```cpp
 #include "storage.h"
@@ -269,11 +576,11 @@ std::string Storage::repr() const {
 
     ---
 
-## 8.5 代码逐行实现：TensorImpl C++ 类
+## 8.6 代码逐行实现：TensorImpl C++ 类
 
 `TensorImpl` 是张量的"实现核心"——持有 Storage + shape + strides + offset。对应阶段一的 `src/minitorch/tensor.py`，对应真实 PyTorch 的 `at::TensorImpl`。
 
-### 8.5.1 头文件 `cpp/c10/tensor.h`（关键部分）
+### 8.6.1 头文件 `cpp/c10/tensor.h`（关键部分）
 
 ```cpp
 #pragma once
@@ -366,7 +673,7 @@ private:
 3. **`storage_offset_`**：view/slice 可能从 Storage 中间开始读，这个偏移记录起点。真实 PyTorch 同款。
 4. **拷贝构造是浅拷贝**：`TensorImpl(const TensorImpl& other)` 共享 Storage（`shared_ptr` 拷贝即共享）。深拷贝要显式调 `contiguous()`。
 
-### 8.5.2 strides 计算
+### 8.6.2 strides 计算
 
 ```cpp
 std::vector<int64_t> compute_contiguous_strides(const std::vector<int64_t>& shape) {
@@ -383,7 +690,7 @@ std::vector<int64_t> compute_contiguous_strides(const std::vector<int64_t>& shap
 
 对 shape `[2, 3, 4]`：`strides = [12, 4, 1]`。意思是"沿第 0 维走一步跳 12 个元素，沿第 1 维跳 4 个，沿第 2 维跳 1 个"。这是行优先（C order）布局，和 NumPy/PyTorch 默认一致。
 
-### 8.5.3 广播 shapes
+### 8.6.3 广播 shapes
 
 ```cpp
 std::vector<int64_t> broadcast_shapes(const std::vector<int64_t>& a,
@@ -406,7 +713,7 @@ std::vector<int64_t> broadcast_shapes(const std::vector<int64_t>& a,
 
 广播规则：从右往左对齐维度，每维要么相等、要么其中一个是 1。`[2,3]` 和 `[3]` 广播成 `[2,3]`；`[2,3]` 和 `[2,1]` 广播成 `[2,3]`；`[2,3]` 和 `[2,4]` 报错。
 
-### 8.5.4 `linear_offset`：逻辑索引 → 物理偏移
+### 8.6.4 `linear_offset`：逻辑索引 → 物理偏移
 
 ```cpp
 int64_t TensorImpl::linear_offset(const std::vector<int64_t>& indices) const {
@@ -420,7 +727,7 @@ int64_t TensorImpl::linear_offset(const std::vector<int64_t>& indices) const {
 
 这是张量访问的"万能公式"：给定逻辑索引 `(i, j, k)`，物理偏移 = `offset + i*stride[0] + j*stride[1] + k*stride[2]`。view/transpose 只改 strides，这个公式自动适应，零拷贝。
 
-### 8.5.5 `contiguous`：把非连续张量物理化
+### 8.6.5 `contiguous`：把非连续张量物理化
 
 ```cpp
 TensorImplPtr TensorImpl::contiguous() const {
@@ -450,7 +757,7 @@ TensorImplPtr TensorImpl::contiguous() const {
 !!! warning "索引递增的小技巧"
     内层 `for (int64_t d = ndim()-1; d >= 0; --d) { if (++indices[d] < shape_[d]) break; indices[d] = 0; }` 是"进位加法"——从最右维加 1，满了进位到左维。这等价于 `np.ndindex`，但不用乘法，每步 O(ndim) 最坏，常数极小。
 
-### 8.5.6 `transpose`：零拷贝
+### 8.6.6 `transpose`：零拷贝
 
 ```cpp
 TensorImplPtr TensorImpl::transpose(int64_t dim0, int64_t dim1) const {
@@ -469,11 +776,11 @@ TensorImplPtr TensorImpl::transpose(int64_t dim0, int64_t dim1) const {
 
 ---
 
-## 8.6 代码逐行实现：算子
+## 8.7 代码逐行实现：算子
 
 算子在 `cpp/aten/ops.cpp`。核心是一个通用模板 `binary_op`，所有逐元素二元算子复用它。
 
-### 8.6.1 广播到目标 shape
+### 8.7.1 广播到目标 shape
 
 ```cpp
 TensorImplPtr broadcast_to(const TensorImplPtr& a,
@@ -514,7 +821,7 @@ TensorImplPtr broadcast_to(const TensorImplPtr& a,
 
 **广播的零拷贝技巧**：把 `[3]` 广播成 `[2,3]`，不拷贝数据，只把新张量的 strides 设成 `[0, 1]`——第 0 维 stride=0 意味着"沿第 0 维走时地址不变"，于是两个"行"实际读同一块数据。这是 PyTorch 广播的核心实现，和我们这里完全一致。
 
-### 8.6.2 通用二元算子模板
+### 8.7.2 通用二元算子模板
 
 ```cpp
 template <typename Op>
@@ -564,7 +871,7 @@ TensorImplPtr div(const TensorImplPtr& a, const TensorImplPtr& b) {
 !!! tip "模板 vs 虚函数"
     这里用编译期模板（`template <typename Op>`），`op` 调用在编译期就内联进循环。如果用虚函数（`std::function` 或继承），每次循环多一次间接调用。教学版用模板，性能最佳；真实 PyTorch 用代码生成批量产生特化代码，思路相同。
 
-### 8.6.3 一元算子（neg / relu）
+### 8.7.3 一元算子（neg / relu）
 
 ```cpp
 TensorImplPtr relu(const TensorImplPtr& a) {
@@ -585,7 +892,7 @@ TensorImplPtr relu(const TensorImplPtr& a) {
 
 `relu` 在 0 处取 `max(0.0, val)`，即 `x > 0` 时返回 x，否则 0。导数在 0 处取 0（与 PyTorch 一致）。
 
-### 8.6.4 矩阵乘法
+### 8.7.4 矩阵乘法
 
 ```cpp
 TensorImplPtr matmul(const TensorImplPtr& a, const TensorImplPtr& b) {
@@ -621,11 +928,11 @@ TensorImplPtr matmul(const TensorImplPtr& a, const TensorImplPtr& b) {
 
 ---
 
-## 8.7 代码逐行实现：pybind11 绑定
+## 8.8 代码逐行实现：pybind11 绑定
 
 绑定层在 `cpp/binding/module.cpp`。它把 C++ 的 `Storage`、`TensorImpl`、算子暴露成 Python 的类和函数。
 
-### 8.7.1 模块入口
+### 8.8.1 模块入口
 
 ```cpp
 #include <pybind11/pybind11.h>
@@ -648,7 +955,7 @@ PYBIND11_MODULE(_C_ext, m) {
 
 `PYBIND11_MODULE(_C_ext, m)` 是宏，展开后等价于 CPython 的 `PyInit__C_ext`。`m` 是模块对象，往上面挂类和函数。
 
-### 8.7.2 绑定 Storage
+### 8.8.2 绑定 Storage
 
 ```cpp
 py::class_<Storage, std::shared_ptr<Storage>>(m, "Storage")
@@ -671,7 +978,7 @@ py::class_<Storage, std::shared_ptr<Storage>>(m, "Storage")
 - `__len__`/`__getitem__`/`__repr__`：Python 魔术方法，pybind11 直接映射。
 - `data()` 返回 `py::array_t<double>`：零拷贝把 C++ 的 `double*` 包成 NumPy 数组。`py::cast(&s)` 让数组持有对 `Storage` 的引用，数组存活期间 Storage 不会被回收——这是避免"悬垂指针"的关键。
 
-### 8.7.3 绑定 TensorImpl
+### 8.8.3 绑定 TensorImpl
 
 ```cpp
 py::class_<TensorImpl, TensorImplPtr>(m, "TensorImpl")
@@ -722,7 +1029,7 @@ py::class_<TensorImpl, TensorImplPtr>(m, "TensorImpl")
 - `from_numpy`：通过 `py::buffer_info` 拿 NumPy 数组的裸指针和 shape，零拷贝构造。`py::array_t<double>` 是 pybind11 的类型化数组包装。
 - lambda 包装：很多方法用 lambda 而非直接传函数指针，因为要 `std::move` 参数或做类型转换。
 
-### 8.7.4 绑定算子（避开名字冲突）
+### 8.8.4 绑定算子（避开名字冲突）
 
 ```cpp
 // 用 lambda 包装避免与 std::div/std::sum 等名字冲突
@@ -742,7 +1049,7 @@ m.def("matmul", [](const TensorImplPtr& a, const TensorImplPtr& b) { return matm
 
     ---
 
-## 8.8 C++ Autograd 及高级特性
+## 8.9 C++ Autograd 及高级特性
 
 本章讲解了 C++ 核心的**基础层**：Storage、TensorImpl、ops、pybind11 绑定。
 
@@ -761,9 +1068,9 @@ C++ 核心的**高级特性**——autograd 引擎、多线程并行、double ba
 
 ---
 
-## 8.9 完整示例：从 CMake 到 import
+## 8.10 完整示例：从 CMake 到 import
 
-### 8.9.1 CMakeLists.txt
+### 8.10.1 CMakeLists.txt
 
 ```cmake
 cmake_minimum_required(VERSION 3.18)
@@ -818,7 +1125,7 @@ set_target_properties(_C_ext PROPERTIES PREFIX "" SUFFIX ".pyd"/".so")
 
 它自动处理：链接 pybind11、设对后缀、加 Python 头文件路径。
 
-### 8.9.2 编译命令（Windows / PowerShell）
+### 8.10.2 编译命令（Windows / PowerShell）
 
 ```powershell
 # 1. 安装 pybind11
@@ -834,7 +1141,7 @@ cmake --build build --config Release
 # 4. 产物 _C_ext.cp314-win_amd64.pyd 会被装到 src/minitorch/
 ```
 
-### 8.9.3 Python 端 import
+### 8.10.3 Python 端 import
 
 ```python
 # src/minitorch/__init__.py 里
@@ -855,7 +1162,7 @@ class Tensor:
 
 前端 `Tensor` 自动用 C++ 核心或 Python 核心取决于是否编译了扩展。**用户代码不变**。
 
-### 8.9.4 验证
+### 8.10.4 验证
 
 ```python
 from minitorch import _cpp_ext
@@ -869,9 +1176,9 @@ print(c.numpy())       # [[ 6.  8.]
 
 ---
 
-## 8.10 常见陷阱
+## 8.11 常见陷阱
 
-### 8.10.1 DLL 依赖缺失
+### 8.11.1 DLL 依赖缺失
 
 **症状**：`import minitorch._C_ext` 报 `ImportError: DLL load failed`。
 
@@ -890,7 +1197,7 @@ dumpbin /dependents _C_ext.cp314-win_amd64.pyd
 - 或静态链接 runtime：CMake 里 `set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")`。
 - Linux 用 `ldd` 查依赖，`LD_LIBRARY_PATH` 加路径。
 
-### 8.10.2 名字冲突：std::div / std::sum
+### 8.11.2 名字冲突：std::div / std::sum
 
 **症状**：编译报 `reference to 'div' is ambiguous` 或 `call of overloaded 'sum(...)' is ambiguous`。
 
@@ -902,7 +1209,7 @@ dumpbin /dependents _C_ext.cp314-win_amd64.pyd
 - 或不用 `using namespace`，全限定 `minitorch::ops::div`。
 - 或 `#undef div` / `#undef sum`（Windows 的 `<cstdlib>` 会把 `div` 定义成宏，最脏但有效）。
 
-### 8.10.3 Python 版本 ABI 不兼容
+### 8.11.3 Python 版本 ABI 不兼容
 
 **症状**：Python 3.13 编译的 `.pyd` 在 Python 3.14 import 报 `ImportError: Module use of python313.dll conflicts with this version of Python`。
 
@@ -914,7 +1221,7 @@ dumpbin /dependents _C_ext.cp314-win_amd64.pyd
 - 文件名带版本标签：`_C_ext.cp314-win_amd64.pyd`，Python 只 import 匹配自己版本的。
 - 或用 pybind11 的 `PYBIND11_MODULE(..., m, py::mod_gil_not_used())` 配合有限稳定 ABI（进阶）。
 
-### 8.10.4 shared_ptr 循环引用
+### 8.11.4 shared_ptr 循环引用
 
 **症状**：内存泄漏，TensorImpl 永不析构。
 
@@ -922,7 +1229,7 @@ dumpbin /dependents _C_ext.cp314-win_amd64.pyd
 
 **解决**：用 `weak_ptr` 打破环。本教学版没这个问题（TensorImpl 不持回指），但 autograd 的计算图会遇——`Node` 的 `next_edges_` 用 `weak_ptr` 避免环。
 
-### 8.10.5 异常穿越语言边界
+### 8.11.5 异常穿越语言边界
 
 **症状**：C++ 抛异常没被 catch，进程崩溃。
 
@@ -932,9 +1239,9 @@ dumpbin /dependents _C_ext.cp314-win_amd64.pyd
 
 ---
 
-## 8.11 与真实 PyTorch 对照
+## 8.12 与真实 PyTorch 对照
 
-### 8.11.1 Storage
+### 8.12.1 Storage
 
 | 我们的 `minitorch::Storage` | 真实 `c10::Storage` |
 |----------------------------|---------------------|
@@ -946,7 +1253,7 @@ dumpbin /dependents _C_ext.cp314-win_amd64.pyd
 
 我们的 Storage 是 c10::Storage 的"单 dtype、单 device"特化。**核心结构（一块 buffer + 大小 + allocator 指针 + 引用计数）完全一致**。自定义 Allocator 的深入讲解见第九章 §9.4。
 
-### 8.11.2 TensorImpl
+### 8.12.2 TensorImpl
 
 | 我们的 `minitorch::TensorImpl` | 真实 `at::TensorImpl` / `c10::TensorImpl` |
 |--------------------------------|-------------------------------------------|
@@ -960,7 +1267,7 @@ dumpbin /dependents _C_ext.cp314-win_amd64.pyd
 
 真实 TensorImpl 多了"dispatch key set"（Ch10 讲）和一堆元数据（命名、tracing、autograd 包裹），但**张量的本质——Storage + shape + strides + offset——和这里一字不差**。
 
-### 8.11.3 绑定层
+### 8.12.3 绑定层
 
 | 我们的 pybind11 绑定 | 真实 PyTorch 绑定 |
 |----------------------|-------------------|
@@ -976,9 +1283,9 @@ PyTorch 早期（0.x）全用 CPython C-API，样板爆炸。后来部分迁到 
 
     ---
 
-## 8.12 历史背景
+## 8.13 历史背景
 
-### 8.12.1 ATen 的诞生（2016）
+### 8.13.1 ATen 的诞生（2016）
 
 PyTorch 的 C++ 核心叫 **ATen**（"A Tensor Library"），2016 年由 Soumith Chintala 等人创建。背景：
 
@@ -990,7 +1297,7 @@ Soumith 的思路：**Torch7 的 C 后端 + Chainer 的 Python 前端 + 动态�
 
 ATen 的关键设计是 **"operator dispatch by device"**——同一个 `at::add` 在 CPU 走 `at::native::add_cpu`，在 CUDA 走 `at::native::add_cuda`。这就是 Ch10 要讲的 dispatcher。
 
-### 8.12.2 PyTorch 1.0 重构（2018）
+### 8.13.2 PyTorch 1.0 重构（2018）
 
 PyTorch 0.x 有两个张量类型：`Tensor`（纯张量）和 `Variable`（autograd 包裹）。用户要写 `Variable(t, requires_grad=True)`，烦。
 
@@ -998,13 +1305,13 @@ PyTorch 0.x 有两个张量类型：`Tensor`（纯张量）和 `Variable`（auto
 
 同时 `torch::autograd` 迁到 C++，`Function` 基类、`Node`、`Edge` 都在 C++，Python 端只是薄壳。minitorch 出于教学把 autograd 留在 Python，但**结构对照真实 PyTorch 的 C++ autograd**。
 
-### 8.12.3 从 ATen 到 "core" 重命名（2020+）
+### 8.13.3 从 ATen 到 "core" 重命名（2020+）
 
 2020 年后 PyTorch 把 `aten/` 和 `c10/`（C++ 核心库）整理成 `core/`，强调"c10 是无依赖的纯 C++ 库，aten 是算子层"。minitorch 的目录结构（`cpp/c10/` 放核心抽象，`cpp/aten/` 放算子，`cpp/autograd/` 放自动微分）就是这套分层的简化。
 
 ---
 
-## 8.13 练习题
+## 8.14 练习题
 
 ### 练习 1：给 Storage 加 `resize` 方法
 
@@ -1099,11 +1406,11 @@ c = b.view([6])            # 抛异常！
 
 ---
 
-## 8.14 关键测试解读
+## 8.15 关键测试解读
 
 C++ 核心共有 155 个测试（`test_cpp_ext.py` 18 + `test_cpp_autograd.py` 31 + `test_cpp_tensor.py` 23 + `test_cpp_allocator.py` 5 + `test_cpp_math_ops.py` 20 + `test_cpp_loss_ops.py` 12 + `test_cpp_tensor_ops.py` 12 + `test_cpp_compare_reduce.py` 16 + `test_cpp_profiler.py` 3 + `test_cpp_hooks_anomaly.py` 9 + `test_cpp_checkpoint.py` 6），全过。本节挑 `test_cpp_ext.py` 中的代表性测试逐个看它们验证什么：
 
-### 8.14.1 加载与版本
+### 8.15.1 加载与版本
 
 ```python
 def test_cpp_extension_loaded():
@@ -1113,7 +1420,7 @@ def test_cpp_extension_loaded():
 
 验证 `.pyd` 能 import、`__version__` 属性挂上了。这是"编译链通了"的烟雾测试。
 
-### 8.14.2 创建与属性
+### 8.15.2 创建与属性
 
 ```python
 def test_tensor_creation():
@@ -1125,7 +1432,7 @@ def test_tensor_creation():
 
 验证构造函数、`shape`/`numel`/`ndim` 属性。`t.shape` 是属性（`def_property_readonly`）不是方法。
 
-### 8.14.3 算子正确性
+### 8.15.3 算子正确性
 
 ```python
 def test_add():
@@ -1137,7 +1444,7 @@ def test_add():
 
 `add`/`sub`/`mul`/`matmul`/`neg`/`relu` 各一个，验证数值正确。`to_vector()` 把数据拉平成 Python list 做断言。
 
-### 8.14.4 view 语义
+### 8.15.4 view 语义
 
 ```python
 def test_transpose():
@@ -1156,7 +1463,7 @@ def test_contiguous():
 
 这两个测试是 view 操作的精髓：`transpose` 不拷贝（`to_vector` 按逻辑顺序读出转置结果），`contiguous` 物理化（数据一样但 strides 变标准形）。
 
-### 8.14.5 NumPy 互操作
+### 8.15.5 NumPy 互操作
 
 ```python
 def test_numpy_roundtrip():
@@ -1169,7 +1476,7 @@ def test_numpy_roundtrip():
 
 `from_numpy` → `numpy()` 往返不丢数据。这是绑定层与 NumPy 生态衔接的验证。
 
-### 8.14.6 reshape 跨 contiguous
+### 8.15.6 reshape 跨 contiguous
 
 ```python
 def test_reshape():
@@ -1183,9 +1490,9 @@ def test_reshape():
 
 ---
 
-## 8.15 优劣势总结
+## 8.16 优劣势总结
 
-### 8.15.1 优势
+### 8.16.1 优势
 
 1. **性能**：逐元素算子比 Python 快一个数量级（C++ 循环 + 编译器优化 + 无解释器开销）。
 2. **接 CUDA 的前置**：CUDA kernel 只能从 C++ 调，有了 C++ 核心才能做 Ch10。
@@ -1193,7 +1500,7 @@ def test_reshape():
 4. **行为等价可验证**：复用前七章的 Python 测试套件，一行不改全过，证明重写没引入 bug。
 5. **前端零改动**：用户的 `Tensor`、`nn.Module`、训练循环代码不变，平滑升级。
 
-### 8.15.2 劣势
+### 8.16.2 劣势
 
 1. **构建链复杂**：CMake + pybind11 + 编译器，跨平台有门槛（尤其 Windows 的 MSVC）。
 2. **调试难**：C++ 层的 bug 要用 gdb/LLDB/Visual Studio 调，不如 Python 的 pdb 顺手。
@@ -1201,7 +1508,7 @@ def test_reshape():
 4. **教学版简化多**：只 double、只 host、无 BLAS、无并行，性能离真实 PyTorch 还很远。
 5. **绑定样板**：每个类/算子要写绑定代码，量大（pybind11 已是最省的方案，但仍 125 行）。
 
-### 8.15.3 什么时候值得用 C++
+### 8.16.3 什么时候值得用 C++
 
 - **热路径**：被调几百万次的算子，Python 开销不可接受。
 - **要接 GPU/异构**：CUDA/ROCm/SYCL 只能从 C++ 进。
@@ -1212,7 +1519,7 @@ def test_reshape():
 
 ---
 
-## 8.16 下一章预告
+## 8.17 下一章预告
 
 本章搭好了 C++ 核心的"地基"——Storage、TensorImpl、基本算子、pybind11 绑定。但 autograd 引擎、多线程并行、double backward、自定义 Allocator、Profiler、Hooks、Checkpointing 这些**高级特性**还没有展开。下一章（Ch9）深入讲解这些内容：
 
