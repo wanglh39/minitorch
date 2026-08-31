@@ -1,6 +1,5 @@
 """test_cpp_profiler：autograd profiler 测试（Ch9 深入）。"""
 
-import numpy as np
 from minitorch import _cpp_ext as _C
 
 
@@ -33,7 +32,7 @@ def test_profiler_timing_positive():
     _C.profiler_stop()
 
     events = _C.profiler_events()
-    for name, duration, mem_before, mem_after, tid in events:
+    for _name, duration, _mem_before, _mem_after, _tid in events:
         assert duration >= 0.0
 
 
